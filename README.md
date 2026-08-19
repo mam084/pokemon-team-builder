@@ -6,16 +6,23 @@ Built as a portfolio project, developed in stages — this repo is meant to show
 
 ![Dashboard screenshot](docs/screenshot.png)
 
-## Features (Stage 1)
+## Features
 
+**Stage 1 — Dashboard basics**
 - Pulls live Pokemon data (types, base stats, abilities) from [PokeAPI](https://pokeapi.co/)
 - Build a team of up to 6 Pokemon via a simple picker
 - **Type coverage heatmap** — see at a glance which attacking types your team is weak or resistant to, plus a callout for any shared weaknesses (types that hit 2+ team members hard)
 - **Stat comparison** — radar chart and base-stat-total bar chart across your selected team
 
+**Stage 2 — Real competitive usage data**
+- Pulls monthly [Smogon usage stats](https://www.smogon.com/stats/) (Gen 9 OU by default) for real-world data on what's actually played
+- **Usage share** — approximate meta popularity for each team member
+- **Suggested teammates** — for each Pokemon on your team, see who competitive players most commonly pair them with, based on real teammate co-occurrence data
+- Bridges PokeAPI's and Smogon's differing name conventions (e.g. `ogerpon-wellspring` vs. `Ogerpon-Wellspring`, `Tapu Koko`, `Mr. Mime`) so both datasets join cleanly
+
 ## Tech Stack
 
-- **Data:** [PokeAPI](https://pokeapi.co/) (REST), fetched concurrently with `concurrent.futures`
+- **Data:** [PokeAPI](https://pokeapi.co/) (REST), fetched concurrently with `concurrent.futures`; [Smogon usage stats](https://www.smogon.com/stats/) (plain text)
 - **Processing:** pandas
 - **Dashboard:** Streamlit
 - **Charts:** Plotly
@@ -30,9 +37,14 @@ cd pokemon-team-builder
 # install dependencies
 pip install -r requirements.txt
 
-# fetch and clean the data (Gen 1 by default; see --help for full dex)
-python src/fetch_data.py
+# fetch and clean the dex data (full national dex recommended)
+python src/fetch_data.py --start 1 --end 1025
 python src/clean_data.py
+
+# fetch and parse real competitive usage data (optional but recommended -
+# check https://www.smogon.com/stats/ for available months)
+python src/fetch_usage_data.py --month 2026-06
+python src/parse_usage_data.py --input data/usage_gen9ou_2026-06.txt
 
 # launch the dashboard
 streamlit run app.py
@@ -43,30 +55,53 @@ streamlit run app.py
 ```
 pokemon-team-builder/
 ├── data/
-│   ├── pokemon_raw.json       # cached API pulls
-│   └── pokemon_clean.csv      # tidy dataset used by the app
+│   ├── pokemon_raw.json
+│   ├── pokemon_clean.csv
+│   ├── usage_gen9ou_YYYY-MM.txt
+│   ├── usage_summary.csv
+│   └── teammates.csv
 ├── docs/
-│   └── screenshot.png         # dashboard screenshot for this README
+│   └── screenshot.png
 ├── src/
-│   ├── fetch_data.py          # pulls from PokeAPI (concurrent, resumable)
-│   ├── clean_data.py          # raw JSON -> tidy DataFrame
-│   └── type_chart.py          # type effectiveness lookup logic
-├── app.py                     # Streamlit dashboard
+│   ├── fetch_data.py
+│   ├── clean_data.py
+│   ├── type_chart.py
+│   ├── fetch_usage_data.py
+│   ├── parse_usage_data.py
+│   └── name_utils.py
+├── app.py
 ├── requirements.txt
 ├── .gitignore
 └── README.md
 ```
 
+**`data/`** — cached PokeAPI pulls (`pokemon_raw.json`), the tidy dex dataset (`pokemon_clean.csv`), the raw Smogon download, and the tidy usage/teammates CSVs parsed from it.
+
+**`src/`**
+- `fetch_data.py` — pulls dex data from PokeAPI (concurrent, resumable)
+- `clean_data.py` — raw JSON → tidy DataFrame
+- `type_chart.py` — type effectiveness lookup logic
+- `fetch_usage_data.py` — downloads Smogon usage stats
+- `parse_usage_data.py` — raw Smogon text → tidy usage/teammates CSVs
+- `name_utils.py` — bridges PokeAPI ↔ Smogon naming conventions
+
+**`app.py`** — the Streamlit dashboard.
+
 ## Roadmap
 
 This project is being built in stages, each a working milestone:
 
-- [x] **Stage 1 — Basic dashboard:** PokeAPI data, type coverage, stat comparison *(this release)*
-- [ ] **Stage 2 — Real usage data:** incorporate [Smogon usage stats](https://www.smogon.com/stats/) to see what's actually played in the competitive meta, and calculate teammate co-occurrence rates
+- [x] **Stage 1 — Basic dashboard:** PokeAPI data, type coverage, stat comparison
+- [x] **Stage 2 — Real usage data:** incorporated [Smogon usage stats](https://www.smogon.com/stats/) to see what's actually played in the competitive meta, and calculated teammate co-occurrence rates *(this release)*
 - [ ] **Stage 3 — Basic recommender:** given a Pokemon, suggest common teammates based on co-occurrence
 - [ ] **Stage 4 — Upgraded model:** move from co-occurrence counting to learned embeddings (e.g. word2vec-style training on team compositions) for synergy-aware recommendations
 - [ ] **Stage 5 — Deploy:** ship as a public web app (Streamlit Community Cloud) so the recommender is live and clickable, not just a notebook
 
 ## Data Source
 
-Pokemon data via [PokeAPI](https://pokeapi.co/), a free and open Pokemon API. Type effectiveness values follow current (Gen 6+) game rules.
+- Pokemon dex data via [PokeAPI](https://pokeapi.co/), a free and open Pokemon API. Type effectiveness values follow current (Gen 6+) game rules.
+- Competitive usage and teammate data via [Smogon University's usage stats](https://www.smogon.com/stats/), which are published monthly and freely available. Defaults to the Gen 9 OU format.
+
+**A couple of caveats worth knowing:**
+- "Usage Share" in the dashboard is an approximation based on each Pokemon's raw appearance count relative to the dataset total — Smogon's true weighted usage % isn't available from the moveset file this project parses, so treat this as a relative ranking rather than an exact published figure.
+- Teammate co-occurrence % is not symmetric — e.g. "of teams running Pokemon A, X% also ran Pokemon B" is a different number than the reverse, since A and B aren't used equally often overall. This is expected and reflects how the underlying data works, not a bug.

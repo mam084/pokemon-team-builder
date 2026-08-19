@@ -1,0 +1,4021 @@
+pokemon,teammate,co_occurrence_pct
+Great Tusk,Gholdengo,29.643
+Great Tusk,Kingambit,25.427
+Great Tusk,Slowking-Galar,20.732
+Great Tusk,Dragonite,17.59
+Great Tusk,Raging Bolt,17.072
+Great Tusk,Kyurem,15.133
+Great Tusk,Iron Valiant,14.913
+Great Tusk,Hatterene,14.911
+Great Tusk,Ogerpon-Wellspring,14.772
+Great Tusk,Walking Wake,13.869
+Gholdengo,Great Tusk,42.634
+Gholdengo,Dragonite,29.243
+Gholdengo,Samurott-Hisui,22.296
+Gholdengo,Zamazenta,21.747
+Gholdengo,Iron Valiant,19.472
+Gholdengo,Kingambit,17.493
+Gholdengo,Ting-Lu,15.935
+Gholdengo,Ogerpon-Wellspring,14.81
+Gholdengo,Raging Bolt,13.574
+Gholdengo,Gliscor,11.697
+Kingambit,Great Tusk,38.834
+Kingambit,Iron Valiant,23.418
+Kingambit,Kyurem,20.262
+Kingambit,Slowking-Galar,20.138
+Kingambit,Ogerpon-Wellspring,19.541
+Kingambit,Raging Bolt,18.753
+Kingambit,Gholdengo,18.576
+Kingambit,Dragapult,17.51
+Kingambit,Cinderace,15.043
+Kingambit,Dragonite,13.22
+Iron Valiant,Kingambit,29.419
+Iron Valiant,Great Tusk,28.612
+Iron Valiant,Gholdengo,25.975
+Iron Valiant,Dragonite,21.93
+Iron Valiant,Landorus-Therian,19.177
+Iron Valiant,Cinderace,18.789
+Iron Valiant,Ogerpon-Wellspring,16.135
+Iron Valiant,Alomomola,14.651
+Iron Valiant,Kyurem,13.557
+Iron Valiant,Zamazenta,13.066
+Dragonite,Gholdengo,41.017
+Dragonite,Great Tusk,35.486
+Dragonite,Zamazenta,23.779
+Dragonite,Iron Valiant,23.059
+Dragonite,Ting-Lu,19.225
+Dragonite,Darkrai,17.556
+Dragonite,Kingambit,17.462
+Dragonite,Samurott-Hisui,13.368
+Dragonite,Gliscor,12.577
+Dragonite,Hatterene,12.118
+Zamazenta,Gholdengo,31.771
+Zamazenta,Dragonite,24.767
+Zamazenta,Gliscor,19.522
+Zamazenta,Great Tusk,19.289
+Zamazenta,Ogerpon-Wellspring,19.218
+Zamazenta,Iron Treads,16.808
+Zamazenta,Ting-Lu,15.24
+Zamazenta,Kingambit,14.936
+Zamazenta,Iron Valiant,14.309
+Zamazenta,Hatterene,13.857
+Ogerpon-Wellspring,Great Tusk,31.594
+Ogerpon-Wellspring,Kingambit,27.364
+Ogerpon-Wellspring,Gholdengo,22.023
+Ogerpon-Wellspring,Raging Bolt,19.614
+Ogerpon-Wellspring,Zamazenta,19.561
+Ogerpon-Wellspring,Dragapult,18.288
+Ogerpon-Wellspring,Iron Valiant,17.986
+Ogerpon-Wellspring,Gliscor,13.455
+Ogerpon-Wellspring,Hatterene,13.321
+Ogerpon-Wellspring,Dragonite,12.809
+Raging Bolt,Great Tusk,37.547
+Raging Bolt,Kingambit,27.005
+Raging Bolt,Gholdengo,20.758
+Raging Bolt,Ogerpon-Wellspring,20.171
+Raging Bolt,Iron Treads,18.535
+Raging Bolt,Hatterene,16.953
+Raging Bolt,Pelipper,16.287
+Raging Bolt,Walking Wake,14.128
+Raging Bolt,Zamazenta,13.858
+Raging Bolt,Iron Valiant,13.747
+Slowking-Galar,Great Tusk,47.309
+Slowking-Galar,Kyurem,34.907
+Slowking-Galar,Kingambit,30.087
+Slowking-Galar,Cinderace,29.823
+Slowking-Galar,Corviknight,22.583
+Slowking-Galar,Dragapult,15.175
+Slowking-Galar,Iron Valiant,13.822
+Slowking-Galar,Ogerpon-Wellspring,13.211
+Slowking-Galar,Alomomola,12.628
+Slowking-Galar,Zamazenta,12.535
+Kyurem,Slowking-Galar,38.212
+Kyurem,Great Tusk,37.8
+Kyurem,Kingambit,33.139
+Kyurem,Cinderace,28.764
+Kyurem,Iron Valiant,17.65
+Kyurem,Gholdengo,17.25
+Kyurem,Hatterene,16.658
+Kyurem,Landorus-Therian,15.434
+Kyurem,Corviknight,13.799
+Kyurem,Zamazenta,13.711
+Cinderace,Slowking-Galar,32.5
+Cinderace,Kyurem,28.635
+Cinderace,Great Tusk,25.472
+Cinderace,Kingambit,24.493
+Cinderace,Iron Valiant,24.353
+Cinderace,Landorus-Therian,23.088
+Cinderace,Alomomola,21.963
+Cinderace,Pecharunt,14.014
+Cinderace,Corviknight,13.63
+Cinderace,Hoopa-Unbound,12.265
+Corviknight,Slowking-Galar,25.52
+Corviknight,Ting-Lu,18.082
+Corviknight,Great Tusk,17.766
+Corviknight,Gliscor,17.597
+Corviknight,Dragapult,17.044
+Corviknight,Alomomola,16.696
+Corviknight,Dondozo,15.56
+Corviknight,Darkrai,14.723
+Corviknight,Kyurem,14.246
+Corviknight,Cinderace,14.134
+Hatterene,Great Tusk,39.137
+Hatterene,Raging Bolt,20.232
+Hatterene,Kingambit,19.556
+Hatterene,Kyurem,17.503
+Hatterene,Zamazenta,17.311
+Hatterene,Walking Wake,17.178
+Hatterene,Ogerpon-Wellspring,16.348
+Hatterene,Dragonite,15.766
+Hatterene,Gholdengo,12.137
+Hatterene,Iron Moth,11.838
+Gliscor,Zamazenta,24.235
+Gliscor,Gholdengo,21.214
+Gliscor,Corviknight,17.799
+Gliscor,Blissey,17.211
+Gliscor,Ogerpon-Wellspring,16.41
+Gliscor,Dragonite,16.262
+Gliscor,Ting-Lu,15.916
+Gliscor,Dondozo,15.784
+Gliscor,Kingambit,14.011
+Gliscor,Dragapult,13.463
+Dragapult,Great Tusk,36.554
+Dragapult,Kingambit,30.388
+Dragapult,Ogerpon-Wellspring,22.665
+Dragapult,Slowking-Galar,17.627
+Dragapult,Corviknight,17.519
+Dragapult,Iron Valiant,15.706
+Dragapult,Gholdengo,14.929
+Dragapult,Gliscor,13.681
+Dragapult,Ting-Lu,10.844
+Dragapult,Samurott-Hisui,10.8
+Alomomola,Great Tusk,26.805
+Alomomola,Cinderace,24.426
+Alomomola,Iron Valiant,21.12
+Alomomola,Corviknight,17.906
+Alomomola,Pecharunt,17.888
+Alomomola,Weezing-Galar,16.109
+Alomomola,Landorus-Therian,15.831
+Alomomola,Slowking-Galar,15.306
+Alomomola,Hoopa-Unbound,15.124
+Alomomola,Gholdengo,12.414
+Iron Treads,Raging Bolt,24.771
+Iron Treads,Pelipper,24.273
+Iron Treads,Zamazenta,23.512
+Iron Treads,Kingambit,22.971
+Iron Treads,Iron Valiant,18.078
+Iron Treads,Barraskewda,17.263
+Iron Treads,Samurott-Hisui,15.438
+Iron Treads,Gholdengo,15.36
+Iron Treads,Dragonite,14.186
+Iron Treads,Ogerpon-Wellspring,14.079
+Samurott-Hisui,Gholdengo,47.094
+Samurott-Hisui,Great Tusk,35.694
+Samurott-Hisui,Dragonite,20.131
+Samurott-Hisui,Zamazenta,19.781
+Samurott-Hisui,Pecharunt,17.167
+Samurott-Hisui,Iron Treads,15.956
+Samurott-Hisui,Landorus-Therian,15.823
+Samurott-Hisui,Kingambit,13.733
+Samurott-Hisui,Iron Valiant,13.525
+Samurott-Hisui,Dragapult,12.378
+Ting-Lu,Gholdengo,36.237
+Ting-Lu,Dragonite,31.168
+Ting-Lu,Zamazenta,23.722
+Ting-Lu,Corviknight,22.933
+Ting-Lu,Gliscor,19.956
+Ting-Lu,Kyurem,16.787
+Ting-Lu,Ogerpon-Wellspring,16.522
+Ting-Lu,Slowking-Galar,16.435
+Ting-Lu,Pecharunt,14.522
+Ting-Lu,Cinderace,14.272
+Landorus-Therian,Iron Valiant,32.749
+Landorus-Therian,Cinderace,30.419
+Landorus-Therian,Kingambit,26.153
+Landorus-Therian,Gholdengo,21.133
+Landorus-Therian,Pecharunt,20.386
+Landorus-Therian,Kyurem,20.244
+Landorus-Therian,Alomomola,18.755
+Landorus-Therian,Samurott-Hisui,17.066
+Landorus-Therian,Ogerpon-Wellspring,16.761
+Landorus-Therian,Slowking-Galar,16.48
+Darkrai,Dragonite,29.242
+Darkrai,Great Tusk,27.677
+Darkrai,Gholdengo,25.16
+Darkrai,Zamazenta,19.323
+Darkrai,Corviknight,19.185
+Darkrai,Iron Valiant,15.419
+Darkrai,Ogerpon-Wellspring,14.962
+Darkrai,Alomomola,14.779
+Darkrai,Gliscor,14.343
+Darkrai,Kyurem,12.769
+Pecharunt,Iron Valiant,25.619
+Pecharunt,Great Tusk,24.766
+Pecharunt,Alomomola,24.577
+Pecharunt,Landorus-Therian,23.642
+Pecharunt,Samurott-Hisui,21.472
+Pecharunt,Cinderace,21.414
+Pecharunt,Zamazenta,20.43
+Pecharunt,Hoopa-Unbound,17.106
+Pecharunt,Dragonite,17.027
+Pecharunt,Ting-Lu,16.871
+Ceruledge,Great Tusk,38.143
+Ceruledge,Raging Bolt,20.849
+Ceruledge,Iron Valiant,19.822
+Ceruledge,Walking Wake,19.46
+Ceruledge,Kingambit,18.897
+Ceruledge,Gholdengo,17.279
+Ceruledge,Hatterene,14.464
+Ceruledge,Glimmora,14.401
+Ceruledge,Zamazenta,13.127
+Ceruledge,Deoxys-Speed,12.937
+Walking Wake,Great Tusk,57.485
+Walking Wake,Torkoal,36.983
+Walking Wake,Ninetales,35.803
+Walking Wake,Hatterene,27.127
+Walking Wake,Raging Bolt,26.625
+Walking Wake,Ceruledge,19.754
+Walking Wake,Venusaur,19.268
+Walking Wake,Slither Wing,13.792
+Walking Wake,Kingambit,11.752
+Walking Wake,Gholdengo,9.873
+Glimmora,Kingambit,30.271
+Glimmora,Gholdengo,29.531
+Glimmora,Iron Valiant,25.765
+Glimmora,Ogerpon-Wellspring,24.669
+Glimmora,Great Tusk,22.246
+Glimmora,Dragonite,22.243
+Glimmora,Zamazenta,22.142
+Glimmora,Dragapult,15.153
+Glimmora,Ceruledge,14.629
+Glimmora,Raging Bolt,11.912
+Zapdos,Great Tusk,39.384
+Zapdos,Kingambit,27.709
+Zapdos,Slowking-Galar,23.186
+Zapdos,Cinderace,20.783
+Zapdos,Gholdengo,17.816
+Zapdos,Iron Treads,16.544
+Zapdos,Kyurem,16.392
+Zapdos,Dragapult,14.033
+Zapdos,Ogerpon-Wellspring,13.194
+Zapdos,Samurott-Hisui,12.29
+Iron Moth,Great Tusk,32.652
+Iron Moth,Raging Bolt,25.93
+Iron Moth,Ogerpon-Wellspring,25.125
+Iron Moth,Gholdengo,24.251
+Iron Moth,Kingambit,22.998
+Iron Moth,Zamazenta,21.07
+Iron Moth,Hatterene,19.966
+Iron Moth,Dragonite,19.836
+Iron Moth,Iron Valiant,17.001
+Iron Moth,Gliscor,16.473
+Rillaboom,Gholdengo,31.713
+Rillaboom,Great Tusk,31.572
+Rillaboom,Samurott-Hisui,19.153
+Rillaboom,Hawlucha,17.253
+Rillaboom,Raging Bolt,15.674
+Rillaboom,Kyurem,15.274
+Rillaboom,Landorus-Therian,13.36
+Rillaboom,Kingambit,13.171
+Rillaboom,Zamazenta,12.415
+Rillaboom,Dragapult,12.292
+Garganacl,Great Tusk,26.703
+Garganacl,Gholdengo,24.919
+Garganacl,Corviknight,15.807
+Garganacl,Dragapult,15.074
+Garganacl,Zamazenta,14.665
+Garganacl,Gliscor,14.506
+Garganacl,Samurott-Hisui,12.875
+Garganacl,Iron Treads,12.165
+Garganacl,Ogerpon-Wellspring,12.138
+Garganacl,Alomomola,12.038
+Deoxys-Speed,Iron Valiant,40.436
+Deoxys-Speed,Great Tusk,36.552
+Deoxys-Speed,Dragonite,35.471
+Deoxys-Speed,Zamazenta,33.362
+Deoxys-Speed,Gholdengo,32.462
+Deoxys-Speed,Kingambit,23.236
+Deoxys-Speed,Ceruledge,18.983
+Deoxys-Speed,Glimmora,16.113
+Deoxys-Speed,Ogerpon-Wellspring,16.087
+Deoxys-Speed,Darkrai,9.848
+Moltres,Great Tusk,34.546
+Moltres,Gholdengo,30.054
+Moltres,Zamazenta,20.199
+Moltres,Samurott-Hisui,19.373
+Moltres,Ogerpon-Wellspring,18.616
+Moltres,Iron Treads,18.558
+Moltres,Slowking-Galar,17.866
+Moltres,Kingambit,14.657
+Moltres,Dragapult,13.421
+Moltres,Garganacl,12.623
+Pelipper,Barraskewda,54.097
+Pelipper,Iron Treads,50.329
+Pelipper,Raging Bolt,45.129
+Pelipper,Overqwil,26.554
+Pelipper,Kingambit,23.912
+Pelipper,Ogerpon-Wellspring,21.053
+Pelipper,Walking Wake,13.936
+Pelipper,Zapdos,13.201
+Pelipper,Torkoal,10.794
+Pelipper,Hatterene,9.604
+Tyranitar,Excadrill,51.576
+Tyranitar,Hydrapple,15.041
+Tyranitar,Iron Valiant,14.955
+Tyranitar,Ogerpon-Wellspring,14.432
+Tyranitar,Alomomola,14.281
+Tyranitar,Corviknight,14.233
+Tyranitar,Gholdengo,14.175
+Tyranitar,Great Tusk,14.016
+Tyranitar,Zapdos,13.878
+Tyranitar,Dragapult,13.34
+Tornadus-Therian,Great Tusk,45.495
+Tornadus-Therian,Slowking-Galar,26.897
+Tornadus-Therian,Hatterene,25.578
+Tornadus-Therian,Kingambit,24.402
+Tornadus-Therian,Kyurem,23.408
+Tornadus-Therian,Iron Treads,20.609
+Tornadus-Therian,Alomomola,19.206
+Tornadus-Therian,Zamazenta,18.0
+Tornadus-Therian,Cinderace,14.047
+Tornadus-Therian,Lokix,13.112
+Garchomp,Gholdengo,29.817
+Garchomp,Corviknight,24.032
+Garchomp,Darkrai,20.717
+Garchomp,Alomomola,16.924
+Garchomp,Ogerpon,15.966
+Garchomp,Kingambit,15.909
+Garchomp,Iron Valiant,14.755
+Garchomp,Weezing-Galar,13.367
+Garchomp,Great Tusk,13.2
+Garchomp,Dragonite,12.883
+Heatran,Great Tusk,39.53
+Heatran,Ogerpon-Wellspring,17.201
+Heatran,Dragapult,16.882
+Heatran,Rillaboom,16.006
+Heatran,Zamazenta,13.019
+Heatran,Gliscor,12.698
+Heatran,Iron Valiant,12.543
+Heatran,Dragonite,12.367
+Heatran,Corviknight,11.788
+Heatran,Raging Bolt,11.666
+Clefable,Gliscor,29.113
+Clefable,Corviknight,25.457
+Clefable,Dragonite,22.741
+Clefable,Gholdengo,20.961
+Clefable,Zamazenta,17.789
+Clefable,Great Tusk,17.395
+Clefable,Ting-Lu,17.242
+Clefable,Dragapult,15.135
+Clefable,Dondozo,13.991
+Clefable,Toxapex,12.467
+Primarina,Great Tusk,32.854
+Primarina,Kingambit,22.881
+Primarina,Dragonite,17.525
+Primarina,Dragapult,16.409
+Primarina,Gholdengo,16.372
+Primarina,Corviknight,15.906
+Primarina,Zamazenta,14.077
+Primarina,Cinderace,13.099
+Primarina,Landorus-Therian,12.695
+Primarina,Zapdos,11.93
+Iron Crown,Great Tusk,37.224
+Iron Crown,Kingambit,23.236
+Iron Crown,Ogerpon-Wellspring,21.972
+Iron Crown,Iron Valiant,21.003
+Iron Crown,Dragapult,18.519
+Iron Crown,Ting-Lu,14.853
+Iron Crown,Dragonite,14.789
+Iron Crown,Gliscor,14.389
+Iron Crown,Samurott-Hisui,13.119
+Iron Crown,Kyurem,13.043
+Scizor,Great Tusk,28.462
+Scizor,Raging Bolt,17.205
+Scizor,Ogerpon-Wellspring,16.204
+Scizor,Dragonite,13.252
+Scizor,Samurott-Hisui,12.374
+Scizor,Landorus-Therian,12.305
+Scizor,Dragapult,11.815
+Scizor,Darkrai,10.253
+Scizor,Zapdos,10.084
+Scizor,Zamazenta,9.774
+Weezing-Galar,Alomomola,41.1
+Weezing-Galar,Corviknight,28.392
+Weezing-Galar,Gliscor,19.277
+Weezing-Galar,Darkrai,17.887
+Weezing-Galar,Ogerpon,17.421
+Weezing-Galar,Zamazenta,15.953
+Weezing-Galar,Garchomp,14.843
+Weezing-Galar,Lokix,12.268
+Weezing-Galar,Tornadus-Therian,11.854
+Weezing-Galar,Dondozo,11.529
+Dondozo,Gliscor,42.241
+Dondozo,Corviknight,42.119
+Dondozo,Blissey,34.755
+Dondozo,Toxapex,27.824
+Dondozo,Clodsire,23.879
+Dondozo,Cinderace,19.079
+Dondozo,Slowking-Galar,19.054
+Dondozo,Ting-Lu,18.512
+Dondozo,Clefable,14.407
+Dondozo,Kyurem,13.846
+Ogerpon,Alomomola,28.111
+Ogerpon,Great Tusk,28.092
+Ogerpon,Gholdengo,22.057
+Ogerpon,Corviknight,21.787
+Ogerpon,Darkrai,20.849
+Ogerpon,Garchomp,18.818
+Ogerpon,Weezing-Galar,18.491
+Ogerpon,Pecharunt,15.847
+Ogerpon,Samurott-Hisui,15.824
+Ogerpon,Gliscor,15.123
+Hoopa-Unbound,Alomomola,42.466
+Hoopa-Unbound,Cinderace,38.299
+Hoopa-Unbound,Landorus-Therian,36.303
+Hoopa-Unbound,Iron Valiant,36.157
+Hoopa-Unbound,Pecharunt,34.959
+Hoopa-Unbound,Great Tusk,18.644
+Hoopa-Unbound,Hatterene,13.451
+Hoopa-Unbound,Slowking-Galar,12.453
+Hoopa-Unbound,Kingambit,12.069
+Hoopa-Unbound,Zamazenta,10.517
+Enamorus,Great Tusk,42.429
+Enamorus,Gholdengo,26.265
+Enamorus,Kingambit,25.401
+Enamorus,Ogerpon-Wellspring,15.556
+Enamorus,Raging Bolt,14.421
+Enamorus,Araquanid,14.225
+Enamorus,Iron Treads,14.088
+Enamorus,Alomomola,13.856
+Enamorus,Iron Crown,11.941
+Enamorus,Cinderace,11.616
+Meowscarada,Great Tusk,30.159
+Meowscarada,Slowking-Galar,20.91
+Meowscarada,Gholdengo,17.72
+Meowscarada,Corviknight,17.354
+Meowscarada,Alomomola,13.753
+Meowscarada,Dragapult,12.865
+Meowscarada,Iron Valiant,12.797
+Meowscarada,Dragonite,11.385
+Meowscarada,Cinderace,10.691
+Meowscarada,Iron Treads,10.254
+Excadrill,Tyranitar,75.762
+Excadrill,Hydrapple,20.932
+Excadrill,Ogerpon-Wellspring,15.911
+Excadrill,Alomomola,14.96
+Excadrill,Iron Valiant,14.555
+Excadrill,Tornadus-Therian,14.247
+Excadrill,Zapdos,13.248
+Excadrill,Moltres,11.457
+Excadrill,Dragapult,11.339
+Excadrill,Pelipper,10.466
+Torkoal,Walking Wake,81.262
+Torkoal,Great Tusk,48.973
+Torkoal,Hatterene,33.462
+Torkoal,Raging Bolt,31.321
+Torkoal,Slither Wing,18.886
+Torkoal,Venusaur,16.777
+Torkoal,Ceruledge,16.134
+Torkoal,Pelipper,16.131
+Torkoal,Ogerpon-Wellspring,15.956
+Torkoal,Ninetales-Alola,9.133
+Toxapex,Gliscor,43.698
+Toxapex,Corviknight,40.202
+Toxapex,Dondozo,36.973
+Toxapex,Blissey,33.46
+Toxapex,Clodsire,19.555
+Toxapex,Clefable,17.059
+Toxapex,Great Tusk,11.86
+Toxapex,Iron Valiant,11.527
+Toxapex,Alomomola,10.483
+Toxapex,Tyranitar,10.192
+Ninetales,Walking Wake,85.9
+Ninetales,Great Tusk,83.149
+Ninetales,Raging Bolt,34.167
+Ninetales,Hatterene,33.206
+Ninetales,Venusaur,32.282
+Ninetales,Ceruledge,28.857
+Ninetales,Cresselia,18.339
+Ninetales,Slither Wing,17.851
+Ninetales,Blaziken,13.9
+Ninetales,Kingambit,13.838
+Clodsire,Corviknight,37.528
+Clodsire,Dondozo,33.491
+Clodsire,Gliscor,28.715
+Clodsire,Alomomola,21.53
+Clodsire,Toxapex,20.639
+Clodsire,Blissey,19.108
+Clodsire,Clefable,14.936
+Clodsire,Skarmory,10.877
+Clodsire,Garganacl,9.342
+Clodsire,Cinderace,9.117
+Barraskewda,Pelipper,93.524
+Barraskewda,Iron Treads,61.881
+Barraskewda,Raging Bolt,56.524
+Barraskewda,Kingambit,32.556
+Barraskewda,Overqwil,32.225
+Barraskewda,Zapdos,16.926
+Barraskewda,Hatterene,12.794
+Barraskewda,Ogerpon-Wellspring,11.377
+Barraskewda,Toxicroak,11.05
+Barraskewda,Pawmot,7.072
+Blissey,Gliscor,67.941
+Blissey,Dondozo,51.268
+Blissey,Toxapex,37.144
+Blissey,Corviknight,36.162
+Blissey,Clodsire,20.098
+Blissey,Pecharunt,16.865
+Blissey,Weezing-Galar,16.339
+Blissey,Alomomola,15.761
+Blissey,Skarmory,15.595
+Blissey,Clefable,14.406
+Hydrapple,Slowking-Galar,29.144
+Hydrapple,Tyranitar,26.852
+Hydrapple,Great Tusk,26.615
+Hydrapple,Excadrill,25.44
+Hydrapple,Alomomola,23.345
+Hydrapple,Cinderace,19.953
+Hydrapple,Tornadus-Therian,19.684
+Hydrapple,Moltres,14.39
+Hydrapple,Zamazenta,13.139
+Hydrapple,Gholdengo,12.989
+Lokix,Alomomola,46.11
+Lokix,Great Tusk,42.405
+Lokix,Slowking-Galar,22.933
+Lokix,Tornadus-Therian,22.765
+Lokix,Gholdengo,20.401
+Lokix,Cinderace,19.07
+Lokix,Weezing-Galar,18.949
+Lokix,Iron Treads,18.108
+Lokix,Zamazenta,15.283
+Lokix,Corviknight,13.515
+Cresselia,Great Tusk,38.617
+Cresselia,Walking Wake,25.104
+Cresselia,Hatterene,24.751
+Cresselia,Ursaluna,23.356
+Cresselia,Ninetales,21.696
+Cresselia,Kingambit,19.191
+Cresselia,Zamazenta,17.217
+Cresselia,Raging Bolt,16.44
+Cresselia,Gholdengo,15.929
+Cresselia,Ceruledge,14.698
+Ursaluna,Hatterene,47.532
+Ursaluna,Cresselia,23.888
+Ursaluna,Iron Hands,19.363
+Ursaluna,Kingambit,18.455
+Ursaluna,Hoopa-Unbound,14.755
+Ursaluna,Dragapult,10.428
+Ursaluna,Alomomola,9.643
+Ursaluna,Iron Valiant,9.009
+Ursaluna,Raging Bolt,8.944
+Ursaluna,Cinderace,8.74
+Ninetales-Alola,Kyurem,29.216
+Ninetales-Alola,Ogerpon-Wellspring,25.314
+Ninetales-Alola,Great Tusk,22.365
+Ninetales-Alola,Hatterene,14.989
+Ninetales-Alola,Ceruledge,14.807
+Ninetales-Alola,Torkoal,12.872
+Ninetales-Alola,Walking Wake,12.681
+Ninetales-Alola,Pelipper,12.222
+Ninetales-Alola,Kingambit,11.457
+Ninetales-Alola,Gholdengo,10.78
+Blaziken,Great Tusk,30.292
+Blaziken,Walking Wake,20.841
+Blaziken,Hatterene,18.592
+Blaziken,Ninetales,18.166
+Blaziken,Kingambit,14.164
+Blaziken,Venusaur,13.483
+Blaziken,Dragonite,12.698
+Blaziken,Dragapult,12.642
+Blaziken,Ogerpon-Wellspring,12.546
+Blaziken,Corviknight,11.49
+Sinistcha,Gliscor,31.013
+Sinistcha,Dragonite,28.722
+Sinistcha,Ting-Lu,25.432
+Sinistcha,Tinkaton,24.329
+Sinistcha,Keldeo,20.206
+Sinistcha,Samurott-Hisui,16.266
+Sinistcha,Great Tusk,14.792
+Sinistcha,Iron Treads,11.789
+Sinistcha,Gholdengo,10.803
+Sinistcha,Alomomola,9.853
+Weavile,Great Tusk,33.769
+Weavile,Gholdengo,23.812
+Weavile,Dragonite,22.75
+Weavile,Ogerpon-Wellspring,16.194
+Weavile,Hatterene,12.543
+Weavile,Slowking-Galar,12.377
+Weavile,Zamazenta,11.342
+Weavile,Ting-Lu,10.318
+Weavile,Iron Treads,10.198
+Weavile,Pecharunt,9.874
+Araquanid,Gholdengo,58.064
+Araquanid,Great Tusk,43.252
+Araquanid,Enamorus,25.673
+Araquanid,Raging Bolt,23.369
+Araquanid,Kingambit,22.01
+Araquanid,Iron Moth,21.501
+Araquanid,Iron Valiant,19.972
+Araquanid,Dragonite,14.741
+Araquanid,Iron Crown,12.37
+Araquanid,Iron Treads,12.328
+Ribombee,Gholdengo,67.512
+Ribombee,Great Tusk,47.359
+Ribombee,Raging Bolt,36.213
+Ribombee,Ceruledge,25.977
+Ribombee,Kingambit,20.577
+Ribombee,Iron Moth,18.181
+Ribombee,Ogerpon-Cornerstone,15.277
+Ribombee,Ogerpon-Wellspring,13.566
+Ribombee,Dragonite,12.597
+Ribombee,Iron Valiant,8.812
+Greninja,Raging Bolt,20.281
+Greninja,Great Tusk,19.685
+Greninja,Kingambit,17.209
+Greninja,Ceruledge,15.834
+Greninja,Iron Treads,15.754
+Greninja,Iron Valiant,15.611
+Greninja,Pelipper,14.912
+Greninja,Corviknight,12.741
+Greninja,Dragonite,12.471
+Greninja,Dragapult,12.313
+Regieleki,Gholdengo,19.486
+Regieleki,Kingambit,17.962
+Regieleki,Iron Valiant,16.94
+Regieleki,Corviknight,13.766
+Regieleki,Ogerpon-Wellspring,13.328
+Regieleki,Dragapult,11.933
+Regieleki,Gliscor,11.695
+Regieleki,Landorus-Therian,11.546
+Regieleki,Garchomp,11.481
+Regieleki,Great Tusk,11.385
+Tinkaton,Great Tusk,33.174
+Tinkaton,Gliscor,30.349
+Tinkaton,Sinistcha,29.704
+Tinkaton,Ting-Lu,28.425
+Tinkaton,Dragonite,27.397
+Tinkaton,Keldeo,24.802
+Tinkaton,Pecharunt,19.169
+Tinkaton,Moltres,13.167
+Tinkaton,Samurott-Hisui,12.785
+Tinkaton,Alomomola,12.778
+Ogerpon-Cornerstone,Great Tusk,43.183
+Ogerpon-Cornerstone,Gholdengo,33.672
+Ogerpon-Cornerstone,Raging Bolt,25.754
+Ogerpon-Cornerstone,Ceruledge,21.078
+Ogerpon-Cornerstone,Tyranitar,18.809
+Ogerpon-Cornerstone,Iron Valiant,17.955
+Ogerpon-Cornerstone,Ribombee,17.481
+Ogerpon-Cornerstone,Kingambit,16.247
+Ogerpon-Cornerstone,Dragonite,13.935
+Ogerpon-Cornerstone,Samurott-Hisui,12.815
+Volcanion,Hatterene,26.687
+Volcanion,Great Tusk,25.971
+Volcanion,Gholdengo,22.82
+Volcanion,Zamazenta,20.283
+Volcanion,Corviknight,18.111
+Volcanion,Landorus-Therian,12.721
+Volcanion,Dragonite,12.52
+Volcanion,Zapdos,11.954
+Volcanion,Ting-Lu,11.807
+Volcanion,Kingambit,11.311
+Skarmory,Gliscor,36.4
+Skarmory,Pecharunt,27.761
+Skarmory,Blissey,25.916
+Skarmory,Clodsire,19.011
+Skarmory,Ogerpon,16.495
+Skarmory,Dragapult,15.278
+Skarmory,Slowking-Galar,13.512
+Skarmory,Great Tusk,12.997
+Skarmory,Gholdengo,12.324
+Skarmory,Samurott-Hisui,11.644
+Slither Wing,Walking Wake,57.415
+Slither Wing,Great Tusk,52.872
+Slither Wing,Torkoal,35.782
+Slither Wing,Hatterene,32.148
+Slither Wing,Ninetales,30.972
+Slither Wing,Raging Bolt,26.019
+Slither Wing,Venusaur,16.778
+Slither Wing,Ceruledge,14.266
+Slither Wing,Iron Moth,12.553
+Slither Wing,Alomomola,7.258
+Rotom-Wash,Great Tusk,28.342
+Rotom-Wash,Gholdengo,21.383
+Rotom-Wash,Kingambit,21.381
+Rotom-Wash,Dragapult,19.004
+Rotom-Wash,Iron Valiant,14.81
+Rotom-Wash,Dragonite,13.904
+Rotom-Wash,Corviknight,13.229
+Rotom-Wash,Cinderace,11.089
+Rotom-Wash,Scizor,10.343
+Rotom-Wash,Tyranitar,9.648
+Keldeo,Dragonite,35.373
+Keldeo,Gliscor,33.211
+Keldeo,Ting-Lu,30.723
+Keldeo,Tinkaton,27.141
+Keldeo,Sinistcha,26.997
+Keldeo,Iron Treads,14.112
+Keldeo,Gholdengo,11.752
+Keldeo,Tornadus-Therian,11.012
+Keldeo,Excadrill,10.661
+Keldeo,Kingambit,10.385
+Venusaur,Walking Wake,81.967
+Venusaur,Great Tusk,73.513
+Venusaur,Ninetales,57.236
+Venusaur,Hatterene,38.097
+Venusaur,Torkoal,32.481
+Venusaur,Ceruledge,22.265
+Venusaur,Raging Bolt,19.84
+Venusaur,Blaziken,18.291
+Venusaur,Slither Wing,17.145
+Venusaur,Kingambit,12.068
+Hawlucha,Rillaboom,63.407
+Hawlucha,Gholdengo,35.565
+Hawlucha,Kyurem,31.321
+Hawlucha,Samurott-Hisui,30.418
+Hawlucha,Landorus-Therian,27.268
+Hawlucha,Hatterene,15.559
+Hawlucha,Great Tusk,14.7
+Hawlucha,Indeedee,11.477
+Hawlucha,Iron Treads,11.119
+Hawlucha,Raging Bolt,10.713
+Iron Hands,Hatterene,32.504
+Iron Hands,Ursaluna,28.968
+Iron Hands,Iron Valiant,21.88
+Iron Hands,Deoxys-Speed,20.323
+Iron Hands,Cresselia,20.219
+Iron Hands,Glimmora,19.088
+Iron Hands,Zamazenta,18.383
+Iron Hands,Kingambit,18.328
+Iron Hands,Ceruledge,18.195
+Iron Hands,Hoopa-Unbound,16.239
+Latios,Great Tusk,22.937
+Latios,Zamazenta,20.232
+Latios,Pecharunt,18.915
+Latios,Scizor,16.787
+Latios,Samurott-Hisui,13.954
+Latios,Landorus-Therian,13.174
+Latios,Corviknight,11.234
+Latios,Ting-Lu,11.156
+Latios,Gholdengo,11.156
+Latios,Kingambit,11.005
+Serperior,Gholdengo,20.286
+Serperior,Kingambit,19.826
+Serperior,Great Tusk,18.521
+Serperior,Cinderace,17.579
+Serperior,Zamazenta,14.386
+Serperior,Dragonite,12.467
+Serperior,Samurott-Hisui,12.028
+Serperior,Dragapult,11.102
+Serperior,Gliscor,9.684
+Serperior,Skeledirge,9.226
+Skeledirge,Great Tusk,19.826
+Skeledirge,Kingambit,18.522
+Skeledirge,Corviknight,18.119
+Skeledirge,Ogerpon-Wellspring,13.052
+Skeledirge,Ting-Lu,12.105
+Skeledirge,Gholdengo,11.861
+Skeledirge,Dragonite,11.768
+Skeledirge,Gliscor,10.502
+Skeledirge,Serperior,9.395
+Skeledirge,Alomomola,9.348
+Mandibuzz,Great Tusk,31.981
+Mandibuzz,Cinderace,23.691
+Mandibuzz,Alomomola,21.335
+Mandibuzz,Gholdengo,20.96
+Mandibuzz,Kyurem,20.284
+Mandibuzz,Iron Valiant,17.76
+Mandibuzz,Slowking-Galar,17.729
+Mandibuzz,Gliscor,15.789
+Mandibuzz,Lokix,15.624
+Mandibuzz,Ogerpon-Wellspring,13.447
+Grimmsnarl,Great Tusk,21.921
+Grimmsnarl,Kingambit,16.556
+Grimmsnarl,Ogerpon-Wellspring,15.133
+Grimmsnarl,Dragonite,14.752
+Grimmsnarl,Ceruledge,14.564
+Grimmsnarl,Gholdengo,14.067
+Grimmsnarl,Glimmora,12.599
+Grimmsnarl,Dragapult,11.89
+Grimmsnarl,Hatterene,10.419
+Grimmsnarl,Iron Valiant,9.73
+Overqwil,Pelipper,93.245
+Overqwil,Iron Treads,87.578
+Overqwil,Raging Bolt,83.605
+Overqwil,Barraskewda,65.454
+Overqwil,Kingambit,62.454
+Overqwil,Greninja,9.409
+Overqwil,Dondozo,5.813
+Overqwil,Regieleki,5.622
+Overqwil,Enamorus,5.311
+Overqwil,Manaphy,3.602
+Quaquaval,Gholdengo,14.791
+Quaquaval,Ceruledge,12.407
+Quaquaval,Dragapult,11.971
+Quaquaval,Pelipper,11.59
+Quaquaval,Kingambit,11.28
+Quaquaval,Slowking-Galar,10.981
+Quaquaval,Iron Moth,10.867
+Quaquaval,Corviknight,9.664
+Quaquaval,Dragonite,9.286
+Quaquaval,Iron Treads,9.267
+Manaphy,Gholdengo,35.148
+Manaphy,Great Tusk,34.201
+Manaphy,Enamorus,18.454
+Manaphy,Araquanid,17.764
+Manaphy,Raging Bolt,16.317
+Manaphy,Iron Crown,15.821
+Manaphy,Kingambit,15.533
+Manaphy,Cinderace,12.602
+Manaphy,Scizor,12.487
+Manaphy,Kyurem,12.198
+Latias,Kingambit,32.16
+Latias,Ogerpon-Wellspring,23.221
+Latias,Iron Valiant,20.825
+Latias,Zamazenta,16.907
+Latias,Cinderace,15.921
+Latias,Landorus-Therian,15.205
+Latias,Iron Moth,14.4
+Latias,Great Tusk,14.073
+Latias,Gholdengo,13.814
+Latias,Gliscor,13.688
+Kommo-o,Kingambit,39.029
+Kommo-o,Iron Valiant,37.958
+Kommo-o,Iron Treads,32.676
+Kommo-o,Iron Crown,30.475
+Kommo-o,Kyurem,29.492
+Kommo-o,Great Tusk,17.469
+Kommo-o,Gholdengo,13.119
+Kommo-o,Ogerpon-Wellspring,10.183
+Kommo-o,Samurott-Hisui,8.869
+Kommo-o,Rillaboom,6.877
+Hydreigon,Great Tusk,32.79
+Hydreigon,Alomomola,28.895
+Hydreigon,Ogerpon,21.708
+Hydreigon,Pecharunt,16.78
+Hydreigon,Gholdengo,15.758
+Hydreigon,Tinkaton,15.601
+Hydreigon,Slowking-Galar,13.289
+Hydreigon,Zamazenta,11.476
+Hydreigon,Corviknight,10.358
+Hydreigon,Clodsire,9.466
+Goodra-Hisui,Great Tusk,19.946
+Goodra-Hisui,Gholdengo,16.503
+Goodra-Hisui,Dragonite,12.731
+Goodra-Hisui,Glimmora,11.806
+Goodra-Hisui,Dragapult,11.154
+Goodra-Hisui,Samurott-Hisui,10.695
+Goodra-Hisui,Pelipper,10.161
+Goodra-Hisui,Cinderace,8.853
+Goodra-Hisui,Alomomola,8.821
+Goodra-Hisui,Garchomp,8.66
+Maushold,Gliscor,13.278
+Maushold,Ogerpon-Wellspring,13.181
+Maushold,Dragonite,13.076
+Maushold,Alomomola,13.031
+Maushold,Ceruledge,12.405
+Maushold,Dragapult,12.236
+Maushold,Kingambit,12.13
+Maushold,Great Tusk,12.063
+Maushold,Zamazenta,11.875
+Maushold,Hatterene,10.514
+Arcanine-Hisui,Great Tusk,41.339
+Arcanine-Hisui,Hatterene,24.184
+Arcanine-Hisui,Corviknight,19.248
+Arcanine-Hisui,Ogerpon-Wellspring,19.139
+Arcanine-Hisui,Walking Wake,17.238
+Arcanine-Hisui,Torkoal,14.58
+Arcanine-Hisui,Slowking-Galar,13.329
+Arcanine-Hisui,Dragapult,12.916
+Arcanine-Hisui,Kingambit,12.75
+Arcanine-Hisui,Gholdengo,12.177
+Talonflame,Blissey,26.193
+Talonflame,Dondozo,21.473
+Talonflame,Gliscor,18.653
+Talonflame,Toxapex,18.505
+Talonflame,Pelipper,15.064
+Talonflame,Iron Treads,12.612
+Talonflame,Alomomola,12.499
+Talonflame,Barraskewda,11.944
+Talonflame,Mandibuzz,11.844
+Talonflame,Raging Bolt,11.835
+Mimikyu,Ursaluna,20.746
+Mimikyu,Kingambit,19.574
+Mimikyu,Hatterene,19.457
+Mimikyu,Great Tusk,14.528
+Mimikyu,Glimmora,13.951
+Mimikyu,Iron Moth,13.286
+Mimikyu,Gholdengo,10.04
+Mimikyu,Hoopa-Unbound,9.574
+Mimikyu,Dragonite,9.491
+Mimikyu,Dragapult,8.474
+Okidogi,Iron Valiant,20.327
+Okidogi,Darkrai,17.255
+Okidogi,Gholdengo,16.424
+Okidogi,Great Tusk,15.11
+Okidogi,Ogerpon-Wellspring,14.752
+Okidogi,Landorus-Therian,13.23
+Okidogi,Zapdos,12.209
+Okidogi,Tyranitar,12.161
+Okidogi,Iron Treads,12.033
+Okidogi,Cinderace,11.912
+Gengar,Dragonite,23.543
+Gengar,Cinderace,19.421
+Gengar,Scizor,17.281
+Gengar,Raging Bolt,16.808
+Gengar,Ogerpon-Wellspring,15.587
+Gengar,Corviknight,12.899
+Gengar,Great Tusk,11.75
+Gengar,Garchomp,11.671
+Gengar,Azelf,10.773
+Gengar,Dragapult,9.822
+Moltres-Galar,Ogerpon-Wellspring,22.219
+Moltres-Galar,Ceruledge,21.833
+Moltres-Galar,Zamazenta,21.537
+Moltres-Galar,Ninetales-Alola,19.65
+Moltres-Galar,Deoxys-Speed,19.519
+Moltres-Galar,Great Tusk,16.555
+Moltres-Galar,Gholdengo,16.499
+Moltres-Galar,Iron Valiant,15.759
+Moltres-Galar,Hatterene,15.31
+Moltres-Galar,Samurott-Hisui,14.11
+Zoroark-Hisui,Great Tusk,20.36
+Zoroark-Hisui,Kingambit,15.835
+Zoroark-Hisui,Ogerpon-Wellspring,12.035
+Zoroark-Hisui,Cinderace,10.62
+Zoroark-Hisui,Samurott-Hisui,9.963
+Zoroark-Hisui,Corviknight,8.76
+Zoroark-Hisui,Alomomola,8.536
+Zoroark-Hisui,Dragonite,8.465
+Zoroark-Hisui,Iron Valiant,7.909
+Zoroark-Hisui,Glimmora,6.899
+Iron Boulder,Great Tusk,25.486
+Iron Boulder,Kingambit,22.101
+Iron Boulder,Iron Moth,19.899
+Iron Boulder,Glimmora,16.796
+Iron Boulder,Iron Valiant,15.851
+Iron Boulder,Raging Bolt,13.079
+Iron Boulder,Gholdengo,11.069
+Iron Boulder,Dragonite,10.788
+Iron Boulder,Samurott-Hisui,10.298
+Iron Boulder,Iron Treads,10.242
+Conkeldurr,Corviknight,16.806
+Conkeldurr,Dragapult,14.055
+Conkeldurr,Clodsire,13.039
+Conkeldurr,Zapdos,13.011
+Conkeldurr,Alomomola,12.275
+Conkeldurr,Iron Moth,11.559
+Conkeldurr,Deoxys-Speed,10.716
+Conkeldurr,Kingambit,10.536
+Conkeldurr,Sinistcha,10.083
+Conkeldurr,Dragonite,9.856
+Zarude,Great Tusk,65.618
+Zarude,Walking Wake,56.16
+Zarude,Ninetales,52.781
+Zarude,Ceruledge,49.027
+Zarude,Cresselia,47.584
+Zarude,Pecharunt,10.109
+Zarude,Gliscor,9.449
+Zarude,Gholdengo,7.17
+Zarude,Keldeo,6.883
+Zarude,Blissey,6.656
+Cloyster,Dragonite,16.355
+Cloyster,Ninetales-Alola,14.568
+Cloyster,Kingambit,11.87
+Cloyster,Dragapult,11.662
+Cloyster,Great Tusk,11.116
+Cloyster,Polteageist,10.377
+Cloyster,Ceruledge,10.141
+Cloyster,Iron Valiant,9.688
+Cloyster,Hatterene,9.005
+Cloyster,Gholdengo,8.965
+Indeedee,Hatterene,40.52
+Indeedee,Hawlucha,30.653
+Indeedee,Armarouge,26.101
+Indeedee,Hoopa-Unbound,19.355
+Indeedee,Great Tusk,19.177
+Indeedee,Iron Valiant,16.602
+Indeedee,Deoxys-Speed,14.019
+Indeedee,Iron Treads,12.542
+Indeedee,Polteageist,12.462
+Indeedee,Ursaluna,12.44
+Pawmot,Raging Bolt,38.673
+Pawmot,Pelipper,35.363
+Pawmot,Barraskewda,32.103
+Pawmot,Tentacruel,29.268
+Pawmot,Golduck,27.706
+Pawmot,Iron Treads,13.602
+Pawmot,Pincurchin,11.381
+Pawmot,Iron Valiant,9.997
+Pawmot,Kingambit,9.587
+Pawmot,Kyurem,9.385
+Thundurus-Therian,Great Tusk,17.852
+Thundurus-Therian,Pelipper,17.678
+Thundurus-Therian,Cinderace,16.424
+Thundurus-Therian,Ogerpon-Wellspring,14.575
+Thundurus-Therian,Iron Treads,14.308
+Thundurus-Therian,Dragapult,14.305
+Thundurus-Therian,Kingambit,12.104
+Thundurus-Therian,Barraskewda,11.611
+Thundurus-Therian,Slowking-Galar,11.607
+Thundurus-Therian,Alomomola,10.57
+Azumarill,Great Tusk,14.818
+Azumarill,Kingambit,13.635
+Azumarill,Dragapult,13.457
+Azumarill,Dragonite,12.284
+Azumarill,Hatterene,11.329
+Azumarill,Zamazenta,10.818
+Azumarill,Corviknight,9.256
+Azumarill,Ursaluna,9.213
+Azumarill,Gholdengo,8.494
+Azumarill,Pelipper,8.455
+Gardevoir,Meowscarada,18.355
+Gardevoir,Great Tusk,18.222
+Gardevoir,Dragapult,17.726
+Gardevoir,Corviknight,15.807
+Gardevoir,Alomomola,12.817
+Gardevoir,Rillaboom,12.362
+Gardevoir,Slither Wing,11.255
+Gardevoir,Kingambit,11.253
+Gardevoir,Glimmora,10.041
+Gardevoir,Toxapex,9.911
+Metagross,Garchomp,17.777
+Metagross,Tyranitar,17.614
+Metagross,Dragonite,16.624
+Metagross,Dragapult,14.725
+Metagross,Great Tusk,11.374
+Metagross,Ogerpon-Wellspring,9.708
+Metagross,Goodra-Hisui,8.809
+Metagross,Greninja,8.713
+Metagross,Zapdos,8.556
+Metagross,Gliscor,8.16
+Mamoswine,Cinderace,20.698
+Mamoswine,Slowking-Galar,19.177
+Mamoswine,Alomomola,15.76
+Mamoswine,Gholdengo,13.851
+Mamoswine,Zapdos,11.145
+Mamoswine,Iron Valiant,11.125
+Mamoswine,Corviknight,10.932
+Mamoswine,Dragonite,10.842
+Mamoswine,Ogerpon-Wellspring,10.35
+Mamoswine,Hydrapple,10.322
+Slowking,Skarmory,26.655
+Slowking,Iron Treads,25.548
+Slowking,Pecharunt,22.313
+Slowking,Meowscarada,22.222
+Slowking,Enamorus,20.717
+Slowking,Great Tusk,16.827
+Slowking,Kingambit,13.074
+Slowking,Moltres,10.192
+Slowking,Kyurem,9.124
+Slowking,Clodsire,8.937
+Sandy Shocks,Scizor,29.502
+Sandy Shocks,Manaphy,23.344
+Sandy Shocks,Latios,23.247
+Sandy Shocks,Corviknight,19.903
+Sandy Shocks,Ogerpon,17.981
+Sandy Shocks,Iron Jugulis,17.864
+Sandy Shocks,Walking Wake,17.617
+Sandy Shocks,Ceruledge,14.944
+Sandy Shocks,Slowking-Galar,12.477
+Sandy Shocks,Quaquaval,11.907
+Umbreon,Garchomp,30.505
+Umbreon,Dragonite,29.009
+Umbreon,Gholdengo,26.957
+Umbreon,Glimmora,24.844
+Umbreon,Iron Moth,21.492
+Umbreon,Corviknight,13.798
+Umbreon,Gliscor,10.262
+Umbreon,Iron Valiant,9.823
+Umbreon,Hatterene,9.479
+Umbreon,Dragapult,7.459
+Kingdra,Pelipper,75.899
+Kingdra,Iron Treads,35.763
+Kingdra,Barraskewda,34.24
+Kingdra,Raging Bolt,18.301
+Kingdra,Zapdos,12.766
+Kingdra,Goodra-Hisui,12.106
+Kingdra,Basculegion,11.386
+Kingdra,Quaquaval,9.521
+Kingdra,Ogerpon-Wellspring,8.965
+Kingdra,Dragapult,8.319
+Kleavor,Gholdengo,25.6
+Kleavor,Great Tusk,17.39
+Kleavor,Dragapult,15.749
+Kleavor,Samurott-Hisui,14.759
+Kleavor,Greninja,11.768
+Kleavor,Kingambit,11.223
+Kleavor,Ceruledge,10.725
+Kleavor,Dragonite,9.688
+Kleavor,Ogerpon-Wellspring,9.137
+Kleavor,Darkrai,8.699
+Mew,Dragonite,14.272
+Mew,Dragapult,13.221
+Mew,Zapdos,13.021
+Mew,Great Tusk,12.999
+Mew,Scizor,12.599
+Mew,Alomomola,11.081
+Mew,Meowscarada,10.042
+Mew,Grimmsnarl,9.654
+Mew,Darkrai,9.086
+Mew,Cinderace,8.546
+Incineroar,Corviknight,18.592
+Incineroar,Rillaboom,11.799
+Incineroar,Garchomp,11.634
+Incineroar,Gliscor,11.596
+Incineroar,Dragapult,11.396
+Incineroar,Gholdengo,11.177
+Incineroar,Alomomola,10.076
+Incineroar,Great Tusk,10.047
+Incineroar,Kingambit,9.927
+Incineroar,Ogerpon-Wellspring,8.769
+Polteageist,Great Tusk,22.448
+Polteageist,Dragonite,20.483
+Polteageist,Zamazenta,19.166
+Polteageist,Iron Valiant,15.931
+Polteageist,Kingambit,15.077
+Polteageist,Indeedee,14.812
+Polteageist,Ogerpon-Wellspring,13.477
+Polteageist,Iron Moth,13.106
+Polteageist,Cloyster,12.887
+Polteageist,Maushold,11.502
+Tentacruel,Pelipper,38.881
+Tentacruel,Raging Bolt,37.923
+Tentacruel,Barraskewda,36.865
+Tentacruel,Pawmot,35.251
+Tentacruel,Golduck,33.328
+Tentacruel,Gliscor,22.579
+Tentacruel,Darkrai,16.95
+Tentacruel,Sinistcha,14.561
+Tentacruel,Corviknight,13.728
+Tentacruel,Heatran,13.68
+Amoonguss,Alomomola,26.628
+Amoonguss,Gliscor,22.097
+Amoonguss,Great Tusk,20.125
+Amoonguss,Dondozo,19.455
+Amoonguss,Blissey,15.036
+Amoonguss,Corviknight,14.988
+Amoonguss,Iron Treads,13.297
+Amoonguss,Iron Valiant,13.037
+Amoonguss,Hatterene,12.833
+Amoonguss,Garganacl,11.156
+Fezandipiti,Great Tusk,45.733
+Fezandipiti,Dragapult,18.263
+Fezandipiti,Raging Bolt,16.751
+Fezandipiti,Gholdengo,14.149
+Fezandipiti,Darkrai,13.666
+Fezandipiti,Ogerpon-Wellspring,12.917
+Fezandipiti,Alomomola,12.701
+Fezandipiti,Dragonite,12.63
+Fezandipiti,Samurott-Hisui,11.666
+Fezandipiti,Cinderace,11.544
+Ditto,Corviknight,22.975
+Ditto,Great Tusk,19.238
+Ditto,Cinderace,18.989
+Ditto,Gliscor,17.818
+Ditto,Alomomola,16.047
+Ditto,Dragapult,15.908
+Ditto,Toxapex,12.881
+Ditto,Gholdengo,12.167
+Ditto,Dragonite,11.008
+Ditto,Weezing-Galar,9.261
+Magnezone,Great Tusk,22.903
+Magnezone,Dragapult,20.573
+Magnezone,Dragonite,12.219
+Magnezone,Tyranitar,11.499
+Magnezone,Cinderace,10.384
+Magnezone,Kyurem,10.089
+Magnezone,Gliscor,9.823
+Magnezone,Gardevoir,9.069
+Magnezone,Garchomp,8.844
+Magnezone,Talonflame,8.201
+Toxicroak,Pelipper,80.253
+Toxicroak,Iron Treads,76.389
+Toxicroak,Barraskewda,64.912
+Toxicroak,Hatterene,55.0
+Toxicroak,Zapdos,53.738
+Toxicroak,Kingdra,9.12
+Toxicroak,Raging Bolt,9.021
+Toxicroak,Ogerpon-Wellspring,5.136
+Toxicroak,Primarina,4.156
+Toxicroak,Lokix,3.822
+Salamence,Great Tusk,16.609
+Salamence,Gholdengo,11.317
+Salamence,Iron Valiant,10.631
+Salamence,Scizor,10.337
+Salamence,Glimmora,9.74
+Salamence,Blaziken,9.693
+Salamence,Weavile,9.169
+Salamence,Zamazenta,7.714
+Salamence,Iron Treads,7.491
+Salamence,Ogerpon-Wellspring,7.357
+Gyarados,Dragonite,20.781
+Gyarados,Great Tusk,15.721
+Gyarados,Dragapult,14.253
+Gyarados,Hatterene,13.923
+Gyarados,Garchomp,12.505
+Gyarados,Gholdengo,12.205
+Gyarados,Kingambit,11.224
+Gyarados,Zapdos,11.07
+Gyarados,Heatran,10.194
+Gyarados,Tyranitar,9.426
+Armarouge,Hatterene,37.106
+Armarouge,Indeedee,35.302
+Armarouge,Hawlucha,23.055
+Armarouge,Great Tusk,18.253
+Armarouge,Iron Valiant,15.522
+Armarouge,Iron Treads,13.85
+Armarouge,Kingambit,12.642
+Armarouge,Ceruledge,12.105
+Armarouge,Deoxys-Speed,10.958
+Armarouge,Ogerpon-Wellspring,10.082
+Espeon,Dragonite,14.745
+Espeon,Gliscor,12.242
+Espeon,Scizor,10.536
+Espeon,Alomomola,8.89
+Espeon,Skarmory,8.852
+Espeon,Gyarados,8.782
+Espeon,Gholdengo,8.659
+Espeon,Umbreon,8.365
+Espeon,Cinderace,8.27
+Espeon,Muk-Alola,8.192
+Basculegion,Pelipper,68.356
+Basculegion,Iron Treads,36.869
+Basculegion,Raging Bolt,32.187
+Basculegion,Kingambit,17.675
+Basculegion,Barraskewda,16.587
+Basculegion,Kingdra,14.291
+Basculegion,Zapdos,12.645
+Basculegion,Goodra-Hisui,10.992
+Basculegion,Dragonite,10.754
+Basculegion,Iron Jugulis,9.324
+Enamorus-Therian,Kingambit,59.939
+Enamorus-Therian,Great Tusk,53.167
+Enamorus-Therian,Cinderace,52.093
+Enamorus-Therian,Slowking-Galar,49.022
+Enamorus-Therian,Kyurem,48.034
+Enamorus-Therian,Ursaluna,18.109
+Enamorus-Therian,Hatterene,13.927
+Enamorus-Therian,Iron Hands,12.087
+Enamorus-Therian,Cresselia,11.004
+Enamorus-Therian,Hoopa-Unbound,9.763
+Lilligant-Hisui,Walking Wake,72.031
+Lilligant-Hisui,Torkoal,58.593
+Lilligant-Hisui,Great Tusk,46.637
+Lilligant-Hisui,Hatterene,32.365
+Lilligant-Hisui,Raging Bolt,30.239
+Lilligant-Hisui,Ninetales,27.345
+Lilligant-Hisui,Kingambit,11.193
+Lilligant-Hisui,Venusaur,10.657
+Lilligant-Hisui,Cinderace,8.429
+Lilligant-Hisui,Ceruledge,7.667
+Porygon2,Ursaluna,48.404
+Porygon2,Hatterene,47.545
+Porygon2,Cresselia,39.059
+Porygon2,Iron Hands,28.088
+Porygon2,Volcanion,15.131
+Porygon2,Kingambit,11.535
+Porygon2,Hariyama,10.061
+Porygon2,Raging Bolt,8.01
+Porygon2,Great Tusk,6.889
+Porygon2,Tyranitar,6.725
+Comfey,Great Tusk,30.195
+Comfey,Walking Wake,23.927
+Comfey,Rillaboom,18.241
+Comfey,Ninetales,17.659
+Comfey,Whimsicott,16.807
+Comfey,Grimmsnarl,15.151
+Comfey,Iron Moth,15.017
+Comfey,Blaziken,10.012
+Comfey,Iron Treads,10.007
+Comfey,Ceruledge,9.954
+Chesnaught,Gholdengo,20.772
+Chesnaught,Iron Treads,14.886
+Chesnaught,Heatran,12.552
+Chesnaught,Garchomp,10.728
+Chesnaught,Hoopa-Unbound,9.995
+Chesnaught,Gliscor,9.894
+Chesnaught,Clodsire,9.851
+Chesnaught,Zamazenta,9.79
+Chesnaught,Scizor,9.746
+Chesnaught,Tyranitar,9.61
+Charizard,Walking Wake,34.43
+Charizard,Torkoal,33.153
+Charizard,Great Tusk,32.22
+Charizard,Hatterene,22.143
+Charizard,Venusaur,21.012
+Charizard,Dragonite,14.794
+Charizard,Ninetales,14.464
+Charizard,Slither Wing,12.098
+Charizard,Gengar,11.886
+Charizard,Raging Bolt,9.436
+Haxorus,Gholdengo,15.041
+Haxorus,Ninetales-Alola,14.297
+Haxorus,Great Tusk,13.784
+Haxorus,Scizor,12.304
+Haxorus,Ceruledge,11.656
+Haxorus,Iron Moth,10.974
+Haxorus,Corviknight,10.524
+Haxorus,Excadrill,9.083
+Haxorus,Volcanion,8.773
+Haxorus,Cinderace,8.095
+Milotic,Kingambit,28.588
+Milotic,Cinderace,24.219
+Milotic,Serperior,18.526
+Milotic,Gliscor,13.785
+Milotic,Great Tusk,12.185
+Milotic,Skeledirge,11.895
+Milotic,Dragapult,11.149
+Milotic,Ribombee,10.901
+Milotic,Dragonite,9.652
+Milotic,Corviknight,9.176
+Zapdos-Galar,Darkrai,15.903
+Zapdos-Galar,Pecharunt,14.166
+Zapdos-Galar,Gliscor,12.33
+Zapdos-Galar,Gholdengo,12.319
+Zapdos-Galar,Iron Treads,12.176
+Zapdos-Galar,Great Tusk,10.791
+Zapdos-Galar,Cinderace,10.739
+Zapdos-Galar,Scizor,10.456
+Zapdos-Galar,Iron Valiant,9.988
+Zapdos-Galar,Serperior,9.943
+Gallade,Kingambit,29.39
+Gallade,Iron Moth,23.921
+Gallade,Great Tusk,21.403
+Gallade,Enamorus,16.303
+Gallade,Ogerpon-Cornerstone,16.07
+Gallade,Cramorant,14.962
+Gallade,Iron Valiant,14.039
+Gallade,Gholdengo,9.795
+Gallade,Hatterene,8.857
+Gallade,Zamazenta,8.749
+Crawdaunt,Slowking-Galar,22.494
+Crawdaunt,Corviknight,19.45
+Crawdaunt,Iron Treads,18.06
+Crawdaunt,Zapdos,17.955
+Crawdaunt,Hatterene,17.312
+Crawdaunt,Kyurem,16.294
+Crawdaunt,Pelipper,15.313
+Crawdaunt,Darkrai,14.573
+Crawdaunt,Kingambit,13.632
+Crawdaunt,Cinderace,13.145
+Jirachi,Great Tusk,17.145
+Jirachi,Corviknight,12.786
+Jirachi,Darkrai,11.691
+Jirachi,Iron Valiant,11.145
+Jirachi,Dragonite,10.815
+Jirachi,Cinderace,10.768
+Jirachi,Gliscor,10.561
+Jirachi,Zapdos,10.492
+Jirachi,Dragapult,10.03
+Jirachi,Garganacl,9.764
+Iron Jugulis,Sandy Shocks,26.123
+Iron Jugulis,Scizor,25.741
+Iron Jugulis,Manaphy,24.661
+Iron Jugulis,Ogerpon,24.261
+Iron Jugulis,Latios,24.166
+Iron Jugulis,Iron Treads,23.422
+Iron Jugulis,Raging Bolt,22.353
+Iron Jugulis,Iron Valiant,21.62
+Iron Jugulis,Pelipper,16.445
+Iron Jugulis,Kingambit,12.257
+Whimsicott,Great Tusk,45.044
+Whimsicott,Walking Wake,40.211
+Whimsicott,Ninetales,33.413
+Whimsicott,Iron Moth,26.168
+Whimsicott,Comfey,18.613
+Whimsicott,Ceruledge,14.145
+Whimsicott,Blaziken,11.545
+Whimsicott,Torkoal,11.103
+Whimsicott,Kingambit,10.521
+Whimsicott,Cinderace,7.893
+Muk-Alola,Great Tusk,19.191
+Muk-Alola,Gliscor,17.214
+Muk-Alola,Dragonite,16.2
+Muk-Alola,Weezing-Galar,12.29
+Muk-Alola,Gholdengo,10.683
+Muk-Alola,Zapdos,10.569
+Muk-Alola,Alomomola,10.472
+Muk-Alola,Espeon,9.774
+Muk-Alola,Cinderace,9.405
+Muk-Alola,Quagsire,9.208
+Porygon-Z,Great Tusk,26.481
+Porygon-Z,Slowking-Galar,19.845
+Porygon-Z,Dragonite,17.226
+Porygon-Z,Cinderace,15.451
+Porygon-Z,Alomomola,14.55
+Porygon-Z,Tornadus-Therian,11.488
+Porygon-Z,Gholdengo,11.187
+Porygon-Z,Hatterene,11.099
+Porygon-Z,Scizor,10.817
+Porygon-Z,Corviknight,10.274
+Empoleon,Great Tusk,29.912
+Empoleon,Cinderace,22.647
+Empoleon,Kingambit,21.548
+Empoleon,Dragonite,20.059
+Empoleon,Ribombee,14.909
+Empoleon,Dragapult,14.459
+Empoleon,Serperior,13.345
+Empoleon,Gliscor,13.051
+Empoleon,Meowscarada,12.339
+Empoleon,Weezing-Galar,11.492
+Galvantula,Great Tusk,27.1
+Galvantula,Gholdengo,17.988
+Galvantula,Kingambit,17.316
+Galvantula,Dragonite,12.312
+Galvantula,Ceruledge,11.865
+Galvantula,Ogerpon-Wellspring,11.787
+Galvantula,Dragapult,10.106
+Galvantula,Corviknight,9.919
+Galvantula,Garchomp,9.846
+Galvantula,Excadrill,8.652
+Blastoise,Great Tusk,19.755
+Blastoise,Ceruledge,18.114
+Blastoise,Dragonite,13.28
+Blastoise,Iron Crown,12.686
+Blastoise,Grimmsnarl,12.177
+Blastoise,Pelipper,11.175
+Blastoise,Charizard,10.658
+Blastoise,Hatterene,10.615
+Blastoise,Venusaur,9.52
+Blastoise,Clefable,8.857
+Pincurchin,Iron Valiant,69.961
+Pincurchin,Iron Treads,49.089
+Pincurchin,Iron Moth,45.808
+Pincurchin,Raging Bolt,29.397
+Pincurchin,Hawlucha,21.983
+Pincurchin,Iron Hands,20.848
+Pincurchin,Pawmot,20.4
+Pincurchin,Iron Crown,17.84
+Pincurchin,Raichu-Alola,15.887
+Pincurchin,Iron Leaves,15.479
+Regidrago,Great Tusk,23.191
+Regidrago,Alomomola,16.464
+Regidrago,Hatterene,14.881
+Regidrago,Gholdengo,14.372
+Regidrago,Hoopa-Unbound,13.386
+Regidrago,Ursaluna,12.541
+Regidrago,Dragonite,10.939
+Regidrago,Iron Moth,10.445
+Regidrago,Regieleki,10.338
+Regidrago,Scizor,8.785
+Hippowdon,Excadrill,51.658
+Hippowdon,Tyranitar,26.526
+Hippowdon,Garganacl,22.261
+Hippowdon,Skarmory,18.728
+Hippowdon,Corviknight,16.916
+Hippowdon,Zapdos,12.784
+Hippowdon,Tornadus-Therian,12.148
+Hippowdon,Hydrapple,11.793
+Hippowdon,Heatran,10.55
+Hippowdon,Weavile,10.171
+Sylveon,Great Tusk,19.637
+Sylveon,Meowscarada,13.252
+Sylveon,Kingambit,10.849
+Sylveon,Latios,10.741
+Sylveon,Garchomp,10.567
+Sylveon,Landorus-Therian,10.203
+Sylveon,Dragapult,10.113
+Sylveon,Corviknight,8.796
+Sylveon,Chesnaught,8.549
+Sylveon,Pecharunt,8.486
+Cetitan,Slowking-Galar,52.278
+Cetitan,Ninetales-Alola,39.531
+Cetitan,Kyurem,33.738
+Cetitan,Great Tusk,33.375
+Cetitan,Dragapult,20.321
+Cetitan,Samurott-Hisui,17.842
+Cetitan,Moltres,17.576
+Cetitan,Cinderace,14.146
+Cetitan,Alomomola,13.014
+Cetitan,Indeedee,12.251
+Swampert,Scizor,17.252
+Swampert,Dragonite,15.081
+Swampert,Zapdos,14.64
+Swampert,Corviknight,13.699
+Swampert,Iron Valiant,12.509
+Swampert,Tyranitar,11.817
+Swampert,Dragapult,10.418
+Swampert,Pelipper,10.017
+Swampert,Sinistcha,8.67
+Swampert,Gengar,8.653
+Krookodile,Alomomola,21.023
+Krookodile,Weezing-Galar,20.374
+Krookodile,Sinistcha,18.829
+Krookodile,Maushold,18.318
+Krookodile,Frosmoth,18.246
+Krookodile,Corviknight,12.148
+Krookodile,Talonflame,11.303
+Krookodile,Blissey,10.005
+Krookodile,Mimikyu,9.88
+Krookodile,Salamence,9.775
+Gastrodon,Excadrill,15.996
+Gastrodon,Tyranitar,14.942
+Gastrodon,Corviknight,14.812
+Gastrodon,Skeledirge,12.186
+Gastrodon,Zamazenta,10.768
+Gastrodon,Pelipper,10.29
+Gastrodon,Ogerpon,9.357
+Gastrodon,Darkrai,9.355
+Gastrodon,Kingambit,9.093
+Gastrodon,Dragonite,8.65
+Frosmoth,Maushold,26.517
+Frosmoth,Alomomola,26.511
+Frosmoth,Sinistcha,25.62
+Frosmoth,Weezing-Galar,25.083
+Frosmoth,Krookodile,18.955
+Frosmoth,Raging Bolt,18.325
+Frosmoth,Hatterene,16.194
+Frosmoth,Garganacl,14.45
+Frosmoth,Rillaboom,14.093
+Frosmoth,Great Tusk,13.8
+Klefki,Ogerpon-Wellspring,27.651
+Klefki,Manaphy,27.626
+Klefki,Clefable,25.575
+Klefki,Iron Valiant,24.807
+Klefki,Rillaboom,23.246
+Klefki,Maushold,15.246
+Klefki,Great Tusk,13.649
+Klefki,Gholdengo,13.262
+Klefki,Tyranitar,11.099
+Klefki,Latias,10.881
+Azelf,Raging Bolt,45.891
+Azelf,Scizor,34.736
+Azelf,Ogerpon-Wellspring,34.5
+Azelf,Cinderace,32.134
+Azelf,Gengar,31.936
+Azelf,Iron Treads,15.618
+Azelf,Pelipper,13.516
+Azelf,Overqwil,13.484
+Azelf,Barraskewda,13.468
+Azelf,Tyranitar,13.223
+Smeargle,Gholdengo,32.657
+Smeargle,Kingambit,20.875
+Smeargle,Samurott-Hisui,18.027
+Smeargle,Zamazenta,15.591
+Smeargle,Serperior,14.866
+Smeargle,Great Tusk,14.786
+Smeargle,Deoxys-Speed,13.606
+Smeargle,Moltres-Galar,13.557
+Smeargle,Hatterene,13.499
+Smeargle,Dragonite,12.894
+Quagsire,Corviknight,45.96
+Quagsire,Toxapex,41.76
+Quagsire,Clefable,33.871
+Quagsire,Alomomola,32.418
+Quagsire,Clodsire,28.419
+Quagsire,Blissey,18.042
+Quagsire,Gliscor,13.339
+Quagsire,Muk-Alola,11.437
+Quagsire,Weezing-Galar,10.898
+Quagsire,Talonflame,10.546
+Breloom,Talonflame,17.992
+Breloom,Cinderace,16.779
+Breloom,Kingambit,14.629
+Breloom,Gardevoir,14.536
+Breloom,Great Tusk,13.852
+Breloom,Magnezone,13.524
+Breloom,Drifblim,13.183
+Breloom,Glimmora,11.148
+Breloom,Gholdengo,10.31
+Breloom,Primarina,9.414
+Deoxys-Defense,Ursaluna,17.927
+Deoxys-Defense,Great Tusk,16.71
+Deoxys-Defense,Kingambit,14.976
+Deoxys-Defense,Hatterene,13.565
+Deoxys-Defense,Gholdengo,13.231
+Deoxys-Defense,Dragonite,10.517
+Deoxys-Defense,Hoopa-Unbound,10.017
+Deoxys-Defense,Gliscor,9.697
+Deoxys-Defense,Cinderace,9.113
+Deoxys-Defense,Landorus-Therian,8.634
+Jolteon,Slowking-Galar,25.363
+Jolteon,Great Tusk,22.802
+Jolteon,Kingambit,20.296
+Jolteon,Hydrapple,19.944
+Jolteon,Moltres,17.657
+Jolteon,Pelipper,16.865
+Jolteon,Corviknight,12.745
+Jolteon,Espeon,11.621
+Jolteon,Scizor,9.695
+Jolteon,Quaquaval,8.764
+Lucario,Greninja,22.035
+Lucario,Ceruledge,20.212
+Lucario,Garchomp,19.036
+Lucario,Dragonite,15.859
+Lucario,Corviknight,14.195
+Lucario,Great Tusk,12.464
+Lucario,Dragapult,10.944
+Lucario,Gliscor,10.69
+Lucario,Gardevoir,9.713
+Lucario,Gengar,9.152
+Reuniclus,Kingambit,21.721
+Reuniclus,Samurott-Hisui,18.784
+Reuniclus,Dragonite,15.231
+Reuniclus,Gholdengo,15.026
+Reuniclus,Iron Valiant,14.216
+Reuniclus,Great Tusk,13.734
+Reuniclus,Ceruledge,11.198
+Reuniclus,Torkoal,9.69
+Reuniclus,Zamazenta,9.453
+Reuniclus,Pecharunt,8.987
+Chandelure,Great Tusk,18.121
+Chandelure,Corviknight,12.238
+Chandelure,Kingambit,11.707
+Chandelure,Samurott-Hisui,10.871
+Chandelure,Scizor,10.828
+Chandelure,Landorus-Therian,10.463
+Chandelure,Toxapex,9.372
+Chandelure,Serperior,9.201
+Chandelure,Cinderace,8.784
+Chandelure,Ogerpon-Wellspring,8.664
+Donphan,Scizor,27.536
+Donphan,Zamazenta,24.786
+Donphan,Ceruledge,23.477
+Donphan,Lycanroc-Dusk,21.658
+Donphan,Florges,21.071
+Donphan,Cloyster,8.419
+Donphan,Blaziken,8.179
+Donphan,Ogerpon-Wellspring,7.939
+Donphan,Ribombee,7.921
+Donphan,Primarina,7.484
+Diancie,Ursaluna,55.28
+Diancie,Hatterene,50.954
+Diancie,Cresselia,23.827
+Diancie,Volcanion,19.308
+Diancie,Ninetales-Alola,18.022
+Diancie,Kyurem,16.332
+Diancie,Moltres-Galar,16.204
+Diancie,Iron Hands,15.844
+Diancie,Great Tusk,9.903
+Diancie,Cinderace,9.729
+Toxtricity,Corviknight,26.989
+Toxtricity,Scizor,17.257
+Toxtricity,Ogerpon-Wellspring,15.588
+Toxtricity,Clodsire,15.381
+Toxtricity,Pelipper,13.154
+Toxtricity,Cinderace,13.096
+Toxtricity,Barraskewda,12.418
+Toxtricity,Alomomola,11.931
+Toxtricity,Garchomp,11.813
+Toxtricity,Great Tusk,11.706
+Houndstone,Tyranitar,46.887
+Houndstone,Excadrill,43.796
+Houndstone,Gholdengo,38.672
+Houndstone,Alomomola,36.124
+Houndstone,Hydrapple,35.092
+Houndstone,Tornadus-Therian,34.674
+Houndstone,Samurott-Hisui,32.398
+Houndstone,Glimmora,32.207
+Houndstone,Goodra-Hisui,27.484
+Houndstone,Primarina,21.612
+Chansey,Corviknight,25.23
+Chansey,Toxapex,20.338
+Chansey,Dondozo,18.915
+Chansey,Dragonite,18.251
+Chansey,Clefable,18.149
+Chansey,Alomomola,17.333
+Chansey,Gliscor,16.712
+Chansey,Dragapult,12.513
+Chansey,Great Tusk,11.437
+Chansey,Ditto,11.274
+Typhlosion-Hisui,Great Tusk,43.201
+Typhlosion-Hisui,Walking Wake,38.602
+Typhlosion-Hisui,Hatterene,28.337
+Typhlosion-Hisui,Ninetales,27.044
+Typhlosion-Hisui,Torkoal,24.623
+Typhlosion-Hisui,Venusaur,21.735
+Typhlosion-Hisui,Raging Bolt,17.677
+Typhlosion-Hisui,Slither Wing,7.98
+Typhlosion-Hisui,Kingambit,7.22
+Typhlosion-Hisui,Rillaboom,7.105
+Golduck,Pelipper,91.224
+Golduck,Barraskewda,85.828
+Golduck,Raging Bolt,81.724
+Golduck,Pawmot,74.87
+Golduck,Tentacruel,74.776
+Golduck,Iron Treads,7.91
+Golduck,Great Tusk,3.253
+Golduck,Overqwil,3.058
+Golduck,Meowscarada,3.057
+Golduck,Excadrill,3.011
+Forretress,Scizor,14.192
+Forretress,Dragonite,11.13
+Forretress,Araquanid,8.503
+Forretress,Dragapult,7.651
+Forretress,Kingambit,7.501
+Forretress,Clefable,7.313
+Forretress,Ditto,7.081
+Forretress,Skeledirge,6.944
+Forretress,Gholdengo,6.852
+Forretress,Lokix,6.826
+Suicune,Corviknight,27.319
+Suicune,Clefable,17.886
+Suicune,Clodsire,12.309
+Suicune,Pecharunt,12.252
+Suicune,Great Tusk,12.227
+Suicune,Darkrai,12.123
+Suicune,Gliscor,11.879
+Suicune,Iron Treads,11.682
+Suicune,Quaquaval,10.175
+Suicune,Deoxys-Speed,9.853
+Mienshao,Corviknight,22.933
+Mienshao,Gliscor,20.158
+Mienshao,Hydrapple,17.863
+Mienshao,Slowking-Galar,15.902
+Mienshao,Blissey,14.237
+Mienshao,Scizor,13.476
+Mienshao,Alomomola,13.386
+Mienshao,Slowbro,12.642
+Mienshao,Tornadus-Therian,11.93
+Mienshao,Talonflame,11.812
+Thundurus,Great Tusk,41.904
+Thundurus,Iron Moth,31.397
+Thundurus,Samurott-Hisui,30.238
+Thundurus,Kingambit,24.85
+Thundurus,Gholdengo,22.574
+Thundurus,Slowking-Galar,19.323
+Thundurus,Araquanid,14.891
+Thundurus,Ceruledge,8.849
+Thundurus,Pelipper,7.704
+Thundurus,Kyurem,7.686
+Salazzle,Gliscor,17.564
+Salazzle,Toxapex,16.524
+Salazzle,Kingambit,16.123
+Salazzle,Alomomola,15.742
+Salazzle,Hatterene,13.081
+Salazzle,Corviknight,11.909
+Salazzle,Torkoal,9.99
+Salazzle,Walking Wake,9.888
+Salazzle,Muk-Alola,9.814
+Salazzle,Lilligant-Hisui,9.483
+Torterra,Ogerpon-Wellspring,13.197
+Torterra,Zamazenta,10.771
+Torterra,Kyurem,10.274
+Torterra,Gholdengo,10.25
+Torterra,Azumarill,9.42
+Torterra,Darkrai,9.142
+Torterra,Kingambit,8.987
+Torterra,Gliscor,8.841
+Torterra,Dragonite,8.664
+Torterra,Regieleki,8.305
+Infernape,Great Tusk,23.927
+Infernape,Gholdengo,17.0
+Infernape,Dragonite,14.744
+Infernape,Garchomp,13.973
+Infernape,Slowking-Galar,12.094
+Infernape,Greninja,11.968
+Infernape,Corviknight,11.69
+Infernape,Gliscor,10.066
+Infernape,Ogerpon-Wellspring,9.696
+Infernape,Kingambit,9.093
+Snorlax,Dragonite,17.559
+Snorlax,Charizard,12.468
+Snorlax,Blastoise,12.214
+Snorlax,Venusaur,12.159
+Snorlax,Great Tusk,10.336
+Snorlax,Lapras,10.263
+Snorlax,Pikachu,10.223
+Snorlax,Gengar,9.88
+Snorlax,Corviknight,9.61
+Snorlax,Dragapult,8.175
+Wo-Chien,Iron Treads,35.981
+Wo-Chien,Ogerpon-Wellspring,27.269
+Wo-Chien,Cresselia,24.173
+Wo-Chien,Great Tusk,20.813
+Wo-Chien,Zamazenta,18.645
+Wo-Chien,Cinderace,17.328
+Wo-Chien,Torkoal,16.22
+Wo-Chien,Walking Wake,16.208
+Wo-Chien,Raging Bolt,14.154
+Wo-Chien,Gholdengo,13.578
+Rotom-Heat,Dragonite,27.155
+Rotom-Heat,Garchomp,24.078
+Rotom-Heat,Primarina,21.197
+Rotom-Heat,Mandibuzz,18.348
+Rotom-Heat,Iron Crown,17.625
+Rotom-Heat,Great Tusk,17.451
+Rotom-Heat,Dragapult,16.219
+Rotom-Heat,Corviknight,15.579
+Rotom-Heat,Zamazenta,10.637
+Rotom-Heat,Landorus-Therian,10.556
+Bisharp,Dragapult,26.698
+Bisharp,Glimmora,18.014
+Bisharp,Cloyster,14.904
+Bisharp,Braviary-Hisui,13.451
+Bisharp,Entei,13.228
+Bisharp,Cinderace,11.403
+Bisharp,Serperior,10.201
+Bisharp,Samurott-Hisui,8.852
+Bisharp,Slowking-Galar,8.514
+Bisharp,Corviknight,8.46
+Slowbro,Blissey,19.36
+Slowbro,Krookodile,14.963
+Slowbro,Mienshao,14.246
+Slowbro,Mandibuzz,14.189
+Slowbro,Talonflame,14.085
+Slowbro,Great Tusk,12.177
+Slowbro,Gengar,12.123
+Slowbro,Scizor,11.437
+Slowbro,Goodra-Hisui,9.495
+Slowbro,Mamoswine,9.29
+Basculegion-F,Iron Treads,55.54
+Basculegion-F,Ogerpon-Wellspring,44.396
+Basculegion-F,Weavile,40.928
+Basculegion-F,Ninetales-Alola,40.801
+Basculegion-F,Glaceon,40.637
+Basculegion-F,Pelipper,37.26
+Basculegion-F,Barraskewda,22.506
+Basculegion-F,Raging Bolt,11.634
+Basculegion-F,Great Tusk,9.108
+Basculegion-F,Zapdos,8.05
+Noivern,Cloyster,19.943
+Noivern,Ceruledge,19.457
+Noivern,Iron Valiant,18.564
+Noivern,Goodra-Hisui,17.504
+Noivern,Garchomp,12.435
+Noivern,Dragapult,12.261
+Noivern,Kingambit,11.36
+Noivern,Malamar,10.636
+Noivern,Greninja,10.565
+Noivern,Lilligant,10.273
+Sableye,Gliscor,18.386
+Sableye,Serperior,14.313
+Sableye,Meowscarada,14.226
+Sableye,Dragonite,11.905
+Sableye,Quaquaval,11.228
+Sableye,Smeargle,10.988
+Sableye,Corviknight,9.968
+Sableye,Kommo-o,9.534
+Sableye,Heatran,8.735
+Sableye,Hydreigon,8.207
+Entei,Dragapult,25.491
+Entei,Ursaluna,18.586
+Entei,Great Tusk,17.359
+Entei,Darkrai,16.357
+Entei,Glimmora,15.305
+Entei,Bisharp,14.048
+Entei,Cloyster,14.01
+Entei,Braviary-Hisui,14.007
+Entei,Kyurem,11.326
+Entei,Conkeldurr,10.122
+Drifblim,Talonflame,20.719
+Drifblim,Gardevoir,20.409
+Drifblim,Magnezone,20.318
+Drifblim,Breloom,19.76
+Drifblim,Iron Treads,13.993
+Drifblim,Rillaboom,13.359
+Drifblim,Alomomola,13.022
+Drifblim,Great Tusk,12.463
+Drifblim,Kingambit,10.151
+Drifblim,Hatterene,9.647
+Grafaiai,Corviknight,36.154
+Grafaiai,Alomomola,33.723
+Grafaiai,Regieleki,31.887
+Grafaiai,Zamazenta,28.329
+Grafaiai,Gliscor,27.96
+Grafaiai,Slowking-Galar,10.086
+Grafaiai,Great Tusk,9.873
+Grafaiai,Gholdengo,9.387
+Grafaiai,Rillaboom,8.716
+Grafaiai,Cinderace,6.589
+Glastrier,Heatran,31.69
+Glastrier,Raging Bolt,23.015
+Glastrier,Landorus-Therian,21.7
+Glastrier,Slowking-Galar,20.293
+Glastrier,Iron Treads,19.967
+Glastrier,Ursaluna,19.847
+Glastrier,Hatterene,19.409
+Glastrier,Great Tusk,19.407
+Glastrier,Iron Valiant,19.25
+Glastrier,Darkrai,12.596
+Lycanroc-Dusk,Scizor,46.358
+Lycanroc-Dusk,Ceruledge,44.638
+Lycanroc-Dusk,Zamazenta,32.051
+Lycanroc-Dusk,Donphan,29.733
+Lycanroc-Dusk,Florges,29.009
+Lycanroc-Dusk,Greninja,16.182
+Lycanroc-Dusk,Dragonite,15.026
+Lycanroc-Dusk,Rillaboom,14.937
+Lycanroc-Dusk,Great Tusk,10.129
+Lycanroc-Dusk,Gholdengo,8.509
+Vikavolt,Kingambit,33.774
+Vikavolt,Cinderace,23.035
+Vikavolt,Great Tusk,15.942
+Vikavolt,Serperior,15.101
+Vikavolt,Gholdengo,12.852
+Vikavolt,Skeledirge,12.221
+Vikavolt,Hatterene,12.219
+Vikavolt,Iron Treads,11.055
+Vikavolt,Milotic,10.712
+Vikavolt,Slowking-Galar,10.505
+Politoed,Barraskewda,25.314
+Politoed,Iron Treads,21.884
+Politoed,Kingdra,21.871
+Politoed,Basculegion,18.207
+Politoed,Dragonite,17.601
+Politoed,Zapdos,16.037
+Politoed,Pelipper,14.613
+Politoed,Raging Bolt,11.213
+Politoed,Poliwrath,10.291
+Politoed,Araquanid,9.887
+Vaporeon,Gliscor,21.475
+Vaporeon,Cinderace,19.268
+Vaporeon,Dragonite,16.692
+Vaporeon,Clodsire,14.924
+Vaporeon,Dondozo,13.798
+Vaporeon,Alomomola,13.763
+Vaporeon,Jolteon,12.128
+Vaporeon,Espeon,11.793
+Vaporeon,Excadrill,11.423
+Vaporeon,Sylveon,11.148
+Slowbro-Galar,Hatterene,26.859
+Slowbro-Galar,Kingambit,25.476
+Slowbro-Galar,Indeedee,25.125
+Slowbro-Galar,Iron Treads,23.581
+Slowbro-Galar,Hawlucha,22.757
+Slowbro-Galar,Armarouge,22.277
+Slowbro-Galar,Iron Hands,17.674
+Slowbro-Galar,Enamorus-Therian,17.415
+Slowbro-Galar,Grimmsnarl,17.06
+Slowbro-Galar,Ursaluna,12.189
+Staraptor,Kingambit,21.345
+Staraptor,Glimmora,15.149
+Staraptor,Garchomp,12.574
+Staraptor,Great Tusk,12.454
+Staraptor,Ting-Lu,9.61
+Staraptor,Ogerpon-Wellspring,9.378
+Staraptor,Dragapult,9.363
+Staraptor,Iron Moth,9.058
+Staraptor,Gholdengo,8.901
+Staraptor,Iron Valiant,8.482
+Bronzong,Gliscor,20.346
+Bronzong,Alomomola,18.554
+Bronzong,Clodsire,17.468
+Bronzong,Great Tusk,15.418
+Bronzong,Pecharunt,14.399
+Bronzong,Gholdengo,14.033
+Bronzong,Weavile,12.266
+Bronzong,Dondozo,12.221
+Bronzong,Chesnaught,12.204
+Bronzong,Zamazenta,9.99
+Cramorant,Kingambit,58.456
+Cramorant,Enamorus,46.498
+Cramorant,Iron Moth,46.295
+Cramorant,Ogerpon-Cornerstone,34.838
+Cramorant,Gallade,34.182
+Cramorant,Dragonite,17.108
+Cramorant,Great Tusk,14.075
+Cramorant,Gholdengo,13.048
+Cramorant,Okidogi,11.09
+Cramorant,Primarina,9.831
+Cinccino,Ribombee,23.986
+Cinccino,Greninja,23.793
+Cinccino,Hydrapple,20.412
+Cinccino,Mimikyu,19.853
+Cinccino,Tinkaton,19.735
+Cinccino,Dragonite,12.527
+Cinccino,Arcanine-Hisui,9.581
+Cinccino,Dragapult,9.558
+Cinccino,Primarina,8.051
+Cinccino,Gliscor,7.404
+Scream Tail,Great Tusk,29.265
+Scream Tail,Walking Wake,20.697
+Scream Tail,Corviknight,11.907
+Scream Tail,Torkoal,11.793
+Scream Tail,Zamazenta,11.764
+Scream Tail,Raging Bolt,11.354
+Scream Tail,Dragonite,9.542
+Scream Tail,Ting-Lu,9.185
+Scream Tail,Iron Treads,8.86
+Scream Tail,Ninetales,8.684
+Yanmega,Raging Bolt,24.875
+Yanmega,Hatterene,21.775
+Yanmega,Ceruledge,20.44
+Yanmega,Meowscarada,18.537
+Yanmega,Ursaluna,17.747
+Yanmega,Alomomola,11.873
+Yanmega,Scizor,11.124
+Yanmega,Iron Moth,10.367
+Yanmega,Tyranitar,9.962
+Yanmega,Ogerpon-Wellspring,9.74
+Inteleon,Cinderace,30.49
+Inteleon,Thundurus-Therian,17.817
+Inteleon,Dragapult,17.791
+Inteleon,Iron Treads,16.684
+Inteleon,Pelipper,14.862
+Inteleon,Kingambit,11.92
+Inteleon,Dragonite,11.829
+Inteleon,Raging Bolt,10.1
+Inteleon,Ogerpon-Wellspring,9.165
+Inteleon,Landorus-Therian,9.135
+Meloetta,Kyurem,28.766
+Meloetta,Alomomola,24.268
+Meloetta,Keldeo,22.052
+Meloetta,Great Tusk,21.054
+Meloetta,Thundurus-Therian,18.978
+Meloetta,Conkeldurr,18.319
+Meloetta,Kingambit,15.21
+Meloetta,Sylveon,13.8
+Meloetta,Gholdengo,13.092
+Meloetta,Latios,12.323
+Braviary-Hisui,Dragapult,24.815
+Braviary-Hisui,Glimmora,18.622
+Braviary-Hisui,Cloyster,18.356
+Braviary-Hisui,Bisharp,18.048
+Braviary-Hisui,Darkrai,17.959
+Braviary-Hisui,Entei,17.696
+Braviary-Hisui,Hatterene,17.501
+Braviary-Hisui,Gholdengo,16.623
+Braviary-Hisui,Zamazenta,15.231
+Braviary-Hisui,Raging Bolt,14.719
+Arcanine,Corviknight,28.261
+Arcanine,Dragapult,24.804
+Arcanine,Dondozo,20.885
+Arcanine,Darkrai,20.568
+Arcanine,Clodsire,18.124
+Arcanine,Dragonite,10.639
+Arcanine,Gengar,9.893
+Arcanine,Hatterene,9.016
+Arcanine,Deoxys-Speed,7.578
+Arcanine,Garchomp,7.077
+Necrozma,Hatterene,18.027
+Necrozma,Ursaluna,15.875
+Necrozma,Ogerpon-Wellspring,15.021
+Necrozma,Blaziken,13.947
+Necrozma,Weavile,12.557
+Necrozma,Iron Valiant,11.927
+Necrozma,Kingambit,11.766
+Necrozma,Salamence,10.771
+Necrozma,Weezing-Galar,9.63
+Necrozma,Hoopa-Unbound,9.362
+Bellibolt,Mimikyu,20.588
+Bellibolt,Salamence,20.153
+Bellibolt,Great Tusk,18.862
+Bellibolt,Krookodile,17.231
+Bellibolt,Quaquaval,13.72
+Bellibolt,Alomomola,13.576
+Bellibolt,Charizard,11.164
+Bellibolt,Iron Treads,10.29
+Bellibolt,Iron Valiant,9.879
+Bellibolt,Dragapult,9.665
+Registeel,Dragonite,23.26
+Registeel,Zamazenta,19.545
+Registeel,Garchomp,19.301
+Registeel,Regieleki,17.66
+Registeel,Dragapult,16.521
+Registeel,Uxie,15.514
+Registeel,Regirock,14.98
+Registeel,Regice,14.846
+Registeel,Regidrago,13.665
+Registeel,Mandibuzz,13.51
+Kilowattrel,Pelipper,29.206
+Kilowattrel,Barraskewda,22.247
+Kilowattrel,Iron Treads,14.642
+Kilowattrel,Glimmora,12.277
+Kilowattrel,Meowscarada,11.327
+Kilowattrel,Hatterene,10.759
+Kilowattrel,Quaquaval,10.606
+Kilowattrel,Ceruledge,10.053
+Kilowattrel,Toxicroak,9.949
+Kilowattrel,Goodra-Hisui,8.836
+Arboliva,Zamazenta,37.804
+Arboliva,Dragonite,37.487
+Arboliva,Hatterene,37.264
+Arboliva,Gliscor,35.275
+Arboliva,Iron Crown,30.079
+Arboliva,Great Tusk,12.467
+Arboliva,Ceruledge,10.177
+Arboliva,Moltres,8.612
+Arboliva,Pecharunt,7.673
+Arboliva,Serperior,7.209
+Revavroom,Ogerpon-Wellspring,25.784
+Revavroom,Great Tusk,16.315
+Revavroom,Iron Treads,15.404
+Revavroom,Zapdos,13.731
+Revavroom,Glimmora,13.658
+Revavroom,Pelipper,13.237
+Revavroom,Barraskewda,13.192
+Revavroom,Slowking-Galar,12.791
+Revavroom,Gliscor,11.384
+Revavroom,Kyurem,9.143
+Ambipom,Cinderace,18.866
+Ambipom,Great Tusk,16.838
+Ambipom,Alomomola,14.998
+Ambipom,Pecharunt,14.2
+Ambipom,Darkrai,10.884
+Ambipom,Ogerpon-Wellspring,9.731
+Ambipom,Walking Wake,9.529
+Ambipom,Torkoal,9.482
+Ambipom,Landorus-Therian,8.909
+Ambipom,Dragonite,8.627
+Brambleghast,Clodsire,18.28
+Brambleghast,Tornadus,17.575
+Brambleghast,Kleavor,15.993
+Brambleghast,Hoopa-Unbound,13.706
+Brambleghast,Gliscor,13.272
+Brambleghast,Moltres,12.111
+Brambleghast,Hatterene,11.466
+Brambleghast,Kyurem,11.087
+Brambleghast,Great Tusk,10.704
+Brambleghast,Armarouge,10.274
+Cyclizar,Alomomola,18.106
+Cyclizar,Gholdengo,14.344
+Cyclizar,Rillaboom,13.677
+Cyclizar,Toxapex,13.284
+Cyclizar,Clodsire,11.817
+Cyclizar,Slowking-Galar,11.234
+Cyclizar,Great Tusk,10.41
+Cyclizar,Hydrapple,8.637
+Cyclizar,Tornadus-Therian,8.632
+Cyclizar,Ting-Lu,8.445
+Glaceon,Ninetales-Alola,61.266
+Glaceon,Ogerpon-Wellspring,57.753
+Glaceon,Iron Treads,57.735
+Glaceon,Weavile,57.711
+Glaceon,Basculegion-F,57.373
+Glaceon,Vaporeon,12.643
+Glaceon,Slowking-Galar,11.844
+Glaceon,Sylveon,7.856
+Glaceon,Espeon,7.8
+Glaceon,Umbreon,7.673
+Lapras,Ninetales-Alola,19.441
+Lapras,Espeon,17.17
+Lapras,Muk-Alola,16.611
+Lapras,Dragonite,16.533
+Lapras,Talonflame,16.337
+Lapras,Snorlax,16.31
+Lapras,Quagsire,15.081
+Lapras,Charizard,13.759
+Lapras,Venusaur,12.213
+Lapras,Pikachu,10.942
+Hitmonlee,Dragonite,17.037
+Hitmonlee,Skeledirge,16.909
+Hitmonlee,Clefable,14.636
+Hitmonlee,Greninja,13.699
+Hitmonlee,Kleavor,13.228
+Hitmonlee,Cinderace,12.61
+Hitmonlee,Blastoise,11.523
+Hitmonlee,Dragapult,11.495
+Hitmonlee,Great Tusk,11.205
+Hitmonlee,Rillaboom,10.761
+Iron Leaves,Iron Valiant,45.328
+Iron Leaves,Pincurchin,38.339
+Iron Leaves,Iron Moth,27.419
+Iron Leaves,Great Tusk,21.371
+Iron Leaves,Iron Hands,16.227
+Iron Leaves,Raging Bolt,15.518
+Iron Leaves,Iron Treads,13.27
+Iron Leaves,Landorus-Therian,12.769
+Iron Leaves,Iron Crown,12.293
+Iron Leaves,Ogerpon-Wellspring,11.332
+Tsareena,Dragapult,29.585
+Tsareena,Heatran,21.232
+Tsareena,Gardevoir,20.858
+Tsareena,Corviknight,20.529
+Tsareena,Toxapex,19.926
+Tsareena,Gholdengo,19.04
+Tsareena,Ribombee,8.955
+Tsareena,Primarina,8.643
+Tsareena,Kleavor,8.445
+Tsareena,Samurott-Hisui,7.71
+Feraligatr,Scizor,28.356
+Feraligatr,Iron Moth,27.993
+Feraligatr,Excadrill,27.465
+Feraligatr,Grimmsnarl,25.079
+Feraligatr,Latios,22.082
+Feraligatr,Serperior,12.791
+Feraligatr,Garchomp,9.03
+Feraligatr,Iron Treads,7.42
+Feraligatr,Gholdengo,7.221
+Feraligatr,Tinkaton,7.165
+Vileplume,Great Tusk,16.453
+Vileplume,Gastrodon,15.154
+Vileplume,Muk-Alola,14.902
+Vileplume,Dragapult,12.494
+Vileplume,Dragonite,12.352
+Vileplume,Clefable,11.426
+Vileplume,Alomomola,10.973
+Vileplume,Salazzle,10.587
+Vileplume,Swanna,9.998
+Vileplume,Haunter,9.998
+Raikou,Iron Treads,27.136
+Raikou,Dragonite,26.324
+Raikou,Araquanid,17.78
+Raikou,Zamazenta,16.493
+Raikou,Goodra-Hisui,15.562
+Raikou,Mew,15.185
+Raikou,Azelf,14.064
+Raikou,Cloyster,14.051
+Raikou,Iron Valiant,14.005
+Raikou,Noivern,13.924
+Poliwrath,Pelipper,54.573
+Poliwrath,Kingdra,29.452
+Poliwrath,Iron Treads,28.907
+Poliwrath,Raging Bolt,26.35
+Poliwrath,Kingambit,16.178
+Poliwrath,Politoed,14.734
+Poliwrath,Great Tusk,13.409
+Poliwrath,Barraskewda,12.72
+Poliwrath,Overqwil,11.282
+Poliwrath,Iron Valiant,10.292
+Dudunsparce,Great Tusk,27.636
+Dudunsparce,Dragapult,24.734
+Dudunsparce,Gholdengo,24.271
+Dudunsparce,Zapdos,19.211
+Dudunsparce,Hatterene,17.688
+Dudunsparce,Serperior,17.55
+Dudunsparce,Kingambit,12.751
+Dudunsparce,Iron Valiant,12.065
+Dudunsparce,Dragonite,10.894
+Dudunsparce,Alomomola,10.793
+Iron Thorns,Gholdengo,36.69
+Iron Thorns,Ribombee,30.521
+Iron Thorns,Iron Moth,26.845
+Iron Thorns,Glimmora,25.529
+Iron Thorns,Iron Valiant,20.49
+Iron Thorns,Great Tusk,19.554
+Iron Thorns,Kingambit,14.477
+Iron Thorns,Ogerpon-Wellspring,13.298
+Iron Thorns,Pincurchin,11.894
+Iron Thorns,Dragonite,11.625
+Froslass,Great Tusk,34.94
+Froslass,Meowscarada,31.618
+Froslass,Dragonite,27.54
+Froslass,Weezing-Galar,25.786
+Froslass,Empoleon,25.628
+Froslass,Ceruledge,14.164
+Froslass,Torkoal,13.804
+Froslass,Cinderace,12.824
+Froslass,Charizard,12.477
+Froslass,Walking Wake,12.032
+Leavanny,Great Tusk,66.327
+Leavanny,Ninetales,62.172
+Leavanny,Walking Wake,58.246
+Leavanny,Ceruledge,57.945
+Leavanny,Slither Wing,26.453
+Leavanny,Raging Bolt,19.151
+Leavanny,Sinistcha,13.811
+Leavanny,Whimsicott,11.362
+Leavanny,Iron Valiant,9.69
+Leavanny,Torkoal,9.575
+Hoopa,Cinderace,78.284
+Hoopa,Ting-Lu,76.647
+Hoopa,Kyurem,75.872
+Hoopa,Manaphy,75.812
+Hoopa,Mandibuzz,75.757
+Hoopa,Great Tusk,2.952
+Hoopa,Ursaluna,2.629
+Hoopa,Clefable,2.042
+Hoopa,Landorus-Therian,2.015
+Hoopa,Ceruledge,2.007
+Cobalion,Dragapult,20.862
+Cobalion,Ceruledge,18.785
+Cobalion,Slowking-Galar,18.003
+Cobalion,Great Tusk,17.86
+Cobalion,Skarmory,13.452
+Cobalion,Hatterene,11.994
+Cobalion,Iron Moth,11.961
+Cobalion,Gyarados,11.891
+Cobalion,Tyranitar,11.725
+Cobalion,Gholdengo,11.049
+Dragalge,Great Tusk,44.385
+Dragalge,Alomomola,42.312
+Dragalge,Weavile,34.08
+Dragalge,Iron Crown,28.963
+Dragalge,Zamazenta,27.979
+Dragalge,Corviknight,8.869
+Dragalge,Hatterene,7.7
+Dragalge,Dragonite,7.307
+Dragalge,Kingambit,7.134
+Dragalge,Gholdengo,6.274
+Dusclops,Kingambit,23.432
+Dusclops,Clefable,18.944
+Dusclops,Cinderace,15.829
+Dusclops,Darkrai,13.509
+Dusclops,Hatterene,12.977
+Dusclops,Ursaluna,11.395
+Dusclops,Muk,11.115
+Dusclops,Forretress,9.428
+Dusclops,Gliscor,9.267
+Dusclops,Skeledirge,9.017
+Pikachu,Charizard,26.655
+Pikachu,Blastoise,22.086
+Pikachu,Greninja,20.517
+Pikachu,Snorlax,19.401
+Pikachu,Venusaur,19.097
+Pikachu,Gholdengo,15.352
+Pikachu,Lapras,13.066
+Pikachu,Gengar,10.675
+Pikachu,Cinderace,10.014
+Pikachu,Gliscor,10.012
+Rabsca,Excadrill,62.43
+Rabsca,Tyranitar,61.82
+Rabsca,Landorus-Therian,61.606
+Rabsca,Zapdos,60.64
+Rabsca,Darkrai,60.491
+Rabsca,Hatterene,10.031
+Rabsca,Kingambit,9.19
+Rabsca,Cresselia,8.301
+Rabsca,Grimmsnarl,7.957
+Rabsca,Great Tusk,6.985
+Florges,Ceruledge,52.401
+Florges,Zamazenta,49.463
+Florges,Scizor,49.398
+Florges,Lycanroc-Dusk,48.423
+Florges,Donphan,48.286
+Florges,Corviknight,9.091
+Florges,Great Tusk,8.826
+Florges,Iron Treads,6.802
+Florges,Gholdengo,5.593
+Florges,Gliscor,5.278
+Sceptile,Dragonite,17.16
+Sceptile,Blaziken,17.033
+Sceptile,Garchomp,13.992
+Sceptile,Greninja,13.076
+Sceptile,Charizard,9.986
+Sceptile,Ceruledge,9.477
+Sceptile,Rillaboom,9.368
+Sceptile,Corviknight,8.825
+Sceptile,Metagross,8.752
+Sceptile,Swampert,8.535
+Sandslash-Alola,Ninetales-Alola,57.416
+Sandslash-Alola,Slowking-Galar,51.818
+Sandslash-Alola,Kyurem,26.051
+Sandslash-Alola,Zamazenta,18.79
+Sandslash-Alola,Cetitan,17.973
+Sandslash-Alola,Great Tusk,17.961
+Sandslash-Alola,Moltres,17.056
+Sandslash-Alola,Beartic,13.893
+Sandslash-Alola,Raging Bolt,13.349
+Sandslash-Alola,Ting-Lu,12.413
+Scovillain,Walking Wake,68.288
+Scovillain,Great Tusk,60.571
+Scovillain,Torkoal,59.335
+Scovillain,Hatterene,47.057
+Scovillain,Ninetales,33.229
+Scovillain,Ceruledge,31.741
+Scovillain,Raging Bolt,21.953
+Scovillain,Kingambit,8.428
+Scovillain,Venusaur,7.447
+Scovillain,Lilligant-Hisui,7.075
+Beartic,Pelipper,44.827
+Beartic,Barraskewda,33.047
+Beartic,Hatterene,26.207
+Beartic,Zapdos,23.814
+Beartic,Ninetales-Alola,23.234
+Beartic,Ogerpon-Wellspring,18.407
+Beartic,Slowking-Galar,16.212
+Beartic,Cetitan,15.438
+Beartic,Sandslash-Alola,15.136
+Beartic,Toxapex,9.973
+Trevenant,Mimikyu,16.732
+Trevenant,Gengar,14.298
+Trevenant,Krookodile,14.13
+Trevenant,Salamence,14.128
+Trevenant,Toxapex,13.573
+Trevenant,Bellibolt,13.547
+Trevenant,Gliscor,13.367
+Trevenant,Torkoal,13.355
+Trevenant,Great Tusk,13.292
+Trevenant,Dragapult,12.236
+Eelektross,Gliscor,25.598
+Eelektross,Milotic,22.868
+Eelektross,Corviknight,22.807
+Eelektross,Mienshao,21.677
+Eelektross,Lokix,19.83
+Eelektross,Great Tusk,14.652
+Eelektross,Ceruledge,13.948
+Eelektross,Dragonite,12.871
+Eelektross,Kingambit,12.605
+Eelektross,Samurott-Hisui,9.954
+Regice,Regirock,27.918
+Regice,Regieleki,24.399
+Regice,Regidrago,22.909
+Regice,Registeel,22.892
+Regice,Regigigas,20.772
+Regice,Great Tusk,14.347
+Regice,Landorus-Therian,12.969
+Regice,Ninetales-Alola,12.456
+Regice,Alomomola,11.673
+Regice,Slowking-Galar,10.267
+Goodra,Scizor,13.712
+Goodra,Garchomp,12.441
+Goodra,Salamence,11.318
+Goodra,Dragapult,11.111
+Goodra,Haxorus,10.909
+Goodra,Pelipper,10.237
+Goodra,Dragonite,10.213
+Goodra,Great Tusk,9.401
+Goodra,Greninja,9.384
+Goodra,Muk-Alola,7.607
+Avalugg,Ninetales-Alola,39.518
+Avalugg,Kyurem,26.218
+Avalugg,Frosmoth,25.484
+Avalugg,Slowking-Galar,16.562
+Avalugg,Heatran,15.547
+Avalugg,Cetitan,13.805
+Avalugg,Slowking,12.913
+Avalugg,Sandslash-Alola,10.175
+Avalugg,Arcanine-Hisui,9.866
+Avalugg,Weavile,8.584
+Oricorio-Pom-Pom,Hatterene,34.442
+Oricorio-Pom-Pom,Great Tusk,20.858
+Oricorio-Pom-Pom,Zamazenta,20.426
+Oricorio-Pom-Pom,Glimmora,18.597
+Oricorio-Pom-Pom,Blaziken,16.024
+Oricorio-Pom-Pom,Cinderace,14.53
+Oricorio-Pom-Pom,Kingambit,13.75
+Oricorio-Pom-Pom,Corviknight,13.553
+Oricorio-Pom-Pom,Ninetales-Alola,13.486
+Oricorio-Pom-Pom,Dragonite,13.114
+Minior,Iron Valiant,26.995
+Minior,Ceruledge,21.299
+Minior,Kingambit,19.125
+Minior,Polteageist,14.804
+Minior,Quaquaval,14.562
+Minior,Cloyster,13.657
+Minior,Latias,13.553
+Minior,Torterra,13.425
+Minior,Ogerpon-Wellspring,12.408
+Minior,Great Tusk,12.408
+Decidueye-Hisui,Samurott-Hisui,16.993
+Decidueye-Hisui,Gholdengo,14.28
+Decidueye-Hisui,Slowking-Galar,13.978
+Decidueye-Hisui,Great Tusk,11.946
+Decidueye-Hisui,Kingambit,10.967
+Decidueye-Hisui,Goodra-Hisui,10.553
+Decidueye-Hisui,Braviary-Hisui,10.229
+Decidueye-Hisui,Raging Bolt,9.976
+Decidueye-Hisui,Iron Treads,9.919
+Decidueye-Hisui,Alomomola,9.72
+Heracross,Scizor,11.204
+Heracross,Kommo-o,9.54
+Heracross,Iron Moth,8.616
+Heracross,Goodra-Hisui,8.286
+Heracross,Espeon,7.72
+Heracross,Kingambit,7.566
+Heracross,Excadrill,7.236
+Heracross,Araquanid,7.218
+Heracross,Donphan,7.019
+Heracross,Great Tusk,6.985
+Scrafty,Gholdengo,23.191
+Scrafty,Iron Valiant,17.398
+Scrafty,Iron Moth,15.658
+Scrafty,Raging Bolt,15.561
+Scrafty,Corviknight,15.288
+Scrafty,Great Tusk,14.264
+Scrafty,Ogerpon-Wellspring,14.133
+Scrafty,Iron Treads,12.432
+Scrafty,Hatterene,10.021
+Scrafty,Weezing-Galar,9.42
+Malamar,Cinderace,32.984
+Malamar,Serperior,26.572
+Malamar,Ceruledge,25.327
+Malamar,Kingambit,24.34
+Malamar,Noivern,23.308
+Malamar,Iron Valiant,23.027
+Malamar,Cloyster,22.928
+Malamar,Lilligant,22.512
+Malamar,Ribombee,19.288
+Malamar,Empoleon,16.907
+Indeedee-F,Hatterene,58.067
+Indeedee-F,Hoopa-Unbound,48.629
+Indeedee-F,Ursaluna,33.496
+Indeedee-F,Hawlucha,27.718
+Indeedee-F,Iron Crown,26.488
+Indeedee-F,Iron Hands,19.295
+Indeedee-F,Cloyster,14.942
+Indeedee-F,Kingambit,12.685
+Indeedee-F,Armarouge,12.193
+Indeedee-F,Mimikyu,12.036
+Hariyama,Ursaluna,51.178
+Hariyama,Hatterene,50.491
+Hariyama,Porygon2,49.568
+Hariyama,Cresselia,48.866
+Hariyama,Raging Bolt,27.834
+Hariyama,Pelipper,22.073
+Hariyama,Glaceon,11.424
+Hariyama,Articuno-Galar,9.816
+Hariyama,Cinccino,9.374
+Hariyama,Vaporeon,9.19
+Electivire,Blastoise,20.262
+Electivire,Greninja,19.758
+Electivire,Skeledirge,18.4
+Electivire,Kleavor,16.854
+Electivire,Hitmonlee,16.851
+Electivire,Gyarados,14.997
+Electivire,Garchomp,14.498
+Electivire,Corviknight,13.467
+Electivire,Metagross,11.324
+Electivire,Clodsire,10.895
+Bruxish,Pelipper,69.655
+Bruxish,Iron Treads,55.805
+Bruxish,Raging Bolt,55.555
+Bruxish,Manaphy,51.801
+Bruxish,Overqwil,51.726
+Bruxish,Weezing-Galar,15.979
+Bruxish,Clodsire,14.609
+Bruxish,Regice,9.393
+Bruxish,Greninja,7.813
+Bruxish,Gholdengo,7.236
+Ludicolo,Pelipper,78.856
+Ludicolo,Barraskewda,48.424
+Ludicolo,Iron Treads,16.7
+Ludicolo,Azumarill,15.704
+Ludicolo,Kingdra,15.343
+Ludicolo,Zapdos,13.817
+Ludicolo,Excadrill,12.827
+Ludicolo,Landorus-Therian,12.247
+Ludicolo,Basculegion-F,12.007
+Ludicolo,Hydrapple,10.568
+Orthworm,Heatran,21.427
+Orthworm,Clodsire,18.61
+Orthworm,Thundurus-Therian,14.447
+Orthworm,Ogerpon-Wellspring,14.091
+Orthworm,Great Tusk,13.695
+Orthworm,Dragonite,11.669
+Orthworm,Weezing-Galar,11.602
+Orthworm,Zamazenta,10.456
+Orthworm,Goodra-Hisui,9.697
+Orthworm,Dragapult,9.309
+Raichu-Alola,Pincurchin,68.544
+Raichu-Alola,Iron Valiant,32.574
+Raichu-Alola,Iron Hands,30.884
+Raichu-Alola,Pawmot,27.194
+Raichu-Alola,Rotom-Wash,26.593
+Raichu-Alola,Frosmoth,25.84
+Raichu-Alola,Hawlucha,24.238
+Raichu-Alola,Iron Moth,18.174
+Raichu-Alola,Iron Treads,17.777
+Raichu-Alola,Corviknight,10.393
+Lilligant,Ceruledge,52.745
+Lilligant,Great Tusk,39.364
+Lilligant,Iron Valiant,28.681
+Lilligant,Cloyster,27.374
+Lilligant,Noivern,26.225
+Lilligant,Malamar,26.225
+Lilligant,Walking Wake,22.023
+Lilligant,Raging Bolt,20.439
+Lilligant,Ninetales,20.116
+Lilligant,Greninja,18.257
+Tornadus,Brambleghast,32.289
+Tornadus,Hoopa-Unbound,30.055
+Tornadus,Raging Bolt,21.698
+Tornadus,Hatterene,19.355
+Tornadus,Ogerpon-Cornerstone,18.143
+Tornadus,Kingambit,18.021
+Tornadus,Armarouge,17.918
+Tornadus,Great Tusk,16.704
+Tornadus,Gholdengo,12.837
+Tornadus,Ogerpon-Wellspring,12.478
+Floatzel,Pelipper,80.425
+Floatzel,Iron Treads,34.747
+Floatzel,Raging Bolt,26.164
+Floatzel,Kingambit,20.274
+Floatzel,Pawmot,17.534
+Floatzel,Great Tusk,17.352
+Floatzel,Greninja,14.764
+Floatzel,Iron Valiant,11.418
+Floatzel,Zapdos,9.387
+Floatzel,Barraskewda,8.17
+Uxie,Dragonite,39.527
+Uxie,Dragapult,34.344
+Uxie,Zamazenta,32.518
+Uxie,Registeel,31.056
+Uxie,Garchomp,30.568
+Uxie,Hatterene,18.729
+Uxie,Cresselia,15.23
+Uxie,Mesprit,12.117
+Uxie,Ursaluna,11.55
+Uxie,Torkoal,10.084
+Flygon,Scizor,16.617
+Flygon,Gholdengo,14.912
+Flygon,Araquanid,12.418
+Flygon,Blaziken,11.534
+Flygon,Iron Moth,11.174
+Flygon,Rillaboom,10.708
+Flygon,Mimikyu,9.763
+Flygon,Kommo-o,9.257
+Flygon,Primarina,8.771
+Flygon,Cacturne,8.425
+Rhyperior,Corviknight,18.424
+Rhyperior,Hatterene,14.719
+Rhyperior,Gholdengo,12.461
+Rhyperior,Darkrai,11.369
+Rhyperior,Tyranitar,9.873
+Rhyperior,Raging Bolt,9.345
+Rhyperior,Pecharunt,8.265
+Rhyperior,Dragonite,7.6
+Rhyperior,Iron Valiant,7.391
+Rhyperior,Ursaluna,7.352
+Honchkrow,Gholdengo,23.167
+Honchkrow,Dragapult,19.949
+Honchkrow,Serperior,18.637
+Honchkrow,Gengar,17.783
+Honchkrow,Trevenant,14.582
+Honchkrow,Great Tusk,12.827
+Honchkrow,Tyranitar,11.942
+Honchkrow,Gliscor,11.868
+Honchkrow,Araquanid,11.83
+Honchkrow,Zoroark-Hisui,9.931
+Haunter,Gholdengo,29.032
+Haunter,Ting-Lu,28.627
+Haunter,Hydrapple,26.553
+Haunter,Great Tusk,25.896
+Haunter,Blaziken,24.851
+Haunter,Latios,24.39
+Haunter,Hawlucha,24.158
+Haunter,Magnezone,24.158
+Haunter,Donphan,24.158
+Haunter,Salazzle,19.634
+Spiritomb,Komala,21.886
+Spiritomb,Kingambit,20.058
+Spiritomb,Garchomp,18.805
+Spiritomb,Sandaconda,16.537
+Spiritomb,Lucario,16.06
+Spiritomb,Tauros,15.659
+Spiritomb,Poliwrath,15.587
+Spiritomb,Mesprit,15.36
+Spiritomb,Milotic,13.334
+Spiritomb,Great Tusk,11.561
+Arbok,Great Tusk,51.817
+Arbok,Kingambit,45.285
+Arbok,Tornadus-Therian,37.002
+Arbok,Zoroark-Hisui,19.595
+Arbok,Rotom-Wash,19.493
+Arbok,Talonflame,17.189
+Arbok,Darkrai,15.024
+Arbok,Heatran,14.472
+Arbok,Ogerpon-Wellspring,13.323
+Arbok,Raging Bolt,12.863
+Decidueye,Great Tusk,22.265
+Decidueye,Corviknight,17.814
+Decidueye,Zapdos,16.216
+Decidueye,Heatran,16.034
+Decidueye,Garganacl,15.524
+Decidueye,Ogerpon-Wellspring,15.336
+Decidueye,Slowking-Galar,12.5
+Decidueye,Kyurem,12.238
+Decidueye,Alomomola,11.484
+Decidueye,Ting-Lu,10.98
+Abomasnow,Cetitan,40.904
+Abomasnow,Iron Treads,28.326
+Abomasnow,Keldeo,24.619
+Abomasnow,Rotom,24.602
+Abomasnow,Illumise,24.602
+Abomasnow,Kyurem,9.703
+Abomasnow,Landorus-Therian,9.409
+Abomasnow,Indeedee,9.318
+Abomasnow,Ninetales-Alola,9.08
+Abomasnow,Sandslash-Alola,8.899
+Toedscruel,Alomomola,16.606
+Toedscruel,Dondozo,15.179
+Toedscruel,Lapras,14.691
+Toedscruel,Skuntank,14.483
+Toedscruel,Glimmora,13.84
+Toedscruel,Blissey,13.338
+Toedscruel,Toxapex,13.314
+Toedscruel,Ditto,12.519
+Toedscruel,Dragonite,11.868
+Toedscruel,Crocalor,11.499
+Toucannon,Dragonite,46.117
+Toucannon,Zamazenta,37.428
+Toucannon,Iron Treads,34.795
+Toucannon,Primarina,32.711
+Toucannon,Zapdos,30.326
+Toucannon,Great Tusk,21.839
+Toucannon,Gholdengo,13.273
+Toucannon,Iron Moth,12.848
+Toucannon,Raging Bolt,11.488
+Toucannon,Pecharunt,10.342
+Tauros-Paldea-Blaze,Garchomp,18.438
+Tauros-Paldea-Blaze,Mimikyu,14.949
+Tauros-Paldea-Blaze,Corviknight,14.256
+Tauros-Paldea-Blaze,Greninja,13.827
+Tauros-Paldea-Blaze,Tyranitar,13.259
+Tauros-Paldea-Blaze,Gholdengo,13.124
+Tauros-Paldea-Blaze,Hippowdon,12.921
+Tauros-Paldea-Blaze,Iron Treads,12.864
+Tauros-Paldea-Blaze,Ogerpon-Wellspring,10.737
+Tauros-Paldea-Blaze,Rillaboom,9.977
+Farigiraf,Ursaluna,44.092
+Farigiraf,Hatterene,43.999
+Farigiraf,Torkoal,41.019
+Farigiraf,Mimikyu,37.032
+Farigiraf,Slither Wing,36.45
+Farigiraf,Kingambit,15.53
+Farigiraf,Great Tusk,10.881
+Farigiraf,Skeledirge,8.282
+Farigiraf,Gholdengo,6.871
+Farigiraf,Glimmora,6.749
+Golurk,Mandibuzz,12.192
+Golurk,Ogerpon-Wellspring,11.546
+Golurk,Enamorus,10.659
+Golurk,Hatterene,10.351
+Golurk,Garganacl,10.24
+Golurk,Iron Crown,9.381
+Golurk,Dragapult,7.597
+Golurk,Glimmora,7.366
+Golurk,Zamazenta,6.739
+Golurk,Gholdengo,6.693
+Regirock,Regice,40.823
+Regirock,Regieleki,39.037
+Regirock,Regidrago,35.475
+Regirock,Registeel,33.776
+Regirock,Regigigas,30.42
+Regirock,Blissey,12.168
+Regirock,Iron Treads,11.25
+Regirock,Metagross,7.664
+Regirock,Ceruledge,7.495
+Regirock,Iron Valiant,7.41
+Electrode-Hisui,Cinderace,20.468
+Electrode-Hisui,Great Tusk,13.236
+Electrode-Hisui,Corviknight,11.158
+Electrode-Hisui,Kyurem,9.839
+Electrode-Hisui,Slowking-Galar,9.632
+Electrode-Hisui,Dragonite,9.459
+Electrode-Hisui,Iron Treads,8.811
+Electrode-Hisui,Quaquaval,8.407
+Electrode-Hisui,Regieleki,8.108
+Electrode-Hisui,Landorus-Therian,7.066
+Primeape,Gholdengo,20.833
+Primeape,Porygon2,20.031
+Primeape,Ditto,19.265
+Primeape,Bisharp,19.249
+Primeape,Forretress,18.928
+Primeape,Lilligant,18.79
+Primeape,Gliscor,18.052
+Primeape,Clefable,15.132
+Primeape,Great Tusk,14.146
+Primeape,Rotom-Wash,13.568
+Leafeon,Great Tusk,51.113
+Leafeon,Ninetales,46.221
+Leafeon,Walking Wake,42.978
+Leafeon,Torkoal,36.884
+Leafeon,Raging Bolt,36.863
+Leafeon,Venusaur,23.857
+Leafeon,Hatterene,22.795
+Leafeon,Sylveon,13.76
+Leafeon,Espeon,13.347
+Leafeon,Umbreon,13.291
+Scyther,Dragonite,12.106
+Scyther,Milotic,10.879
+Scyther,Ceruledge,10.567
+Scyther,Gholdengo,9.156
+Scyther,Pelipper,8.739
+Scyther,Great Tusk,8.45
+Scyther,Gengar,8.057
+Scyther,Meowscarada,7.661
+Scyther,Kingambit,7.606
+Scyther,Samurott-Hisui,7.288
+Typhlosion,Great Tusk,28.954
+Typhlosion,Torkoal,24.979
+Typhlosion,Hatterene,21.603
+Typhlosion,Ninetales,19.604
+Typhlosion,Blissey,17.428
+Typhlosion,Clefable,16.061
+Typhlosion,Scizor,15.342
+Typhlosion,Shiftry,15.125
+Typhlosion,Espeon,13.177
+Typhlosion,Walking Wake,11.095
+Spidops,Gholdengo,57.859
+Spidops,Great Tusk,42.838
+Spidops,Mimikyu,38.924
+Spidops,Kingambit,24.936
+Spidops,Dragonite,17.615
+Spidops,Armarouge,15.231
+Spidops,Raging Bolt,10.637
+Spidops,Regieleki,10.317
+Spidops,Dragapult,10.288
+Spidops,Alomomola,9.64
+Shiftry,Ninetales,37.795
+Shiftry,Torkoal,29.031
+Shiftry,Walking Wake,28.981
+Shiftry,Great Tusk,28.554
+Shiftry,Hatterene,19.565
+Shiftry,Typhlosion,15.154
+Shiftry,Blissey,15.074
+Shiftry,Clodsire,13.704
+Shiftry,Dragapult,13.155
+Shiftry,Kingambit,12.33
+Articuno,Moltres,24.797
+Articuno,Zapdos,17.336
+Articuno,Great Tusk,16.799
+Articuno,Suicune,15.953
+Articuno,Entei,12.602
+Articuno,Raikou,11.988
+Articuno,Clefable,11.392
+Articuno,Darkrai,11.357
+Articuno,Ninetales-Alola,10.146
+Articuno,Slowking-Galar,9.773
+Coalossal,Samurott-Hisui,29.627
+Coalossal,Gholdengo,26.216
+Coalossal,Great Tusk,23.695
+Coalossal,Lokix,23.013
+Coalossal,Ninetales-Alola,22.589
+Coalossal,Ceruledge,17.97
+Coalossal,Toxapex,16.856
+Coalossal,Dondozo,16.681
+Coalossal,Bronzong,16.553
+Coalossal,Cinderace,16.483
+Flamigo,Kingambit,19.556
+Flamigo,Great Tusk,18.867
+Flamigo,Hatterene,15.623
+Flamigo,Dragapult,13.96
+Flamigo,Samurott-Hisui,13.09
+Flamigo,Torkoal,12.611
+Flamigo,Deoxys-Speed,12.386
+Flamigo,Darkrai,11.251
+Flamigo,Scizor,10.871
+Flamigo,Blissey,10.226
+Drednaw,Pelipper,43.593
+Drednaw,Barraskewda,27.12
+Drednaw,Cloyster,15.377
+Drednaw,Polteageist,15.359
+Drednaw,Blastoise,15.061
+Drednaw,Politoed,14.938
+Drednaw,Torterra,14.503
+Drednaw,Hatterene,14.173
+Drednaw,Kingdra,13.636
+Drednaw,Minior,13.347
+Sandaconda,Serperior,37.815
+Sandaconda,Gholdengo,25.474
+Sandaconda,Spiritomb,19.734
+Sandaconda,Komala,18.328
+Sandaconda,Mesprit,18.328
+Sandaconda,Poliwrath,18.328
+Sandaconda,Tauros,18.328
+Sandaconda,Excadrill,18.16
+Sandaconda,Garchomp,17.001
+Sandaconda,Galvantula,13.776
+Exeggutor-Alola,Ursaluna,51.819
+Exeggutor-Alola,Conkeldurr,39.958
+Exeggutor-Alola,Mimikyu,29.512
+Exeggutor-Alola,Entei,27.778
+Exeggutor-Alola,Torkoal,18.707
+Exeggutor-Alola,Deoxys-Speed,17.509
+Exeggutor-Alola,Hatterene,16.289
+Exeggutor-Alola,Slowking-Galar,14.501
+Exeggutor-Alola,Great Tusk,13.982
+Exeggutor-Alola,Diancie,11.659
+Articuno-Galar,Zapdos-Galar,22.377
+Articuno-Galar,Ceruledge,22.336
+Articuno-Galar,Cinderace,21.66
+Articuno-Galar,Kingambit,20.077
+Articuno-Galar,Glastrier,17.832
+Articuno-Galar,Iron Boulder,17.767
+Articuno-Galar,Iron Jugulis,17.742
+Articuno-Galar,Glaceon,14.805
+Articuno-Galar,Hariyama,14.547
+Articuno-Galar,Cinccino,13.974
+Delphox,Great Tusk,29.426
+Delphox,Samurott-Hisui,26.59
+Delphox,Gholdengo,25.12
+Delphox,Iron Valiant,18.73
+Delphox,Dragonite,18.663
+Delphox,Hatterene,10.866
+Delphox,Kingambit,10.77
+Delphox,Primarina,10.693
+Delphox,Zapdos,8.382
+Delphox,Hawlucha,7.785
+Lurantis,Cinccino,17.418
+Lurantis,Clodsire,16.077
+Lurantis,Arcanine-Hisui,15.744
+Lurantis,Milotic,15.039
+Lurantis,Kingambit,10.971
+Lurantis,Serperior,10.69
+Lurantis,Cinderace,10.278
+Lurantis,Heatran,9.808
+Lurantis,Gliscor,9.353
+Lurantis,Malamar,9.319
+Zoroark,Scizor,17.638
+Zoroark,Kingambit,15.132
+Zoroark,Rotom-Wash,12.209
+Zoroark,Cinderace,11.456
+Zoroark,Iron Valiant,10.213
+Zoroark,Darkrai,9.549
+Zoroark,Gliscor,8.376
+Zoroark,Ambipom,7.476
+Zoroark,Ceruledge,7.367
+Zoroark,Gholdengo,6.893
+Sudowoodo,Great Tusk,37.195
+Sudowoodo,Kingambit,27.865
+Sudowoodo,Glimmora,23.763
+Sudowoodo,Gholdengo,19.917
+Sudowoodo,Tyranitar,19.207
+Sudowoodo,Skeledirge,19.197
+Sudowoodo,Ceruledge,19.066
+Sudowoodo,Kyurem,17.826
+Sudowoodo,Moltres,17.026
+Sudowoodo,Ogerpon-Wellspring,13.02
+Rampardos,Hatterene,18.7
+Rampardos,Slowking-Galar,12.776
+Rampardos,Great Tusk,12.09
+Rampardos,Hoopa-Unbound,11.585
+Rampardos,Gholdengo,11.199
+Rampardos,Ursaluna,10.676
+Rampardos,Kingambit,10.196
+Rampardos,Ribombee,9.827
+Rampardos,Ogerpon-Wellspring,8.282
+Rampardos,Dragonite,7.511
+Tatsugiri,Dragonite,34.072
+Tatsugiri,Skeledirge,29.712
+Tatsugiri,Alomomola,29.08
+Tatsugiri,Swampert,27.096
+Tatsugiri,Goodra-Hisui,27.037
+Tatsugiri,Kingambit,9.84
+Tatsugiri,Iron Moth,9.767
+Tatsugiri,Slowbro-Galar,9.385
+Tatsugiri,Gholdengo,7.721
+Tatsugiri,Ribombee,7.347
+Terrakion,Slowking-Galar,34.572
+Terrakion,Landorus-Therian,30.895
+Terrakion,Corviknight,26.953
+Terrakion,Raging Bolt,20.414
+Terrakion,Cinderace,15.884
+Terrakion,Gholdengo,13.748
+Terrakion,Dragonite,13.577
+Terrakion,Tyranitar,12.528
+Terrakion,Darkrai,10.726
+Terrakion,Ogerpon-Cornerstone,10.268
+Lanturn,Ceruledge,37.868
+Lanturn,Dragonite,32.743
+Lanturn,Kingambit,30.706
+Lanturn,Hatterene,26.885
+Lanturn,Meowscarada,26.24
+Lanturn,Pelipper,12.221
+Lanturn,Darkrai,10.008
+Lanturn,Komala,9.717
+Lanturn,Moltres,9.437
+Lanturn,Enamorus,9.095
+Mudsdale,Vaporeon,15.162
+Mudsdale,Tyranitar,14.279
+Mudsdale,Corviknight,13.656
+Mudsdale,Primarina,11.903
+Mudsdale,Hariyama,11.333
+Mudsdale,Gholdengo,10.968
+Mudsdale,Articuno-Galar,10.955
+Mudsdale,Glaceon,10.894
+Mudsdale,Cinccino,10.869
+Mudsdale,Bisharp,9.907
+Avalugg-Hisui,Iron Valiant,19.128
+Avalugg-Hisui,Slowking-Galar,18.885
+Avalugg-Hisui,Hydrapple,18.16
+Avalugg-Hisui,Blissey,13.038
+Avalugg-Hisui,Iron Moth,12.972
+Avalugg-Hisui,Iron Hands,12.767
+Avalugg-Hisui,Ceruledge,10.971
+Avalugg-Hisui,Tornadus-Therian,10.857
+Avalugg-Hisui,Iron Treads,10.38
+Avalugg-Hisui,Tentacruel,8.932
+Cryogonal,Samurott-Hisui,26.708
+Cryogonal,Dragonite,26.228
+Cryogonal,Zapdos,25.139
+Cryogonal,Iron Moth,22.066
+Cryogonal,Garganacl,21.638
+Cryogonal,Alomomola,16.935
+Cryogonal,Toxicroak,15.577
+Cryogonal,Gogoat,15.418
+Cryogonal,Morpeko,14.646
+Cryogonal,Piloswine,14.64
+Regigigas,Regirock,38.748
+Regigigas,Regice,38.69
+Regigigas,Regieleki,38.433
+Regigigas,Regidrago,37.905
+Regigigas,Registeel,37.706
+Regigigas,Kingambit,15.679
+Regigigas,Iron Valiant,12.683
+Regigigas,Garchomp,12.235
+Regigigas,Grimmsnarl,10.845
+Regigigas,Corviknight,10.813
+Duraludon,Great Tusk,21.385
+Duraludon,Raging Bolt,10.357
+Duraludon,Sinistcha,10.302
+Duraludon,Primarina,9.644
+Duraludon,Dragonite,9.141
+Duraludon,Greninja,8.139
+Duraludon,Dragapult,8.016
+Duraludon,Gliscor,7.975
+Duraludon,Ting-Lu,7.934
+Duraludon,Iron Valiant,7.637
+Cacturne,Gholdengo,23.06
+Cacturne,Iron Moth,16.268
+Cacturne,Excadrill,16.259
+Cacturne,Great Tusk,16.138
+Cacturne,Ninetales-Alola,15.27
+Cacturne,Weavile,15.18
+Cacturne,Umbreon,15.049
+Cacturne,Arcanine-Hisui,13.354
+Cacturne,Pecharunt,13.013
+Cacturne,Flygon,12.614
+Exeggutor,Ninetales,35.997
+Exeggutor,Great Tusk,35.925
+Exeggutor,Hatterene,33.66
+Exeggutor,Indeedee,32.405
+Exeggutor,Armarouge,29.67
+Exeggutor,Glimmora,16.999
+Exeggutor,Blissey,16.226
+Exeggutor,Slither Wing,15.282
+Exeggutor,Darkrai,15.116
+Exeggutor,Gholdengo,15.01
+Emboar,Torkoal,30.431
+Emboar,Hatterene,29.617
+Emboar,Great Tusk,25.212
+Emboar,Ursaluna,24.551
+Emboar,Cresselia,23.061
+Emboar,Hoopa-Unbound,20.908
+Emboar,Kyurem,20.724
+Emboar,Alomomola,18.772
+Emboar,Primarina,18.571
+Emboar,Hydrapple,16.133
+Oricorio-Sensu,Great Tusk,23.307
+Oricorio-Sensu,Ogerpon-Wellspring,21.758
+Oricorio-Sensu,Samurott-Hisui,20.309
+Oricorio-Sensu,Gholdengo,18.959
+Oricorio-Sensu,Ninetales-Alola,18.561
+Oricorio-Sensu,Ting-Lu,13.867
+Oricorio-Sensu,Darkrai,13.553
+Oricorio-Sensu,Iron Valiant,13.115
+Oricorio-Sensu,Hatterene,12.686
+Oricorio-Sensu,Kyurem,12.304
+Eiscue,Ninetales-Alola,23.102
+Eiscue,Slowking-Galar,18.003
+Eiscue,Great Tusk,15.999
+Eiscue,Gliscor,15.318
+Eiscue,Alomomola,13.971
+Eiscue,Corviknight,11.823
+Eiscue,Cetitan,11.118
+Eiscue,Kyurem,10.696
+Eiscue,Gholdengo,10.134
+Eiscue,Ceruledge,9.745
+Slaking,Corviknight,20.09
+Slaking,Gholdengo,12.818
+Slaking,Sylveon,11.572
+Slaking,Ditto,10.609
+Slaking,Gliscor,10.406
+Slaking,Staraptor,10.351
+Slaking,Blissey,10.052
+Slaking,Garchomp,9.777
+Slaking,Porygon2,8.778
+Slaking,Dragapult,8.503
+Shaymin,Glimmora,26.712
+Shaymin,Great Tusk,25.077
+Shaymin,Scizor,17.879
+Shaymin,Samurott-Hisui,14.786
+Shaymin,Keldeo,13.921
+Shaymin,Jirachi,13.379
+Shaymin,Manaphy,13.034
+Shaymin,Mew,12.915
+Shaymin,Dragonite,12.286
+Shaymin,Goodra-Hisui,11.17
+Rhydon,Dragonite,23.052
+Rhydon,Slowking-Galar,18.697
+Rhydon,Clefable,18.294
+Rhydon,Hitmonlee,13.586
+Rhydon,Latios,12.237
+Rhydon,Porygon2,11.149
+Rhydon,Tyranitar,10.757
+Rhydon,Blaziken,9.669
+Rhydon,Landorus-Therian,9.375
+Rhydon,Gyarados,9.291
+Raichu,Dragonite,28.171
+Raichu,Blastoise,18.406
+Raichu,Ceruledge,14.937
+Raichu,Scizor,14.611
+Raichu,Clefable,13.038
+Raichu,Blaziken,12.66
+Raichu,Snorlax,10.998
+Raichu,Gengar,9.76
+Raichu,Arcanine,9.719
+Raichu,Skeledirge,9.666
+Komala,Mesprit,35.897
+Komala,Spiritomb,34.585
+Komala,Tauros,25.154
+Komala,Poliwrath,24.27
+Komala,Sandaconda,24.27
+Komala,Masquerain,21.507
+Komala,Lapras,12.308
+Komala,Houndoom,11.579
+Komala,Drifblim,11.579
+Komala,Lanturn,11.469
+Golem-Alola,Kingambit,26.208
+Golem-Alola,Great Tusk,25.213
+Golem-Alola,Rillaboom,20.398
+Golem-Alola,Primarina,11.48
+Golem-Alola,Slowking-Galar,11.187
+Golem-Alola,Dragonite,11.107
+Golem-Alola,Tornadus-Therian,10.2
+Golem-Alola,Metagross,9.778
+Golem-Alola,Gholdengo,9.442
+Golem-Alola,Hoopa-Unbound,8.958
+Brute Bonnet,Great Tusk,36.117
+Brute Bonnet,Torkoal,33.106
+Brute Bonnet,Walking Wake,31.464
+Brute Bonnet,Ninetales,27.41
+Brute Bonnet,Dragonite,14.745
+Brute Bonnet,Gliscor,10.699
+Brute Bonnet,Raging Bolt,10.179
+Brute Bonnet,Clefable,10.131
+Brute Bonnet,Venusaur,9.411
+Brute Bonnet,Hatterene,9.118
+Luxray,Meowscarada,37.544
+Luxray,Incineroar,37.488
+Luxray,Alomomola,36.19
+Luxray,Meowstic,34.989
+Luxray,Noctowl,34.784
+Luxray,Garchomp,12.722
+Luxray,Lucario,8.758
+Luxray,Staraptor,7.999
+Luxray,Ceruledge,6.296
+Luxray,Infernape,6.089
+Munkidori,Mandibuzz,16.628
+Munkidori,Okidogi,12.383
+Munkidori,Araquanid,11.946
+Munkidori,Alomomola,11.797
+Munkidori,Fezandipiti,11.57
+Munkidori,Scizor,11.377
+Munkidori,Ursaluna,10.27
+Munkidori,Regidrago,10.223
+Munkidori,Gyarados,9.853
+Munkidori,Sinistcha,9.385
+Meowstic,Meowscarada,36.5
+Meowstic,Incineroar,35.933
+Meowstic,Luxray,35.577
+Meowstic,Alomomola,35.412
+Meowstic,Noctowl,35.368
+Meowstic,Hawlucha,16.476
+Meowstic,Greninja,11.539
+Meowstic,Ceruledge,10.249
+Meowstic,Klefki,8.131
+Meowstic,Excadrill,6.976
+Dusknoir,Comfey,24.473
+Dusknoir,Scizor,22.906
+Dusknoir,Blissey,21.685
+Dusknoir,Quaquaval,15.861
+Dusknoir,Slowbro,14.278
+Dusknoir,Toxapex,10.644
+Dusknoir,Primarina,9.506
+Dusknoir,Heatran,9.498
+Dusknoir,Rillaboom,8.379
+Dusknoir,Kingambit,8.233
+Altaria,Great Tusk,10.88
+Altaria,Gengar,10.497
+Altaria,Landorus-Therian,9.627
+Altaria,Kyurem,9.476
+Altaria,Meowscarada,8.274
+Altaria,Cinderace,8.098
+Altaria,Clodsire,7.529
+Altaria,Flygon,7.318
+Altaria,Ceruledge,7.248
+Altaria,Bellibolt,7.056
+Lycanroc,Tyranitar,35.994
+Lycanroc,Excadrill,29.615
+Lycanroc,Pawmot,26.952
+Lycanroc,Zamazenta,25.938
+Lycanroc,Kingambit,25.564
+Lycanroc,Azumarill,22.151
+Lycanroc,Hippowdon,20.83
+Lycanroc,Tornadus-Therian,20.101
+Lycanroc,Corviknight,17.44
+Lycanroc,Kommo-o,16.222
+Masquerain,Komala,23.864
+Masquerain,Kingambit,14.589
+Masquerain,Lapras,12.979
+Masquerain,Drifblim,12.865
+Masquerain,Houndoom,12.862
+Masquerain,Mesprit,12.848
+Masquerain,Kleavor,11.6
+Masquerain,Honchkrow,11.133
+Masquerain,Gholdengo,10.926
+Masquerain,Spiritomb,10.919
+Hitmontop,Gholdengo,18.237
+Hitmontop,Blaziken,17.604
+Hitmontop,Gliscor,14.312
+Hitmontop,Glimmora,8.291
+Hitmontop,Zapdos,8.239
+Hitmontop,Pecharunt,8.206
+Hitmontop,Heracross,7.431
+Hitmontop,Dragapult,7.202
+Hitmontop,Sinistcha,7.051
+Hitmontop,Ogerpon-Wellspring,6.937
+Sandslash,Tyranitar,67.16
+Sandslash,Corviknight,51.155
+Sandslash,Meowscarada,49.528
+Sandslash,Heatran,49.528
+Sandslash,Walking Wake,47.685
+Sandslash,Excadrill,14.268
+Sandslash,Dragonite,10.498
+Sandslash,Raging Bolt,8.173
+Sandslash,Hippowdon,7.911
+Sandslash,Arcanine,7.238
+Houndoom,Drifblim,21.383
+Houndoom,Mesprit,13.883
+Houndoom,Lapras,13.794
+Houndoom,Masquerain,13.129
+Houndoom,Komala,13.115
+Houndoom,Breloom,12.436
+Houndoom,Magnezone,11.465
+Houndoom,Gardevoir,10.459
+Houndoom,Talonflame,10.0
+Houndoom,Darkrai,7.901
+Tauros,Komala,29.928
+Tauros,Spiritomb,29.441
+Tauros,Poliwrath,29.337
+Tauros,Mesprit,28.877
+Tauros,Sandaconda,28.877
+Tauros,Rillaboom,24.61
+Tauros,Ceruledge,23.258
+Tauros,Deoxys-Speed,23.235
+Tauros,Gardevoir,23.155
+Tauros,Cinderace,14.166
+Rotom-Mow,Great Tusk,16.06
+Rotom-Mow,Arcanine-Hisui,12.729
+Rotom-Mow,Corviknight,12.176
+Rotom-Mow,Pelipper,11.846
+Rotom-Mow,Kyurem,11.327
+Rotom-Mow,Toxapex,10.312
+Rotom-Mow,Glimmora,10.042
+Rotom-Mow,Ting-Lu,9.888
+Rotom-Mow,Scizor,9.827
+Rotom-Mow,Kingambit,9.377
+Muk,Clefable,40.066
+Muk,Dusclops,36.72
+Muk,Cinderace,24.82
+Muk,Hydreigon,23.259
+Muk,Goodra-Hisui,18.883
+Muk,Dondozo,18.176
+Muk,Kingambit,17.207
+Muk,Dragonite,14.853
+Muk,Forretress,13.412
+Muk,Gliscor,12.335
+Mesprit,Komala,44.101
+Mesprit,Poliwrath,29.848
+Mesprit,Spiritomb,29.82
+Mesprit,Sandaconda,29.818
+Mesprit,Tauros,29.818
+Mesprit,Uxie,24.807
+Mesprit,Manaphy,15.257
+Mesprit,Houndoom,15.058
+Mesprit,Hatterene,14.537
+Mesprit,Drifblim,14.269
+Mabosstiff,Pecharunt,21.264
+Mabosstiff,Landorus-Therian,20.342
+Mabosstiff,Okidogi,18.126
+Mabosstiff,Iron Valiant,17.423
+Mabosstiff,Slowking-Galar,16.16
+Mabosstiff,Deoxys-Speed,14.19
+Mabosstiff,Volcanion,14.19
+Mabosstiff,Gholdengo,12.867
+Mabosstiff,Dragapult,12.591
+Mabosstiff,Walking Wake,10.447
+Medicham,Gholdengo,23.664
+Medicham,Scizor,15.789
+Medicham,Clefable,14.885
+Medicham,Ogerpon-Wellspring,14.372
+Medicham,Great Tusk,14.167
+Medicham,Glimmora,12.194
+Medicham,Cinderace,11.597
+Medicham,Gliscor,11.404
+Medicham,Darkrai,10.986
+Medicham,Dusclops,10.546
+Clawitzer,Great Tusk,24.716
+Clawitzer,Kingambit,21.337
+Clawitzer,Cloyster,15.548
+Clawitzer,Corviknight,14.947
+Clawitzer,Iron Valiant,14.747
+Clawitzer,Comfey,13.803
+Clawitzer,Dragapult,9.321
+Clawitzer,Rillaboom,8.887
+Clawitzer,Iron Moth,8.084
+Clawitzer,Dragonite,7.652
+Zangoose,Gholdengo,23.667
+Zangoose,Kingambit,18.233
+Zangoose,Great Tusk,13.535
+Zangoose,Raging Bolt,12.374
+Zangoose,Blastoise,11.614
+Zangoose,Dragonite,10.706
+Zangoose,Ribombee,10.413
+Zangoose,Cinderace,9.795
+Zangoose,Gliscor,9.195
+Zangoose,Ceruledge,9.189
+Copperajah,Slowking-Galar,33.646
+Copperajah,Hatterene,29.453
+Copperajah,Iron Hands,29.055
+Copperajah,Chesnaught,28.997
+Copperajah,Slowbro,28.895
+Copperajah,Camerupt,28.652
+Copperajah,Iron Treads,14.925
+Copperajah,Talonflame,14.541
+Copperajah,Dudunsparce,14.436
+Copperajah,Primarina,14.421
+Tauros-Paldea-Aqua,Pelipper,15.101
+Tauros-Paldea-Aqua,Iron Treads,12.405
+Tauros-Paldea-Aqua,Kingambit,12.052
+Tauros-Paldea-Aqua,Raging Bolt,10.12
+Tauros-Paldea-Aqua,Glimmora,8.873
+Tauros-Paldea-Aqua,Weezing-Galar,7.763
+Tauros-Paldea-Aqua,Corviknight,7.643
+Tauros-Paldea-Aqua,Ogerpon-Wellspring,7.617
+Tauros-Paldea-Aqua,Gholdengo,7.193
+Tauros-Paldea-Aqua,Necrozma,7.183
+Dugtrio,Clefable,54.067
+Dugtrio,Dragonite,46.351
+Dugtrio,Hitmonlee,45.173
+Dugtrio,Vaporeon,41.738
+Dugtrio,Vileplume,27.854
+Dugtrio,Tyranitar,17.201
+Dugtrio,Excadrill,13.114
+Dugtrio,Necrozma,9.964
+Dugtrio,Cinccino,9.914
+Dugtrio,Chansey,8.549
+Morpeko,Toxicroak,23.374
+Morpeko,Cryogonal,23.034
+Morpeko,Gogoat,23.025
+Morpeko,Piloswine,23.024
+Morpeko,Crocalor,23.024
+Morpeko,Serperior,12.42
+Morpeko,Dragapult,10.231
+Morpeko,Gholdengo,8.939
+Morpeko,Slowking-Galar,7.362
+Morpeko,Gastrodon,7.237
+Golem,Dragonite,41.428
+Golem,Gengar,35.131
+Golem,Clefable,33.193
+Golem,Moltres,31.791
+Golem,Mew,22.832
+Golem,Charizard,12.454
+Golem,Haunter,9.084
+Golem,Blastoise,8.621
+Golem,Venusaur,8.276
+Golem,Yanmega,7.48
+Probopass,Grimmsnarl,53.997
+Probopass,Great Tusk,53.049
+Probopass,Iron Crown,50.278
+Probopass,Kyurem,44.025
+Probopass,Sinistcha,42.908
+Probopass,Dragapult,22.968
+Probopass,Ogerpon-Wellspring,10.854
+Probopass,Mimikyu,10.608
+Probopass,Tyranitar,9.952
+Probopass,Maushold,9.685
+Alcremie,Polteageist,24.036
+Alcremie,Dragonite,23.132
+Alcremie,Great Tusk,22.96
+Alcremie,Cloyster,22.444
+Alcremie,Salazzle,22.104
+Alcremie,Espeon,21.906
+Alcremie,Heatran,21.854
+Alcremie,Salamence,21.607
+Alcremie,Sinistcha,19.99
+Alcremie,Blastoise,19.934
+Carbink,Kingambit,39.324
+Carbink,Ursaluna,35.005
+Carbink,Hatterene,25.436
+Carbink,Cinderace,18.491
+Carbink,Ogerpon-Wellspring,17.098
+Carbink,Gholdengo,16.742
+Carbink,Dusclops,15.799
+Carbink,Iron Hands,11.699
+Carbink,Enamorus,11.457
+Carbink,Deoxys-Speed,10.939
+Weezing,Clefable,20.524
+Weezing,Snorlax,20.412
+Weezing,Dragonite,18.201
+Weezing,Cloyster,13.959
+Weezing,Umbreon,13.296
+Weezing,Azumarill,11.445
+Weezing,Victreebel,10.337
+Weezing,Slowking-Galar,10.144
+Weezing,Scyther,9.958
+Weezing,Dodrio,8.058
+Mismagius,Dragonite,25.882
+Mismagius,Great Tusk,19.642
+Mismagius,Gholdengo,17.374
+Mismagius,Samurott-Hisui,15.33
+Mismagius,Kingambit,12.554
+Mismagius,Glimmora,9.446
+Mismagius,Ribombee,8.832
+Mismagius,Iron Valiant,8.507
+Mismagius,Iron Treads,8.19
+Mismagius,Araquanid,8.102
+Ampharos,Typhlosion,14.049
+Ampharos,Great Tusk,11.904
+Ampharos,Dragonite,11.498
+Ampharos,Gyarados,9.976
+Ampharos,Tyranitar,9.597
+Ampharos,Gliscor,9.561
+Ampharos,Feraligatr,8.496
+Ampharos,Gholdengo,7.573
+Ampharos,Skarmory,7.532
+Ampharos,Greninja,7.219
+Veluza,Excadrill,27.156
+Veluza,Tinkaton,26.084
+Veluza,Dondozo,25.202
+Veluza,Haxorus,25.198
+Veluza,Weezing-Galar,25.168
+Veluza,Kingambit,21.721
+Veluza,Gholdengo,14.597
+Veluza,Hatterene,13.16
+Veluza,Iron Crown,9.423
+Veluza,Staraptor,7.811
+Crocalor,Gogoat,42.549
+Crocalor,Hatterene,34.928
+Crocalor,Umbreon,34.796
+Crocalor,Mandibuzz,34.796
+Crocalor,Clodsire,34.796
+Crocalor,Slowking,34.796
+Crocalor,Toedscruel,27.408
+Crocalor,Skuntank,27.408
+Crocalor,Lapras,27.408
+Crocalor,Morpeko,26.643
+Charjabug,Cinderace,44.482
+Charjabug,Milotic,36.602
+Charjabug,Zapdos,32.133
+Charjabug,Pecharunt,31.958
+Charjabug,Iron Crown,31.558
+Charjabug,Landorus-Therian,31.45
+Charjabug,Greninja,30.313
+Charjabug,Ogerpon,25.994
+Charjabug,Bisharp,22.634
+Charjabug,Smeargle,22.579
+Flareon,Umbreon,35.372
+Flareon,Espeon,33.525
+Flareon,Sylveon,32.705
+Flareon,Vaporeon,29.199
+Flareon,Jolteon,28.675
+Flareon,Leafeon,20.52
+Flareon,Garchomp,9.989
+Flareon,Ninetales,9.04
+Flareon,Glaceon,8.842
+Flareon,Raging Bolt,8.695
+Braviary,Zoroark-Hisui,19.381
+Braviary,Ursaluna,18.696
+Braviary,Blissey,16.753
+Braviary,Ditto,12.926
+Braviary,Garchomp,11.524
+Braviary,Lucario,10.393
+Braviary,Porygon2,9.816
+Braviary,Metagross,9.494
+Braviary,Milotic,8.901
+Braviary,Chandelure,7.936
+Palossand,Tyranitar,25.004
+Palossand,Glimmora,16.273
+Palossand,Torterra,12.822
+Palossand,Zamazenta,9.828
+Palossand,Corviknight,9.828
+Palossand,Ursaluna,9.741
+Palossand,Gastrodon,9.531
+Palossand,Excadrill,8.609
+Palossand,Zapdos,8.578
+Palossand,Iron Treads,8.325
+Rotom,Iron Treads,68.733
+Rotom,Abomasnow,65.672
+Rotom,Cetitan,65.672
+Rotom,Illumise,65.672
+Rotom,Keldeo,65.672
+Rotom,Blaziken,6.275
+Rotom,Garchomp,5.709
+Rotom,Ogerpon-Wellspring,3.44
+Rotom,Corviknight,3.345
+Rotom,Scizor,3.267
+Bellossom,Hatterene,25.239
+Bellossom,Ceruledge,21.03
+Bellossom,Great Tusk,20.05
+Bellossom,Raging Bolt,17.124
+Bellossom,Drifblim,16.252
+Bellossom,Ninetales-Alola,15.759
+Bellossom,Okidogi,15.6
+Bellossom,Grimmsnarl,15.172
+Bellossom,Walking Wake,14.282
+Bellossom,Ogerpon-Wellspring,13.51
+Gogoat,Crocalor,47.493
+Gogoat,Cryogonal,31.32
+Gogoat,Toxicroak,29.876
+Gogoat,Morpeko,29.74
+Gogoat,Piloswine,29.739
+Gogoat,Lapras,25.828
+Gogoat,Toedscruel,25.692
+Gogoat,Skuntank,25.692
+Gogoat,Seadra,24.945
+Gogoat,Landorus-Therian,9.674
+Volbeat,Great Tusk,47.277
+Volbeat,Brambleghast,38.507
+Volbeat,Kleavor,29.916
+Volbeat,Kyurem,27.452
+Volbeat,Moltres,24.839
+Volbeat,Ting-Lu,14.524
+Volbeat,Gliscor,12.627
+Volbeat,Conkeldurr,10.951
+Volbeat,Milotic,10.807
+Volbeat,Greninja,10.568
+Noctowl,Alomomola,64.277
+Noctowl,Incineroar,61.878
+Noctowl,Luxray,61.849
+Noctowl,Meowstic,61.849
+Noctowl,Meowscarada,61.849
+Noctowl,Ampharos,5.782
+Noctowl,Lapras,5.348
+Noctowl,Typhlosion,4.947
+Noctowl,Toedscruel,4.811
+Noctowl,Beartic,4.811
+Swanna,Salazzle,60.89
+Swanna,Gastrodon,59.426
+Swanna,Vileplume,59.426
+Swanna,Haunter,59.426
+Swanna,Muk-Alola,59.131
+Swanna,Golduck,14.122
+Swanna,Thundurus-Therian,13.587
+Swanna,Clodsire,13.425
+Swanna,Quaquaval,13.192
+Swanna,Jirachi,13.192
+Dodrio,Ting-Lu,32.152
+Dodrio,Dragapult,25.119
+Dodrio,Alomomola,24.709
+Dodrio,Clodsire,23.65
+Dodrio,Shiftry,23.53
+Dodrio,Ogerpon-Wellspring,22.31
+Dodrio,Vileplume,13.52
+Dodrio,Dragonite,11.998
+Dodrio,Ceruledge,10.769
+Dodrio,Sandslash,10.733
+Illumise,Keldeo,74.054
+Illumise,Iron Treads,73.299
+Illumise,Abomasnow,73.181
+Illumise,Cetitan,73.181
+Illumise,Rotom,73.181
+Illumise,Scizor,4.346
+Illumise,Forretress,4.309
+Illumise,Great Tusk,3.823
+Illumise,Weezing-Galar,3.747
+Illumise,Corviknight,2.638
+Hitmonchan,Lapras,10.551
+Hitmonchan,Gholdengo,9.197
+Hitmonchan,Hawlucha,9.05
+Hitmonchan,Greninja,8.882
+Hitmonchan,Staraptor,8.54
+Hitmonchan,Scizor,8.51
+Hitmonchan,Skeledirge,8.322
+Hitmonchan,Hitmonlee,7.618
+Hitmonchan,Conkeldurr,7.606
+Hitmonchan,Darkrai,7.583
+Rotom-Frost,Ninetales-Alola,21.712
+Rotom-Frost,Slowking-Galar,19.923
+Rotom-Frost,Weavile,16.695
+Rotom-Frost,Dragapult,15.254
+Rotom-Frost,Avalugg,12.874
+Rotom-Frost,Ogerpon-Wellspring,12.842
+Rotom-Frost,Ceruledge,11.682
+Rotom-Frost,Iron Treads,11.209
+Rotom-Frost,Piloswine,10.557
+Rotom-Frost,Cinderace,9.608
+Camerupt,Slowking-Galar,46.654
+Camerupt,Chesnaught,45.294
+Camerupt,Iron Hands,45.269
+Camerupt,Slowbro,45.122
+Camerupt,Copperajah,45.122
+Camerupt,Skarmory,17.308
+Camerupt,Scizor,15.681
+Camerupt,Crawdaunt,11.577
+Camerupt,Milotic,9.263
+Camerupt,Latios,8.822
+Crabominable,Hatterene,31.96
+Crabominable,Ursaluna,23.838
+Crabominable,Vikavolt,20.091
+Crabominable,Hoopa-Unbound,19.882
+Crabominable,Salazzle,17.941
+Crabominable,Tsareena,16.842
+Crabominable,Lycanroc-Dusk,16.577
+Crabominable,Golem-Alola,15.667
+Crabominable,Primarina,15.152
+Crabominable,Avalugg,14.615
+Piloswine,Cryogonal,36.17
+Piloswine,Morpeko,36.17
+Piloswine,Toxicroak,36.17
+Piloswine,Crocalor,36.17
+Piloswine,Gogoat,36.17
+Piloswine,Ninetales-Alola,32.522
+Piloswine,Weavile,23.168
+Piloswine,Avalugg,23.168
+Piloswine,Kyurem,14.097
+Piloswine,Rotom-Frost,11.177
+Bastiodon,Magnezone,17.883
+Bastiodon,Breloom,16.685
+Bastiodon,Moltres,16.636
+Bastiodon,Talonflame,16.582
+Bastiodon,Drifblim,16.327
+Bastiodon,Gardevoir,16.125
+Bastiodon,Kyurem,15.604
+Bastiodon,Ting-Lu,15.457
+Bastiodon,Zamazenta,14.646
+Bastiodon,Primarina,12.728
+Falinks,Cinderace,22.52
+Falinks,Gholdengo,22.157
+Falinks,Great Tusk,18.212
+Falinks,Gliscor,17.108
+Falinks,Samurott-Hisui,15.644
+Falinks,Iron Treads,14.776
+Falinks,Corviknight,14.73
+Falinks,Darkrai,13.613
+Falinks,Dragapult,12.499
+Falinks,Ninetales-Alola,11.662
+Victreebel,Torkoal,24.103
+Victreebel,Snorlax,17.289
+Victreebel,Weezing,16.357
+Victreebel,Walking Wake,16.274
+Victreebel,Cloyster,16.125
+Victreebel,Deoxys-Speed,14.353
+Victreebel,Scyther,13.664
+Victreebel,Kingambit,12.732
+Victreebel,Keldeo,12.106
+Victreebel,Iron Moth,12.086
+Ariados,Cinderace,17.518
+Ariados,Dragapult,15.686
+Ariados,Kingambit,15.436
+Ariados,Zapdos,15.254
+Ariados,Great Tusk,12.187
+Ariados,Gholdengo,11.805
+Ariados,Walking Wake,10.881
+Ariados,Garganacl,10.878
+Ariados,Hydrapple,10.646
+Ariados,Gliscor,10.286
+Tropius,Great Tusk,20.254
+Tropius,Garchomp,16.315
+Tropius,Landorus-Therian,16.15
+Tropius,Noivern,16.129
+Tropius,Torterra,15.9
+Tropius,Hydrapple,15.889
+Tropius,Walking Wake,14.721
+Tropius,Torkoal,14.111
+Tropius,Gliscor,12.85
+Tropius,Glimmora,11.591
+Meganium,Scizor,27.266
+Meganium,Dragonite,25.945
+Meganium,Jolteon,23.718
+Meganium,Charizard,16.089
+Meganium,Gastrodon,14.99
+Meganium,Gyarados,11.427
+Meganium,Heatran,10.537
+Meganium,Feraligatr,9.236
+Meganium,Typhlosion,7.261
+Meganium,Primarina,6.996
+Flapple,Landorus-Therian,32.296
+Flapple,Great Tusk,21.079
+Flapple,Deoxys-Speed,20.176
+Flapple,Iron Valiant,16.013
+Flapple,Gholdengo,14.751
+Flapple,Deoxys-Defense,10.801
+Flapple,Excadrill,9.222
+Flapple,Raging Bolt,8.933
+Flapple,Mew,8.774
+Flapple,Sableye,8.385
+Sawsbuck,Walking Wake,27.862
+Sawsbuck,Torkoal,26.703
+Sawsbuck,Great Tusk,24.901
+Sawsbuck,Jirachi,22.616
+Sawsbuck,Ninetales,22.084
+Sawsbuck,Klefki,16.557
+Sawsbuck,Deoxys-Defense,16.488
+Sawsbuck,Tentacruel,16.45
+Sawsbuck,Weezing-Galar,15.405
+Sawsbuck,Gholdengo,14.935
+Lycanroc-Midnight,Iron Moth,21.9
+Lycanroc-Midnight,Gholdengo,18.277
+Lycanroc-Midnight,Glimmora,17.526
+Lycanroc-Midnight,Ceruledge,16.977
+Lycanroc-Midnight,Garchomp,16.054
+Lycanroc-Midnight,Kingambit,15.492
+Lycanroc-Midnight,Ribombee,14.972
+Lycanroc-Midnight,Incineroar,11.866
+Lycanroc-Midnight,Bisharp,11.858
+Lycanroc-Midnight,Hydreigon,11.841
+Appletun,Dragapult,24.473
+Appletun,Kingambit,14.644
+Appletun,Dragonite,14.187
+Appletun,Ceruledge,14.021
+Appletun,Goodra,13.125
+Appletun,Raging Bolt,12.938
+Appletun,Hatterene,12.508
+Appletun,Gholdengo,12.02
+Appletun,Haxorus,10.02
+Appletun,Great Tusk,9.6
+Misdreavus,Gliscor,32.407
+Misdreavus,Darkrai,29.224
+Misdreavus,Kyurem,27.995
+Misdreavus,Great Tusk,27.53
+Misdreavus,Dondozo,24.151
+Misdreavus,Weezing-Galar,18.758
+Misdreavus,Tyranitar,18.301
+Misdreavus,Slowbro,17.543
+Misdreavus,Greninja,17.365
+Misdreavus,Ditto,14.03
+Skuntank,Lapras,61.197
+Skuntank,Toedscruel,61.196
+Skuntank,Crocalor,48.589
+Skuntank,Gogoat,40.805
+Skuntank,Seadra,39.619
+Skuntank,Beartic,20.391
+Skuntank,Wigglytuff,13.27
+Skuntank,Drifblim,12.606
+Skuntank,Iron Moth,9.738
+Skuntank,Noctowl,7.121
+Venomoth,Dragonite,28.701
+Venomoth,Hatterene,21.24
+Venomoth,Great Tusk,17.016
+Venomoth,Rillaboom,15.132
+Venomoth,Gholdengo,14.838
+Venomoth,Articuno,14.666
+Venomoth,Arcanine,12.811
+Venomoth,Sandslash,12.777
+Venomoth,Raichu,12.724
+Venomoth,Zamazenta,11.846
+Wigglytuff,Great Tusk,30.461
+Wigglytuff,Slowking-Galar,15.091
+Wigglytuff,Lapras,14.894
+Wigglytuff,Toedscruel,13.812
+Wigglytuff,Beartic,13.811
+Wigglytuff,Crocalor,13.811
+Wigglytuff,Skuntank,13.811
+Wigglytuff,Heatran,9.954
+Wigglytuff,Dragonite,9.92
+Wigglytuff,Cinderace,9.909
+Furret,Iron Valiant,26.393
+Furret,Glimmora,22.78
+Furret,Ogerpon-Wellspring,19.992
+Furret,Kingambit,19.794
+Furret,Dragonite,19.487
+Furret,Scizor,19.46
+Furret,Zamazenta,19.423
+Furret,Pecharunt,17.141
+Furret,Ditto,16.319
+Furret,Slaking,14.772
+Dachsbun,Kingambit,22.975
+Dachsbun,Zoroark-Hisui,19.776
+Dachsbun,Goodra-Hisui,18.196
+Dachsbun,Orthworm,17.946
+Dachsbun,Clodsire,17.941
+Dachsbun,Gliscor,12.714
+Dachsbun,Scizor,11.788
+Dachsbun,Gholdengo,10.645
+Dachsbun,Dragapult,9.569
+Dachsbun,Corviknight,8.851
+Virizion,Hawlucha,35.549
+Virizion,Slowking-Galar,32.821
+Virizion,Kyurem,32.657
+Virizion,Rillaboom,32.458
+Virizion,Hoopa-Unbound,27.401
+Virizion,Cobalion,14.548
+Virizion,Terrakion,14.289
+Virizion,Gliscor,12.988
+Virizion,Tyranitar,11.148
+Virizion,Iron Crown,10.334
+Swalot,Gliscor,58.331
+Swalot,Kingambit,52.236
+Swalot,Brambleghast,52.234
+Swalot,Keldeo,43.871
+Swalot,Scream Tail,32.769
+Swalot,Gardevoir,19.81
+Swalot,Alomomola,13.14
+Swalot,Hydreigon,11.504
+Swalot,Lokix,7.363
+Swalot,Gengar,7.04
+Persian-Alola,Zapdos,30.537
+Persian-Alola,Ogerpon-Wellspring,25.573
+Persian-Alola,Weezing-Galar,23.185
+Persian-Alola,Kyurem,22.577
+Persian-Alola,Decidueye-Hisui,21.407
+Persian-Alola,Meowscarada,16.693
+Persian-Alola,Iron Treads,16.51
+Persian-Alola,Moltres,16.003
+Persian-Alola,Pecharunt,14.866
+Persian-Alola,Keldeo,14.866
+Sunflora,Torkoal,40.207
+Sunflora,Great Tusk,35.258
+Sunflora,Walking Wake,32.662
+Sunflora,Hatterene,32.459
+Sunflora,Ninetales,29.472
+Sunflora,Kingambit,25.558
+Sunflora,Raging Bolt,23.52
+Sunflora,Cresselia,12.652
+Sunflora,Ursaluna,12.387
+Sunflora,Hoopa-Unbound,10.814
+Magmortar,Kingambit,15.225
+Magmortar,Electivire,15.031
+Magmortar,Dondozo,13.381
+Magmortar,Golurk,11.787
+Magmortar,Gliscor,11.471
+Magmortar,Torterra,11.135
+Magmortar,Tentacruel,8.681
+Magmortar,Ninetales-Alola,8.163
+Magmortar,Great Tusk,8.112
+Magmortar,Dragapult,8.075
+Jumpluff,Gliscor,20.902
+Jumpluff,Enamorus,20.72
+Jumpluff,Garganacl,17.63
+Jumpluff,Porygon-Z,15.187
+Jumpluff,Tyranitar,12.091
+Jumpluff,Umbreon,9.454
+Jumpluff,Lanturn,9.23
+Jumpluff,Granbull,9.007
+Jumpluff,Alomomola,8.74
+Jumpluff,Scizor,8.709
+Oinkologne,Iron Valiant,80.425
+Oinkologne,Gliscor,79.731
+Oinkologne,Ogerpon-Wellspring,79.671
+Oinkologne,Raging Bolt,79.671
+Oinkologne,Heatran,79.671
+Oinkologne,Zamazenta,2.812
+Oinkologne,Tentacruel,2.458
+Oinkologne,Houndoom,2.437
+Oinkologne,Gyarados,2.437
+Oinkologne,Blissey,2.437
+Swinub,Breloom,82.159
+Swinub,Iron Crown,82.159
+Swinub,Talonflame,82.159
+Swinub,Greninja,82.159
+Swinub,Glimmora,82.159
+Swinub,Yanmega,3.602
+Swinub,Sylveon,3.602
+Swinub,Arcanine-Hisui,3.602
+Swinub,Porygon2,3.602
+Swinub,Electrode-Hisui,3.602
+Qwilfish-Hisui,Dragapult,33.232
+Qwilfish-Hisui,Iron Treads,29.794
+Qwilfish-Hisui,Gliscor,28.433
+Qwilfish-Hisui,Alomomola,27.102
+Qwilfish-Hisui,Iron Moth,21.506
+Qwilfish-Hisui,Pelipper,14.219
+Qwilfish-Hisui,Gholdengo,12.863
+Qwilfish-Hisui,Enamorus,9.516
+Qwilfish-Hisui,Barraskewda,9.117
+Qwilfish-Hisui,Charizard,8.973
+Seviper,Muk-Alola,47.187
+Seviper,Glimmora,47.187
+Seviper,Weezing-Galar,47.187
+Seviper,Vileplume,47.187
+Seviper,Gengar,47.187
+Seviper,Great Tusk,22.365
+Seviper,Kingambit,17.311
+Seviper,Tinkaton,17.081
+Seviper,Basculegion-F,17.079
+Seviper,Iron Jugulis,17.079
+Magneton,Dragonite,22.105
+Magneton,Gengar,20.219
+Magneton,Moltres,16.343
+Magneton,Blastoise,16.027
+Magneton,Landorus-Therian,15.292
+Magneton,Snorlax,11.817
+Magneton,Clefable,11.223
+Magneton,Vileplume,10.935
+Magneton,Dragapult,10.043
+Magneton,Scyther,9.71
+Oricorio,Hatterene,29.364
+Oricorio,Ninetales-Alola,26.621
+Oricorio,Maushold,21.545
+Oricorio,Samurott-Hisui,19.614
+Oricorio,Ceruledge,17.417
+Oricorio,Iron Treads,16.988
+Oricorio,Blaziken,16.987
+Oricorio,Cloyster,16.03
+Oricorio,Zamazenta,14.809
+Oricorio,Clefable,13.437
+Dunsparce,Milotic,24.824
+Dunsparce,Spidops,24.438
+Dunsparce,Typhlosion-Hisui,20.778
+Dunsparce,Electrode-Hisui,17.871
+Dunsparce,Dragonite,16.539
+Dunsparce,Hariyama,15.298
+Dunsparce,Toedscruel,15.227
+Dunsparce,Serperior,11.449
+Dunsparce,Armarouge,11.313
+Dunsparce,Orthworm,9.705
+Klawf,Slowking-Galar,36.303
+Klawf,Alomomola,33.784
+Klawf,Tornadus-Therian,22.675
+Klawf,Dragapult,19.07
+Klawf,Toxapex,16.761
+Klawf,Corviknight,15.624
+Klawf,Garganacl,15.456
+Klawf,Cyclizar,14.999
+Klawf,Gliscor,13.54
+Klawf,Hydrapple,13.403
+Gothitelle,Kingambit,46.023
+Gothitelle,Cinderace,37.182
+Gothitelle,Serperior,36.739
+Gothitelle,Smeargle,19.985
+Gothitelle,Ribombee,13.55
+Gothitelle,Indeedee,12.756
+Gothitelle,Milotic,12.448
+Gothitelle,Chandelure,11.504
+Gothitelle,Articuno-Galar,11.21
+Gothitelle,Skeledirge,10.386
+Vivillon,Ceruledge,16.186
+Vivillon,Comfey,14.691
+Vivillon,Cinderace,13.346
+Vivillon,Thundurus-Therian,13.178
+Vivillon,Great Tusk,13.175
+Vivillon,Inteleon,13.098
+Vivillon,Landorus-Therian,12.69
+Vivillon,Salamence,12.316
+Vivillon,Quaquaval,9.774
+Vivillon,Kingambit,8.728
+Dewgong,Iron Treads,38.81
+Dewgong,Rillaboom,31.943
+Dewgong,Hypno,31.778
+Dewgong,Weezing-Galar,31.242
+Dewgong,Skeledirge,31.242
+Dewgong,Raichu,22.396
+Dewgong,Ditto,20.402
+Dewgong,Infernape,20.3
+Dewgong,Empoleon,20.063
+Dewgong,Snorlax,19.995
+Persian,Clefable,29.265
+Persian,Iron Valiant,18.537
+Persian,Alomomola,18.13
+Persian,Cryogonal,17.243
+Persian,Samurott-Hisui,17.243
+Persian,Gholdengo,14.523
+Persian,Blastoise,12.183
+Persian,Arbok,10.587
+Persian,Moltres,9.53
+Persian,Ogerpon,9.53
+Perrserker,Gholdengo,45.84
+Perrserker,Zamazenta,42.499
+Perrserker,Dragonite,39.826
+Perrserker,Ting-Lu,39.699
+Perrserker,Iron Valiant,22.192
+Perrserker,Great Tusk,20.117
+Perrserker,Kyurem,17.897
+Perrserker,Rillaboom,15.881
+Perrserker,Dragapult,14.658
+Perrserker,Zapdos,8.957
+Murkrow,Ninetales-Alola,23.417
+Murkrow,Mimikyu,22.917
+Murkrow,Gengar,21.367
+Murkrow,Darkrai,21.234
+Murkrow,Hatterene,21.007
+Murkrow,Garganacl,18.819
+Murkrow,Alomomola,17.783
+Murkrow,Tornadus-Therian,12.101
+Murkrow,Glimmora,11.113
+Murkrow,Toxapex,10.581
+Samurott,Moltres,26.62
+Samurott,Great Tusk,20.472
+Samurott,Kyurem,19.717
+Samurott,Kingambit,19.516
+Samurott,Slowking-Galar,17.626
+Samurott,Typhlosion,10.462
+Samurott,Hydreigon,10.145
+Samurott,Decidueye,10.042
+Samurott,Emboar,9.574
+Samurott,Garchomp,9.1
+Chimecho,Garganacl,26.991
+Chimecho,Maushold,25.941
+Chimecho,Polteageist,23.416
+Chimecho,Weezing-Galar,16.838
+Chimecho,Mimikyu,14.059
+Chimecho,Volcanion,13.732
+Chimecho,Serperior,12.617
+Chimecho,Deoxys-Speed,10.921
+Chimecho,Iron Boulder,10.643
+Chimecho,Cramorant,9.184
+Gumshoos,Great Tusk,37.394
+Gumshoos,Glimmora,35.636
+Gumshoos,Primarina,33.934
+Gumshoos,Sinistcha,33.932
+Gumshoos,Moltres,33.932
+Gumshoos,Skeledirge,20.614
+Gumshoos,Tinkaton,19.415
+Gumshoos,Quaquaval,19.396
+Gumshoos,Bisharp,19.396
+Gumshoos,Galvantula,14.405
+Hypno,Rillaboom,36.019
+Hypno,Iron Treads,35.649
+Hypno,Dewgong,35.606
+Hypno,Weezing-Galar,35.005
+Hypno,Skeledirge,35.005
+Hypno,Blastoise,15.941
+Hypno,Dragapult,10.925
+Hypno,Kingambit,10.784
+Hypno,Great Tusk,10.43
+Hypno,Corviknight,10.154
+Magcargo,Great Tusk,39.772
+Magcargo,Dragonite,29.181
+Magcargo,Glimmora,28.324
+Magcargo,Scizor,28.322
+Magcargo,Deoxys-Speed,27.998
+Magcargo,Corviknight,10.253
+Magcargo,Clefable,8.288
+Magcargo,Sinistcha,8.276
+Magcargo,Walking Wake,7.414
+Magcargo,Muk-Alola,7.13
+Granbull,Scizor,21.636
+Granbull,Lanturn,18.265
+Granbull,Great Tusk,16.144
+Granbull,Umbreon,15.932
+Granbull,Donphan,15.119
+Granbull,Jumpluff,13.289
+Granbull,Sylveon,11.123
+Granbull,Regidrago,9.644
+Granbull,Slaking,9.148
+Granbull,Pecharunt,8.307

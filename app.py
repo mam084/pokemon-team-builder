@@ -15,9 +15,12 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
+from src.name_utils import normalize_name
 from src.type_chart import ALL_TYPES, team_weaknesses
 
 DATA_FILE = Path(__file__).resolve().parent / "data" / "pokemon_clean.csv"
+USAGE_SUMMARY_FILE = Path(__file__).resolve().parent / "data" / "usage_summary.csv"
+TEAMMATES_FILE = Path(__file__).resolve().parent / "data" / "teammates.csv"
 STAT_COLS = ["hp", "attack", "defense", "special_attack", "special_defense", "speed"]
 
 st.set_page_config(page_title="Pokemon Team Builder", page_icon="🎮", layout="wide")
@@ -31,7 +34,32 @@ def load_data() -> pd.DataFrame:
             "`python src/clean_data.py` first."
         )
         st.stop()
-    return pd.read_csv(DATA_FILE)
+    df = pd.read_csv(DATA_FILE)
+    df["name_key"] = df["name"].apply(normalize_name)
+    return df
+
+
+@st.cache_data
+def load_usage_data() -> tuple[pd.DataFrame | None, pd.DataFrame | None]:
+    """
+    Loads Smogon usage summary + teammates data if available. Returns
+    (None, None) if Stage 2 hasn't been run yet - the app should still work
+    fine with just Stage 1 features in that case.
+    """
+    if not USAGE_SUMMARY_FILE.exists() or not TEAMMATES_FILE.exists():
+        return None, None
+
+    usage_df = pd.read_csv(USAGE_SUMMARY_FILE)
+    usage_df["name_key"] = usage_df["pokemon"].apply(normalize_name)
+    # Approximate "meta share" - real Smogon usage % is based on a weighted
+    # count we don't have access to from the moveset file alone, so this uses
+    # raw_count as a stand-in. Good enough for relative ranking within a team.
+    usage_df["usage_share_pct"] = usage_df["raw_count"] / usage_df["raw_count"].sum() * 100
+
+    teammates_df = pd.read_csv(TEAMMATES_FILE)
+    teammates_df["name_key"] = teammates_df["pokemon"].apply(normalize_name)
+
+    return usage_df, teammates_df
 
 
 def get_types(df: pd.DataFrame, name: str) -> list[str]:
@@ -131,8 +159,59 @@ def render_stat_comparison(df: pd.DataFrame, team_names: list[str]):
     st.bar_chart(totals)
 
 
+def render_usage_share(usage_df: pd.DataFrame, team_names: list[str]):
+    st.subheader("Competitive Usage (Gen 9 OU)")
+    st.caption(
+        "Approximate meta share among competitively-played teams, based on "
+        "Smogon usage stats. Pokemon with no bar likely aren't commonly used "
+        "in this format."
+    )
+
+    team_keys = [normalize_name(name) for name in team_names]
+    rows = []
+    for display_name, key in zip(team_names, team_keys):
+        match = usage_df[usage_df["name_key"] == key]
+        usage_pct = round(match.iloc[0]["usage_share_pct"], 2) if not match.empty else 0
+        rows.append({"Pokemon": display_name.title(), "Usage Share": usage_pct})
+
+    usage_table = pd.DataFrame(rows).set_index("Pokemon")
+    st.bar_chart(usage_table["Usage Share"])
+
+
+def render_teammate_suggestions(teammates_df: pd.DataFrame, team_names: list[str]):
+    st.subheader("Suggested Teammates (from real usage data)")
+    st.caption(
+        "What competitive players most often pair with each of your team members. "
+        "Already-selected teammates are marked."
+    )
+
+    team_keys = set(normalize_name(name) for name in team_names)
+    any_matches = False
+
+    for display_name in team_names:
+        key = normalize_name(display_name)
+        matches = teammates_df[teammates_df["name_key"] == key].sort_values(
+            "co_occurrence_pct", ascending=False
+        )
+
+        if matches.empty:
+            continue
+
+        any_matches = True
+        st.markdown(f"**{display_name.title()}**")
+        for _, row in matches.head(5).iterrows():
+            teammate_key = normalize_name(row["teammate"])
+            already_on_team = teammate_key in team_keys
+            marker = " ✅ *(already on your team)*" if already_on_team else ""
+            st.write(f"- {row['teammate']} — {row['co_occurrence_pct']:.1f}%{marker}")
+
+    if not any_matches:
+        st.info("No competitive teammate data found for this team.")
+
+
 def main():
     df = load_data()
+    usage_df, teammates_df = load_usage_data()
 
     st.title("🎮 Pokemon Team Builder")
     st.caption("Build a team and see how it stacks up defensively and statistically.")
@@ -153,6 +232,19 @@ def main():
         render_type_coverage(df, team_names)
     with col2:
         render_stat_comparison(df, team_names)
+
+    if usage_df is not None and teammates_df is not None:
+        st.divider()
+        col3, col4 = st.columns([1, 1])
+        with col3:
+            render_usage_share(usage_df, team_names)
+        with col4:
+            render_teammate_suggestions(teammates_df, team_names)
+    else:
+        st.caption(
+            "Tip: run `fetch_usage_data.py` and `parse_usage_data.py` to unlock "
+            "real competitive usage data and teammate suggestions."
+        )
 
 
 if __name__ == "__main__":
