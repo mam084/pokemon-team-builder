@@ -16,6 +16,7 @@ import plotly.graph_objects as go
 import streamlit as st
 
 from src.name_utils import normalize_name
+from src.recommend import recommend_teammates
 from src.type_chart import ALL_TYPES, team_weaknesses
 
 DATA_FILE = Path(__file__).resolve().parent / "data" / "pokemon_clean.csv"
@@ -51,10 +52,13 @@ def load_usage_data() -> tuple[pd.DataFrame | None, pd.DataFrame | None]:
 
     usage_df = pd.read_csv(USAGE_SUMMARY_FILE)
     usage_df["name_key"] = usage_df["pokemon"].apply(normalize_name)
-    # Approximate "meta share" - real Smogon usage % is based on a weighted
-    # count we don't have access to from the moveset file alone, so this uses
-    # raw_count as a stand-in. Good enough for relative ranking within a team.
-    usage_df["usage_share_pct"] = usage_df["raw_count"] / usage_df["raw_count"].sum() * 100
+    # Approximate "meta share" within each tier - real Smogon usage % is based
+    # on a weighted count we don't have access to from the moveset file alone,
+    # so this uses raw_count as a stand-in, normalized per-tier so tiers with
+    # very different sample sizes stay comparable.
+    usage_df["usage_share_pct"] = usage_df.groupby("tier")["raw_count"].transform(
+        lambda counts: counts / counts.sum() * 100
+    )
 
     teammates_df = pd.read_csv(TEAMMATES_FILE)
     teammates_df["name_key"] = teammates_df["pokemon"].apply(normalize_name)
@@ -68,6 +72,24 @@ def get_types(df: pd.DataFrame, name: str) -> list[str]:
     if pd.notna(row["type_2"]):
         types.append(row["type_2"])
     return types
+
+
+def detect_tier(usage_df: pd.DataFrame, pokemon_name: str) -> str | None:
+    """
+    Given a Pokemon, find the tier it's most commonly used in (highest raw
+    count among tiers it appears in). Returns None if we have no usage data
+    for it in any tier.
+    """
+    key = normalize_name(pokemon_name)
+    matches = usage_df[usage_df["name_key"] == key]
+    if matches.empty:
+        return None
+    return matches.sort_values("raw_count", ascending=False).iloc[0]["tier"]
+
+
+def names_in_tier(usage_df: pd.DataFrame, tier: str) -> set[str]:
+    """Set of name_keys that appear in a given tier's usage data."""
+    return set(usage_df[usage_df["tier"] == tier]["name_key"])
 
 
 def render_type_coverage(df: pd.DataFrame, team_names: list[str]):
@@ -159,12 +181,12 @@ def render_stat_comparison(df: pd.DataFrame, team_names: list[str]):
     st.bar_chart(totals)
 
 
-def render_usage_share(usage_df: pd.DataFrame, team_names: list[str]):
-    st.subheader("Competitive Usage (Gen 9 OU)")
+def render_usage_share(usage_df: pd.DataFrame, team_names: list[str], tier_label: str):
+    st.subheader(f"Competitive Usage ({tier_label})")
     st.caption(
         "Approximate meta share among competitively-played teams, based on "
         "Smogon usage stats. Pokemon with no bar likely aren't commonly used "
-        "in this format."
+        "in this tier."
     )
 
     team_keys = [normalize_name(name) for name in team_names]
@@ -209,18 +231,85 @@ def render_teammate_suggestions(teammates_df: pd.DataFrame, team_names: list[str
         st.info("No competitive teammate data found for this team.")
 
 
+def render_recommendations(teammates_df: pd.DataFrame, team_names: list[str]):
+    st.subheader("Recommended Additions")
+    st.caption(
+        "Ranked by combined real-world synergy with your whole team - a Pokemon "
+        "that pairs well with multiple team members ranks above one that only "
+        "pairs well with one."
+    )
+
+    if len(team_names) >= 6:
+        st.info("Your team is full (6/6) - remove someone to see new recommendations.")
+        return
+
+    recommendations = recommend_teammates(teammates_df, team_names, top_n=8)
+
+    if not recommendations:
+        st.info("No recommendations found - try adding a more commonly-used competitive Pokemon.")
+        return
+
+    for rec in recommendations:
+        paired_str = ", ".join(rec["paired_with"])
+        st.write(f"**{rec['name']}** — synergy score {rec['score']} (pairs well with {paired_str})")
+
+
 def main():
     df = load_data()
     usage_df, teammates_df = load_usage_data()
+    has_tier_data = usage_df is not None and teammates_df is not None
 
     st.title("🎮 Pokemon Team Builder")
     st.caption("Build a team and see how it stacks up defensively and statistically.")
 
-    team_names = st.multiselect(
-        "Pick up to 6 Pokemon for your team:",
-        options=sorted(df["name"].str.title()),
-        max_selections=6,
-    )
+    selected_tier = None
+    all_options = sorted(df["name"].str.title())
+
+    if has_tier_data:
+        tiers = sorted(usage_df["tier"].unique())
+        mode = st.radio(
+            "How do you want to start?",
+            ["Pick a tier first", "Pick a Pokemon first"],
+            horizontal=True,
+        )
+
+        if mode == "Pick a tier first":
+            selected_tier = st.selectbox("Competitive tier", tiers)
+            allowed_keys = names_in_tier(usage_df, selected_tier)
+            options = sorted(
+                df[df["name_key"].isin(allowed_keys)]["name"].str.title()
+            )
+            if not options:
+                st.warning(f"No dex data matches any Pokemon used in {selected_tier}.")
+                options = all_options
+            team_names = st.multiselect(
+                f"Pick up to 6 Pokemon used in {selected_tier}:",
+                options=options,
+                max_selections=6,
+            )
+        else:
+            team_names = st.multiselect(
+                "Pick up to 6 Pokemon for your team:",
+                options=all_options,
+                max_selections=6,
+            )
+            if team_names:
+                detected = detect_tier(usage_df, team_names[0])
+                if detected:
+                    selected_tier = detected
+                    st.info(f"Detected tier: **{selected_tier}** (based on {team_names[0]})")
+                else:
+                    st.info(
+                        f"No competitive usage data found for {team_names[0]} in any tier - "
+                        "usage/teammate sections below will be unavailable for this team."
+                    )
+    else:
+        team_names = st.multiselect(
+            "Pick up to 6 Pokemon for your team:",
+            options=all_options,
+            max_selections=6,
+        )
+
     team_names = [n.lower() for n in team_names]
 
     if not team_names:
@@ -233,14 +322,20 @@ def main():
     with col2:
         render_stat_comparison(df, team_names)
 
-    if usage_df is not None and teammates_df is not None:
+    if has_tier_data and selected_tier:
+        tier_usage_df = usage_df[usage_df["tier"] == selected_tier]
+        tier_teammates_df = teammates_df[teammates_df["tier"] == selected_tier]
+
         st.divider()
         col3, col4 = st.columns([1, 1])
         with col3:
-            render_usage_share(usage_df, team_names)
+            render_usage_share(tier_usage_df, team_names, selected_tier)
         with col4:
-            render_teammate_suggestions(teammates_df, team_names)
-    else:
+            render_teammate_suggestions(tier_teammates_df, team_names)
+
+        st.divider()
+        render_recommendations(tier_teammates_df, team_names)
+    elif not has_tier_data:
         st.caption(
             "Tip: run `fetch_usage_data.py` and `parse_usage_data.py` to unlock "
             "real competitive usage data and teammate suggestions."

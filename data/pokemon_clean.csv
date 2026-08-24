@@ -1024,3 +1024,329 @@ id,name,type_1,type_2,hp,attack,defense,special_attack,special_defense,speed,abi
 1023,iron-crown,steel,psychic,90,72,100,122,108,98,quark-drive,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1023.png,590
 1024,terapagos,normal,,90,65,85,65,85,60,tera-shift,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1024.png,450
 1025,pecharunt,poison,ghost,88,88,160,88,88,88,poison-puppeteer,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1025.png,600
+10001,deoxys-attack,psychic,,50,180,20,180,20,150,pressure,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10001.png,600
+10002,deoxys-defense,psychic,,50,70,160,70,160,90,pressure,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10002.png,600
+10003,deoxys-speed,psychic,,50,95,90,95,90,180,pressure,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10003.png,600
+10004,wormadam-sandy,bug,ground,60,79,105,59,85,36,"anticipation, overcoat",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10004.png,424
+10005,wormadam-trash,bug,steel,60,69,95,69,95,36,"anticipation, overcoat",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10005.png,424
+10006,shaymin-sky,grass,flying,100,103,75,120,75,127,serene-grace,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10006.png,600
+10007,giratina-origin,ghost,dragon,150,120,100,120,100,90,levitate,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10007.png,680
+10008,rotom-heat,electric,fire,50,65,107,105,107,86,levitate,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10008.png,520
+10009,rotom-wash,electric,water,50,65,107,105,107,86,levitate,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10009.png,520
+10010,rotom-frost,electric,ice,50,65,107,105,107,86,levitate,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10010.png,520
+10011,rotom-fan,electric,flying,50,65,107,105,107,86,levitate,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10011.png,520
+10012,rotom-mow,electric,grass,50,65,107,105,107,86,levitate,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10012.png,520
+10013,castform-sunny,fire,,70,70,70,70,70,70,forecast,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10013.png,420
+10014,castform-rainy,water,,70,70,70,70,70,70,forecast,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10014.png,420
+10015,castform-snowy,ice,,70,70,70,70,70,70,forecast,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10015.png,420
+10016,basculin-blue-striped,water,,70,92,65,80,55,98,"rock-head, adaptability, mold-breaker",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10016.png,460
+10017,darmanitan-zen,fire,psychic,105,30,105,140,105,55,"sheer-force, zen-mode",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10017.png,540
+10018,meloetta-pirouette,normal,fighting,100,128,90,77,77,128,serene-grace,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10018.png,600
+10019,tornadus-therian,flying,,79,100,80,110,90,121,regenerator,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10019.png,580
+10020,thundurus-therian,electric,flying,79,105,70,145,80,101,volt-absorb,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10020.png,580
+10021,landorus-therian,ground,flying,89,145,90,105,80,91,intimidate,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10021.png,600
+10022,kyurem-black,dragon,ice,125,170,100,120,90,95,teravolt,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10022.png,700
+10023,kyurem-white,dragon,ice,125,120,90,170,100,95,turboblaze,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10023.png,700
+10024,keldeo-resolute,water,fighting,91,72,90,129,90,108,justified,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10024.png,580
+10025,meowstic-female,psychic,,74,48,76,83,81,104,"keen-eye, infiltrator, competitive",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10025.png,466
+10026,aegislash-blade,steel,ghost,60,140,50,140,50,60,stance-change,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10026.png,500
+10027,pumpkaboo-small,ghost,grass,44,66,70,44,55,56,"pickup, frisk, insomnia",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10027.png,335
+10028,pumpkaboo-large,ghost,grass,54,66,70,44,55,46,"pickup, frisk, insomnia",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10028.png,335
+10029,pumpkaboo-super,ghost,grass,59,66,70,44,55,41,"pickup, frisk, insomnia",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10029.png,335
+10030,gourgeist-small,ghost,grass,55,85,122,58,75,99,"pickup, frisk, insomnia",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10030.png,494
+10031,gourgeist-large,ghost,grass,75,95,122,58,75,69,"pickup, frisk, insomnia",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10031.png,494
+10032,gourgeist-super,ghost,grass,85,100,122,58,75,54,"pickup, frisk, insomnia",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10032.png,494
+10033,venusaur-mega,grass,poison,80,100,123,122,120,80,thick-fat,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10033.png,625
+10034,charizard-mega-x,fire,dragon,78,130,111,130,85,100,tough-claws,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10034.png,634
+10035,charizard-mega-y,fire,flying,78,104,78,159,115,100,drought,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10035.png,634
+10036,blastoise-mega,water,,79,103,120,135,115,78,mega-launcher,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10036.png,630
+10037,alakazam-mega,psychic,,55,50,65,175,105,150,trace,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10037.png,600
+10038,gengar-mega,ghost,poison,60,65,80,170,95,130,shadow-tag,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10038.png,600
+10039,kangaskhan-mega,normal,,105,125,100,60,100,100,parental-bond,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10039.png,590
+10040,pinsir-mega,bug,flying,65,155,120,65,90,105,aerilate,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10040.png,600
+10041,gyarados-mega,water,dark,95,155,109,70,130,81,mold-breaker,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10041.png,640
+10042,aerodactyl-mega,rock,flying,80,135,85,70,95,150,tough-claws,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10042.png,615
+10043,mewtwo-mega-x,psychic,fighting,106,190,100,154,100,130,steadfast,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10043.png,780
+10044,mewtwo-mega-y,psychic,,106,150,70,194,120,140,insomnia,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10044.png,780
+10045,ampharos-mega,electric,dragon,90,95,105,165,110,45,mold-breaker,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10045.png,610
+10046,scizor-mega,bug,steel,70,150,140,65,100,75,technician,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10046.png,600
+10047,heracross-mega,bug,fighting,80,185,115,40,105,75,skill-link,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10047.png,600
+10048,houndoom-mega,dark,fire,75,90,90,140,90,115,solar-power,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10048.png,600
+10049,tyranitar-mega,rock,dark,100,164,150,95,120,71,sand-stream,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10049.png,700
+10050,blaziken-mega,fire,fighting,80,160,80,130,80,100,speed-boost,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10050.png,630
+10051,gardevoir-mega,psychic,fairy,68,85,65,165,135,100,pixilate,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10051.png,618
+10052,mawile-mega,steel,fairy,50,105,125,55,95,50,huge-power,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10052.png,480
+10053,aggron-mega,steel,,70,140,230,60,80,50,filter,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10053.png,630
+10054,medicham-mega,fighting,psychic,60,100,85,80,85,100,pure-power,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10054.png,510
+10055,manectric-mega,electric,,70,75,80,135,80,135,intimidate,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10055.png,575
+10056,banette-mega,ghost,,64,165,75,93,83,75,prankster,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10056.png,555
+10057,absol-mega,dark,,65,150,60,115,60,115,magic-bounce,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10057.png,565
+10058,garchomp-mega,dragon,ground,108,170,115,120,95,92,sand-force,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10058.png,700
+10059,lucario-mega,fighting,steel,70,145,88,140,70,112,adaptability,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10059.png,625
+10060,abomasnow-mega,grass,ice,90,132,105,132,105,30,snow-warning,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10060.png,594
+10061,floette-eternal,fairy,,74,65,67,125,128,92,"flower-veil, symbiosis",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10061.png,551
+10062,latias-mega,dragon,psychic,80,100,120,140,150,110,levitate,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10062.png,700
+10063,latios-mega,dragon,psychic,80,130,100,160,120,110,levitate,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10063.png,700
+10064,swampert-mega,water,ground,100,150,110,95,110,70,swift-swim,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10064.png,635
+10065,sceptile-mega,grass,dragon,70,110,75,145,85,145,lightning-rod,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10065.png,630
+10066,sableye-mega,dark,ghost,50,85,125,85,115,20,magic-bounce,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10066.png,480
+10067,altaria-mega,dragon,fairy,75,110,110,110,105,80,pixilate,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10067.png,590
+10068,gallade-mega,psychic,fighting,68,165,95,65,115,110,inner-focus,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10068.png,618
+10069,audino-mega,normal,fairy,103,60,126,80,126,50,healer,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10069.png,545
+10070,sharpedo-mega,water,dark,70,140,70,110,65,105,strong-jaw,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10070.png,560
+10071,slowbro-mega,water,psychic,95,75,180,130,80,30,shell-armor,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10071.png,590
+10072,steelix-mega,steel,ground,75,125,230,55,95,30,sand-force,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10072.png,610
+10073,pidgeot-mega,normal,flying,83,80,80,135,80,121,no-guard,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10073.png,579
+10074,glalie-mega,ice,,80,120,80,120,80,100,refrigerate,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10074.png,580
+10075,diancie-mega,rock,fairy,50,160,110,160,110,110,magic-bounce,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10075.png,700
+10076,metagross-mega,steel,psychic,80,145,150,105,110,110,tough-claws,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10076.png,700
+10077,kyogre-primal,water,,100,150,90,180,160,90,primordial-sea,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10077.png,770
+10078,groudon-primal,ground,fire,100,180,160,150,90,90,desolate-land,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10078.png,770
+10079,rayquaza-mega,dragon,flying,105,180,100,180,100,115,delta-stream,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10079.png,780
+10080,pikachu-rock-star,electric,,35,55,40,50,50,90,"static, lightning-rod",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10080.png,320
+10081,pikachu-belle,electric,,35,55,40,50,50,90,"static, lightning-rod",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10081.png,320
+10082,pikachu-pop-star,electric,,35,55,40,50,50,90,"static, lightning-rod",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10082.png,320
+10083,pikachu-phd,electric,,35,55,40,50,50,90,"static, lightning-rod",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10083.png,320
+10084,pikachu-libre,electric,,35,55,40,50,50,90,"static, lightning-rod",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10084.png,320
+10085,pikachu-cosplay,electric,,35,55,40,50,50,90,"static, lightning-rod",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10085.png,320
+10086,hoopa-unbound,psychic,dark,80,160,60,170,130,80,magician,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10086.png,680
+10087,camerupt-mega,fire,ground,70,120,100,145,105,20,sheer-force,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10087.png,560
+10088,lopunny-mega,normal,fighting,65,136,94,54,96,135,scrappy,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10088.png,580
+10089,salamence-mega,dragon,flying,95,145,130,120,90,120,aerilate,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10089.png,700
+10090,beedrill-mega,bug,poison,65,150,40,15,80,145,adaptability,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10090.png,495
+10091,rattata-alola,dark,normal,30,56,35,25,35,72,"gluttony, hustle, thick-fat",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10091.png,253
+10092,raticate-alola,dark,normal,75,71,70,40,80,77,"gluttony, hustle, thick-fat",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10092.png,413
+10093,raticate-totem-alola,dark,normal,75,71,70,40,80,77,"gluttony, hustle, thick-fat",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10093.png,413
+10094,pikachu-original-cap,electric,,35,55,40,50,50,90,"static, lightning-rod",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10094.png,320
+10095,pikachu-hoenn-cap,electric,,35,55,40,50,50,90,"static, lightning-rod",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10095.png,320
+10096,pikachu-sinnoh-cap,electric,,35,55,40,50,50,90,"static, lightning-rod",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10096.png,320
+10097,pikachu-unova-cap,electric,,35,55,40,50,50,90,"static, lightning-rod",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10097.png,320
+10098,pikachu-kalos-cap,electric,,35,55,40,50,50,90,"static, lightning-rod",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10098.png,320
+10099,pikachu-alola-cap,electric,,35,55,40,50,50,90,"static, lightning-rod",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10099.png,320
+10100,raichu-alola,electric,psychic,60,85,50,95,85,110,surge-surfer,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10100.png,485
+10101,sandshrew-alola,ice,steel,50,75,90,10,35,40,"snow-cloak, slush-rush",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10101.png,300
+10102,sandslash-alola,ice,steel,75,100,120,25,65,65,"snow-cloak, slush-rush",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10102.png,450
+10103,vulpix-alola,ice,,38,41,40,50,65,65,"snow-cloak, snow-warning",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10103.png,299
+10104,ninetales-alola,ice,fairy,73,67,75,81,100,109,"snow-cloak, snow-warning",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10104.png,505
+10105,diglett-alola,ground,steel,10,55,30,35,45,90,"sand-veil, tangling-hair, sand-force",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10105.png,265
+10106,dugtrio-alola,ground,steel,35,100,60,50,70,110,"sand-veil, tangling-hair, sand-force",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10106.png,425
+10107,meowth-alola,dark,,40,35,35,50,40,90,"pickup, technician, rattled",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10107.png,290
+10108,persian-alola,dark,,65,60,60,75,65,115,"fur-coat, technician, rattled",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10108.png,440
+10109,geodude-alola,rock,electric,40,80,100,30,30,20,"magnet-pull, sturdy, galvanize",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10109.png,300
+10110,graveler-alola,rock,electric,55,95,115,45,45,35,"magnet-pull, sturdy, galvanize",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10110.png,390
+10111,golem-alola,rock,electric,80,120,130,55,65,45,"magnet-pull, sturdy, galvanize",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10111.png,495
+10112,grimer-alola,poison,dark,80,80,50,40,50,25,"poison-touch, gluttony, power-of-alchemy",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10112.png,325
+10113,muk-alola,poison,dark,105,105,75,65,100,50,"poison-touch, gluttony, power-of-alchemy",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10113.png,500
+10114,exeggutor-alola,grass,dragon,95,105,85,125,75,45,"frisk, harvest",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10114.png,530
+10115,marowak-alola,fire,ghost,60,80,110,50,80,45,"cursed-body, lightning-rod, rock-head",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10115.png,425
+10116,greninja-battle-bond,water,dark,72,95,67,103,71,122,battle-bond,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10116.png,530
+10117,greninja-ash,water,dark,72,145,67,153,71,132,battle-bond,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10117.png,640
+10118,zygarde-10-power-construct,dragon,ground,54,100,71,61,85,115,power-construct,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10118.png,486
+10119,zygarde-50-power-construct,dragon,ground,108,100,121,81,95,95,power-construct,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10119.png,600
+10120,zygarde-complete,dragon,ground,216,100,121,91,95,85,power-construct,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10120.png,708
+10121,gumshoos-totem,normal,,88,110,60,55,60,45,"stakeout, strong-jaw, adaptability",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10121.png,418
+10122,vikavolt-totem,bug,electric,77,70,90,145,75,43,levitate,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10122.png,500
+10123,oricorio-pom-pom,electric,flying,75,70,70,98,70,93,dancer,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10123.png,476
+10124,oricorio-pau,psychic,flying,75,70,70,98,70,93,dancer,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10124.png,476
+10125,oricorio-sensu,ghost,flying,75,70,70,98,70,93,dancer,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10125.png,476
+10126,lycanroc-midnight,rock,,85,115,75,55,75,82,"keen-eye, vital-spirit, no-guard",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10126.png,487
+10127,wishiwashi-school,water,,45,140,130,140,135,30,schooling,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10127.png,620
+10128,lurantis-totem,grass,,70,105,90,80,90,45,"leaf-guard, contrary",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10128.png,480
+10129,salazzle-totem,poison,fire,68,64,60,111,60,117,"corrosion, oblivious",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10129.png,480
+10130,minior-orange-meteor,rock,flying,60,60,100,60,100,60,shields-down,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10130.png,440
+10131,minior-yellow-meteor,rock,flying,60,60,100,60,100,60,shields-down,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10131.png,440
+10132,minior-green-meteor,rock,flying,60,60,100,60,100,60,shields-down,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10132.png,440
+10133,minior-blue-meteor,rock,flying,60,60,100,60,100,60,shields-down,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10133.png,440
+10134,minior-indigo-meteor,rock,flying,60,60,100,60,100,60,shields-down,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10134.png,440
+10135,minior-violet-meteor,rock,flying,60,60,100,60,100,60,shields-down,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10135.png,440
+10136,minior-red,rock,flying,60,100,60,100,60,120,shields-down,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10136.png,500
+10137,minior-orange,rock,flying,60,100,60,100,60,120,shields-down,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10137.png,500
+10138,minior-yellow,rock,flying,60,100,60,100,60,120,shields-down,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10138.png,500
+10139,minior-green,rock,flying,60,100,60,100,60,120,shields-down,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10139.png,500
+10140,minior-blue,rock,flying,60,100,60,100,60,120,shields-down,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10140.png,500
+10141,minior-indigo,rock,flying,60,100,60,100,60,120,shields-down,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10141.png,500
+10142,minior-violet,rock,flying,60,100,60,100,60,120,shields-down,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10142.png,500
+10143,mimikyu-busted,ghost,fairy,55,90,80,50,105,96,disguise,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10143.png,476
+10144,mimikyu-totem-disguised,ghost,fairy,55,90,80,50,105,96,disguise,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10144.png,476
+10145,mimikyu-totem-busted,ghost,fairy,55,90,80,50,105,96,disguise,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10145.png,476
+10146,kommo-o-totem,dragon,fighting,75,110,125,100,105,85,"bulletproof, soundproof, overcoat",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10146.png,600
+10147,magearna-original,steel,fairy,80,95,115,130,115,65,soul-heart,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10147.png,600
+10148,pikachu-partner-cap,electric,,35,55,40,50,50,90,"static, lightning-rod",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10148.png,320
+10149,marowak-totem,fire,ghost,60,80,110,50,80,45,"cursed-body, lightning-rod, rock-head",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10149.png,425
+10150,ribombee-totem,bug,fairy,60,55,60,95,70,124,"honey-gather, shield-dust, sweet-veil",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10150.png,464
+10151,rockruff-own-tempo,rock,,45,65,40,30,40,60,own-tempo,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10151.png,280
+10152,lycanroc-dusk,rock,,75,117,65,55,65,110,tough-claws,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10152.png,487
+10153,araquanid-totem,water,bug,68,70,92,50,132,42,"water-bubble, water-absorb",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10153.png,454
+10154,togedemaru-totem,electric,steel,65,98,63,40,73,96,"iron-barbs, lightning-rod, sturdy",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10154.png,435
+10155,necrozma-dusk,psychic,steel,97,157,127,113,109,77,prism-armor,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10155.png,680
+10156,necrozma-dawn,psychic,ghost,97,113,109,157,127,77,prism-armor,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10156.png,680
+10157,necrozma-ultra,psychic,dragon,97,167,97,167,97,129,neuroforce,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10157.png,754
+10158,pikachu-starter,electric,,45,80,50,75,60,120,"static, lightning-rod",,430
+10159,eevee-starter,normal,,65,75,70,65,85,75,"run-away, adaptability, anticipation",,435
+10160,pikachu-world-cap,electric,,35,55,40,50,50,90,"static, lightning-rod",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10160.png,320
+10161,meowth-galar,steel,,50,65,55,40,40,40,"pickup, tough-claws, unnerve",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10161.png,290
+10162,ponyta-galar,psychic,,50,85,55,65,65,90,"run-away, pastel-veil, anticipation",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10162.png,410
+10163,rapidash-galar,psychic,fairy,65,100,70,80,80,105,"run-away, pastel-veil, anticipation",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10163.png,500
+10164,slowpoke-galar,psychic,,90,65,65,40,40,15,"gluttony, own-tempo, regenerator",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10164.png,315
+10165,slowbro-galar,poison,psychic,95,100,95,100,70,30,"quick-draw, own-tempo, regenerator",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10165.png,490
+10166,farfetchd-galar,fighting,,52,95,55,58,62,55,"steadfast, scrappy",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10166.png,377
+10167,weezing-galar,poison,fairy,65,90,120,85,70,60,"levitate, neutralizing-gas, misty-surge",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10167.png,490
+10168,mr-mime-galar,ice,psychic,50,65,65,90,90,100,"vital-spirit, screen-cleaner, ice-body",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10168.png,460
+10169,articuno-galar,psychic,flying,90,85,85,125,100,95,competitive,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10169.png,580
+10170,zapdos-galar,fighting,flying,90,125,90,85,90,100,defiant,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10170.png,580
+10171,moltres-galar,dark,flying,90,85,90,100,125,90,berserk,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10171.png,580
+10172,slowking-galar,poison,psychic,95,65,80,110,110,30,"curious-medicine, own-tempo, regenerator",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10172.png,490
+10173,corsola-galar,ghost,,60,55,100,65,100,30,"weak-armor, cursed-body",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10173.png,410
+10174,zigzagoon-galar,dark,normal,38,30,41,30,41,60,"pickup, gluttony, quick-feet",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10174.png,240
+10175,linoone-galar,dark,normal,78,70,61,50,61,100,"pickup, gluttony, quick-feet",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10175.png,420
+10176,darumaka-galar,ice,,70,90,45,15,45,50,"hustle, inner-focus",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10176.png,315
+10177,darmanitan-galar-standard,ice,,105,140,55,30,55,95,"gorilla-tactics, zen-mode",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10177.png,480
+10178,darmanitan-galar-zen,ice,fire,105,160,55,30,55,135,"gorilla-tactics, zen-mode",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10178.png,540
+10179,yamask-galar,ground,ghost,38,55,85,30,65,30,wandering-spirit,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10179.png,303
+10180,stunfisk-galar,ground,steel,109,81,99,66,84,32,mimicry,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10180.png,471
+10181,zygarde-10,dragon,ground,54,100,71,61,85,115,aura-break,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10181.png,486
+10182,cramorant-gulping,flying,water,70,85,55,85,95,85,gulp-missile,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10182.png,475
+10183,cramorant-gorging,flying,water,70,85,55,85,95,85,gulp-missile,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10183.png,475
+10184,toxtricity-low-key,electric,poison,75,98,70,114,70,75,"punk-rock, minus, technician",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10184.png,502
+10185,eiscue-noice,ice,,75,80,70,65,50,130,ice-face,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10185.png,470
+10186,indeedee-female,psychic,normal,70,55,65,95,105,85,"own-tempo, synchronize, psychic-surge",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10186.png,475
+10187,morpeko-hangry,electric,dark,58,95,58,70,58,97,hunger-switch,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10187.png,436
+10188,zacian-crowned,fairy,steel,92,150,115,80,115,148,intrepid-sword,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10188.png,700
+10189,zamazenta-crowned,fighting,steel,92,120,140,80,140,128,dauntless-shield,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10189.png,700
+10190,eternatus-eternamax,poison,dragon,255,115,250,125,250,130,pressure,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10190.png,1125
+10191,urshifu-rapid-strike,fighting,water,100,130,100,63,60,97,unseen-fist,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10191.png,550
+10192,zarude-dada,dark,grass,105,120,105,70,95,105,leaf-guard,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10192.png,600
+10193,calyrex-ice,psychic,ice,100,165,150,85,130,50,as-one-glastrier,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10193.png,680
+10194,calyrex-shadow,psychic,ghost,100,85,80,165,100,150,as-one-spectrier,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10194.png,680
+10195,venusaur-gmax,grass,poison,80,82,83,100,100,80,"overgrow, chlorophyll",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10195.png,525
+10196,charizard-gmax,fire,flying,78,84,78,109,85,100,"blaze, solar-power",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10196.png,534
+10197,blastoise-gmax,water,,79,83,100,85,105,78,"torrent, rain-dish",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10197.png,530
+10198,butterfree-gmax,bug,flying,60,45,50,90,80,70,"compound-eyes, tinted-lens",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10198.png,395
+10199,pikachu-gmax,electric,,35,55,40,50,50,90,"static, lightning-rod",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10199.png,320
+10200,meowth-gmax,normal,,40,45,35,40,40,90,"pickup, technician, unnerve",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10200.png,290
+10201,machamp-gmax,fighting,,90,130,80,65,85,55,"guts, no-guard, steadfast",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10201.png,505
+10202,gengar-gmax,ghost,poison,60,65,60,130,75,110,cursed-body,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10202.png,500
+10203,kingler-gmax,water,,55,130,115,50,50,75,"hyper-cutter, shell-armor, sheer-force",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10203.png,475
+10204,lapras-gmax,water,ice,130,85,80,85,95,60,"water-absorb, shell-armor, hydration",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10204.png,535
+10205,eevee-gmax,normal,,55,55,50,45,65,55,"run-away, adaptability, anticipation",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10205.png,325
+10206,snorlax-gmax,normal,,160,110,65,65,110,30,"immunity, thick-fat, gluttony",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10206.png,540
+10207,garbodor-gmax,poison,,80,95,82,60,82,75,"stench, weak-armor, aftermath",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10207.png,474
+10208,melmetal-gmax,steel,,135,143,143,80,65,34,iron-fist,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10208.png,600
+10209,rillaboom-gmax,grass,,100,125,90,60,70,85,"overgrow, grassy-surge",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10209.png,530
+10210,cinderace-gmax,fire,,80,116,75,65,75,119,"blaze, libero",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10210.png,530
+10211,inteleon-gmax,water,,70,85,65,125,65,120,"torrent, sniper",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10211.png,530
+10212,corviknight-gmax,flying,steel,98,87,105,53,85,67,"pressure, unnerve, mirror-armor",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10212.png,495
+10213,orbeetle-gmax,bug,psychic,60,45,110,80,120,90,"swarm, frisk, telepathy",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10213.png,505
+10214,drednaw-gmax,water,rock,90,115,90,48,68,74,"strong-jaw, shell-armor, swift-swim",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10214.png,485
+10215,coalossal-gmax,rock,fire,110,80,120,80,90,30,"steam-engine, flame-body, flash-fire",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10215.png,510
+10216,flapple-gmax,grass,dragon,70,110,80,95,60,70,"ripen, gluttony, hustle",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10216.png,485
+10217,appletun-gmax,grass,dragon,110,85,80,100,80,30,"ripen, gluttony, thick-fat",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10217.png,485
+10218,sandaconda-gmax,ground,,72,107,125,65,70,71,"sand-spit, shed-skin, sand-veil",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10218.png,510
+10219,toxtricity-amped-gmax,electric,poison,75,98,70,114,70,75,"punk-rock, plus, technician",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10219.png,502
+10220,centiskorch-gmax,fire,bug,100,115,65,90,90,65,"flash-fire, white-smoke, flame-body",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10220.png,525
+10221,hatterene-gmax,psychic,fairy,57,90,95,136,103,29,"healer, anticipation, magic-bounce",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10221.png,510
+10222,grimmsnarl-gmax,dark,fairy,95,120,65,95,75,60,"prankster, frisk, pickpocket",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10222.png,510
+10223,alcremie-gmax,fairy,,65,60,75,110,121,64,"sweet-veil, aroma-veil",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10223.png,495
+10224,copperajah-gmax,steel,,122,130,69,80,69,30,"sheer-force, heavy-metal",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10224.png,500
+10225,duraludon-gmax,steel,dragon,70,95,115,120,50,85,"light-metal, heavy-metal, stalwart",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10225.png,535
+10226,urshifu-single-strike-gmax,fighting,dark,100,130,100,63,60,97,unseen-fist,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10226.png,550
+10227,urshifu-rapid-strike-gmax,fighting,water,100,130,100,63,60,97,unseen-fist,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10227.png,550
+10228,toxtricity-low-key-gmax,electric,poison,75,98,70,114,70,75,"punk-rock, minus, technician",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10228.png,502
+10229,growlithe-hisui,fire,rock,60,75,45,65,50,55,"intimidate, flash-fire, rock-head",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10229.png,350
+10230,arcanine-hisui,fire,rock,95,115,80,95,80,90,"intimidate, flash-fire, rock-head",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10230.png,555
+10231,voltorb-hisui,electric,grass,40,30,50,55,55,100,"soundproof, static, aftermath",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10231.png,330
+10232,electrode-hisui,electric,grass,60,50,70,80,80,150,"soundproof, static, aftermath",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10232.png,490
+10233,typhlosion-hisui,fire,ghost,73,84,78,119,85,95,"blaze, frisk",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10233.png,534
+10234,qwilfish-hisui,dark,poison,65,95,85,55,55,85,"poison-point, swift-swim, intimidate",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10234.png,440
+10235,sneasel-hisui,fighting,poison,55,95,55,35,75,115,"inner-focus, keen-eye, pickpocket",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10235.png,430
+10236,samurott-hisui,water,dark,90,108,80,100,65,85,"torrent, sharpness",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10236.png,528
+10237,lilligant-hisui,grass,fighting,70,105,75,50,75,105,"chlorophyll, hustle, leaf-guard",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10237.png,480
+10238,zorua-hisui,normal,ghost,35,60,40,85,40,70,illusion,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10238.png,330
+10239,zoroark-hisui,normal,ghost,55,100,60,125,60,110,illusion,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10239.png,510
+10240,braviary-hisui,psychic,flying,110,83,70,112,70,65,"keen-eye, sheer-force, tinted-lens",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10240.png,510
+10241,sliggoo-hisui,steel,dragon,58,75,83,83,113,40,"sap-sipper, shell-armor, gooey",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10241.png,452
+10242,goodra-hisui,steel,dragon,80,100,100,110,150,60,"sap-sipper, shell-armor, gooey",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10242.png,600
+10243,avalugg-hisui,ice,rock,95,127,184,34,36,38,"strong-jaw, ice-body, sturdy",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10243.png,514
+10244,decidueye-hisui,grass,fighting,88,112,80,95,95,60,"overgrow, scrappy",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10244.png,530
+10245,dialga-origin,steel,dragon,100,100,120,150,120,90,"pressure, telepathy",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10245.png,680
+10246,palkia-origin,water,dragon,90,100,100,150,120,120,"pressure, telepathy",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10246.png,680
+10247,basculin-white-striped,water,,70,92,65,80,55,98,"rattled, adaptability, mold-breaker",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10247.png,460
+10248,basculegion-female,water,ghost,120,92,65,100,75,78,"swift-swim, adaptability, mold-breaker",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10248.png,530
+10249,enamorus-therian,fairy,flying,74,115,110,135,100,46,overcoat,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10249.png,580
+10250,tauros-paldea-combat-breed,fighting,,75,110,105,30,70,100,"intimidate, anger-point, cud-chew",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10250.png,490
+10251,tauros-paldea-blaze-breed,fighting,fire,75,110,105,30,70,100,"intimidate, anger-point, cud-chew",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10251.png,490
+10252,tauros-paldea-aqua-breed,fighting,water,75,110,105,30,70,100,"intimidate, anger-point, cud-chew",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10252.png,490
+10253,wooper-paldea,poison,ground,55,45,45,25,25,15,"poison-point, water-absorb, unaware",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10253.png,210
+10254,oinkologne-female,normal,,115,90,70,59,90,65,"aroma-veil, gluttony, thick-fat",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10254.png,489
+10255,dudunsparce-three-segment,normal,,125,100,80,85,75,55,"serene-grace, run-away, rattled",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10255.png,520
+10256,palafin-hero,water,,100,160,97,106,87,100,zero-to-hero,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10256.png,650
+10257,maushold-family-of-three,normal,,74,75,70,65,75,111,"friend-guard, cheek-pouch, technician",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10257.png,470
+10258,tatsugiri-droopy,dragon,water,68,50,60,120,95,82,"commander, storm-drain",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10258.png,475
+10259,tatsugiri-stretchy,dragon,water,68,50,60,120,95,82,"commander, storm-drain",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10259.png,475
+10260,squawkabilly-blue-plumage,normal,flying,82,96,51,45,51,92,"intimidate, hustle, guts",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10260.png,417
+10261,squawkabilly-yellow-plumage,normal,flying,82,96,51,45,51,92,"intimidate, hustle, sheer-force",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10261.png,417
+10262,squawkabilly-white-plumage,normal,flying,82,96,51,45,51,92,"intimidate, hustle, sheer-force",https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10262.png,417
+10263,gimmighoul-roaming,ghost,,45,30,25,75,45,80,run-away,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10263.png,300
+10264,koraidon-limited-build,fighting,dragon,100,135,115,85,100,135,orichalcum-pulse,,670
+10265,koraidon-sprinting-build,fighting,dragon,100,135,115,85,100,135,orichalcum-pulse,,670
+10266,koraidon-swimming-build,fighting,dragon,100,135,115,85,100,135,orichalcum-pulse,,670
+10267,koraidon-gliding-build,fighting,dragon,100,135,115,85,100,135,orichalcum-pulse,,670
+10268,miraidon-low-power-mode,electric,dragon,100,85,100,135,115,135,hadron-engine,,670
+10269,miraidon-drive-mode,electric,dragon,100,85,100,135,115,135,hadron-engine,,670
+10270,miraidon-aquatic-mode,electric,dragon,100,85,100,135,115,135,hadron-engine,,670
+10271,miraidon-glide-mode,electric,dragon,100,85,100,135,115,135,hadron-engine,,670
+10272,ursaluna-bloodmoon,ground,normal,113,70,120,135,65,52,minds-eye,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10272.png,555
+10273,ogerpon-wellspring-mask,grass,water,80,120,84,60,96,110,water-absorb,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10273.png,550
+10274,ogerpon-hearthflame-mask,grass,fire,80,120,84,60,96,110,mold-breaker,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10274.png,550
+10275,ogerpon-cornerstone-mask,grass,rock,80,120,84,60,96,110,sturdy,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10275.png,550
+10276,terapagos-terastal,normal,,95,95,110,105,110,85,tera-shell,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10276.png,600
+10277,terapagos-stellar,normal,,160,105,110,130,110,85,teraform-zero,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10277.png,700
+10278,clefable-mega,fairy,flying,95,80,93,135,110,70,magic-bounce,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10278.png,583
+10279,victreebel-mega,grass,poison,80,125,85,135,95,70,innards-out,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10279.png,590
+10280,starmie-mega,water,psychic,60,100,105,130,105,120,huge-power,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10280.png,620
+10281,dragonite-mega,dragon,flying,91,124,115,145,125,100,multiscale,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10281.png,700
+10282,meganium-mega,grass,fairy,80,92,115,143,115,80,mega-sol,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10282.png,625
+10283,feraligatr-mega,water,dragon,85,160,125,89,93,78,dragonize,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10283.png,630
+10284,skarmory-mega,steel,flying,65,140,110,40,100,110,stalwart,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10284.png,565
+10285,froslass-mega,ice,ghost,70,80,70,140,100,120,snow-warning,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10285.png,580
+10286,emboar-mega,fire,fighting,110,148,75,110,110,75,mold-breaker,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10286.png,628
+10287,excadrill-mega,ground,steel,110,165,100,65,65,103,piercing-drill,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10287.png,608
+10288,scolipede-mega,bug,poison,60,140,149,75,99,62,shell-armor,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10288.png,585
+10289,scrafty-mega,dark,fighting,65,130,135,55,135,68,intimidate,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10289.png,588
+10290,eelektross-mega,electric,,85,145,80,135,90,80,eelevate,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10290.png,615
+10291,chandelure-mega,ghost,fire,60,75,110,175,110,90,infiltrator,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10291.png,620
+10292,chesnaught-mega,grass,fighting,88,137,172,74,115,44,bulletproof,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10292.png,630
+10293,delphox-mega,fire,psychic,75,69,72,159,125,134,levitate,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10293.png,634
+10294,greninja-mega,water,dark,72,125,77,133,81,142,protean,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10294.png,630
+10295,pyroar-mega,fire,normal,86,88,92,129,86,126,fire-mane,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10295.png,607
+10296,floette-mega,fairy,,74,85,87,155,148,102,fairy-aura,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10296.png,651
+10297,malamar-mega,dark,psychic,86,102,88,98,120,88,contrary,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10297.png,582
+10298,barbaracle-mega,rock,fighting,72,140,130,64,106,88,tough-claws,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10298.png,600
+10299,dragalge-mega,poison,dragon,65,85,105,132,163,44,regenerator,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10299.png,594
+10300,hawlucha-mega,fighting,flying,78,137,100,74,93,118,no-guard,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10300.png,600
+10301,zygarde-mega,dragon,ground,216,70,91,216,85,100,,,778
+10302,drampa-mega,normal,dragon,78,85,110,160,116,36,berserk,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10302.png,585
+10303,falinks-mega,fighting,,65,135,135,70,65,100,defiant,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10303.png,570
+10304,raichu-mega-x,electric,,60,135,95,90,95,110,electric-surge,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10304.png,585
+10305,raichu-mega-y,electric,,60,100,55,160,80,130,no-guard,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10305.png,585
+10306,chimecho-mega,psychic,steel,75,50,110,135,120,65,levitate,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10306.png,555
+10307,absol-mega-z,dark,ghost,65,154,60,75,60,151,,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10307.png,565
+10308,staraptor-mega,fighting,flying,85,140,100,60,90,110,contrary,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10308.png,585
+10309,garchomp-mega-z,dragon,,108,130,85,141,85,151,,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10309.png,700
+10310,lucario-mega-z,fighting,steel,70,100,70,164,70,151,,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10310.png,625
+10311,heatran-mega,fire,steel,91,120,106,175,141,67,,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10311.png,700
+10312,darkrai-mega,dark,,70,120,130,165,130,85,,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10312.png,700
+10313,golurk-mega,ground,ghost,89,159,105,70,105,55,unseen-fist,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10313.png,583
+10314,meowstic-male-mega,psychic,,74,48,76,143,101,124,trace,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10314.png,566
+10315,crabominable-mega,fighting,ice,97,157,122,62,107,33,iron-fist,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10315.png,578
+10316,golisopod-mega,bug,steel,75,150,175,70,120,40,,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10316.png,630
+10317,magearna-mega,steel,fairy,80,125,115,170,115,95,,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10317.png,700
+10318,magearna-original-mega,steel,fairy,80,125,115,170,115,95,,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10318.png,700
+10319,zeraora-mega,electric,,88,157,75,147,80,153,,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10319.png,700
+10320,scovillain-mega,grass,fire,65,138,85,138,85,75,spicy-spray,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10320.png,586
+10321,glimmora-mega,rock,poison,83,90,105,150,96,101,adaptability,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10321.png,625
+10322,tatsugiri-curly-mega,dragon,water,68,65,90,135,125,92,,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10322.png,575
+10323,tatsugiri-droopy-mega,dragon,water,68,65,90,135,125,92,,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10323.png,575
+10324,tatsugiri-stretchy-mega,dragon,water,68,65,90,135,125,92,,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10324.png,575
+10325,baxcalibur-mega,dragon,ice,115,175,117,105,101,87,,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10325.png,700
+10326,meowstic-female-mega,psychic,,74,48,76,143,101,124,trace,https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10326.png,566
