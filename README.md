@@ -1,5 +1,7 @@
 # Pokemon Team Builder
 
+[![Tests](https://github.com/mam084/pokemon-team-builder/actions/workflows/tests.yml/badge.svg)](https://github.com/mam084/pokemon-team-builder/actions/workflows/tests.yml)
+
 An interactive dashboard for building a Pokemon team and analyzing it: type coverage, shared weaknesses, and stat comparisons across your chosen team.
 
 Built as a portfolio project, developed in stages — this repo is meant to show iterative growth from a basic dashboard toward a deployed ML-based recommender.
@@ -20,35 +22,53 @@ Built as a portfolio project, developed in stages — this repo is meant to show
 - **Suggested teammates** — for each Pokemon on your team, see who competitive players most commonly pair them with, based on real teammate co-occurrence data
 - Bridges PokeAPI's and Smogon's differing name conventions (e.g. `ogerpon-wellspring` vs. `Ogerpon-Wellspring`, `Tapu Koko`, `Mr. Mime`) so both datasets join cleanly
 
+**Stage 3 — Team-aware recommender**
+- **Multiple tiers:** start by picking a tier (Gen 9 OU and UU included), or pick a Pokemon first and the app detects the tier it's most used in
+- **Recommended additions** for the whole team: each candidate's co-occurrence with every current team member is summed, so a Pokemon that pairs well with several of your picks ranks above one that pairs with just one
+- Each recommendation shows which of your team members it's commonly paired with
+
 ## Tech Stack
 
 - **Data:** [PokeAPI](https://pokeapi.co/) (REST), fetched concurrently with `concurrent.futures`; [Smogon usage stats](https://www.smogon.com/stats/) (plain text)
 - **Processing:** pandas
 - **Dashboard:** Streamlit
 - **Charts:** Plotly
+- **Tests:** stdlib `unittest`, run in CI with GitHub Actions along with an app startup check
 
 ## Setup
 
 ```bash
 # clone and enter the repo
-git clone https://github.com/<your-username>/pokemon-team-builder.git
+git clone https://github.com/mam084/pokemon-team-builder.git
 cd pokemon-team-builder
 
 # install dependencies
 pip install -r requirements.txt
 
+# launch the dashboard (processed data for Gen 9 OU and UU is included)
+streamlit run app.py
+```
+
+To rebuild the data from scratch:
+
+```bash
 # fetch and clean the dex data (full national dex recommended)
 python src/fetch_data.py --start 1 --end 1025
 python src/clean_data.py
 
 # fetch and parse real competitive usage data (optional but recommended -
 # check https://www.smogon.com/stats/ for available months)
-python src/fetch_usage_data.py --month 2026-06
-python src/parse_usage_data.py --input data/usage_gen9ou_2026-06.txt
-
-# launch the dashboard
-streamlit run app.py
+python src/fetch_usage_data.py --month 2026-06 --format gen9ou
+python src/parse_usage_data.py --input data/usage_gen9ou_2026-06.txt --tier gen9ou
 ```
+
+## Testing
+
+```bash
+python -m unittest discover -s tests -v
+```
+
+Tests cover the type chart (every matchup checked against current game rules, including immunities and 4x weaknesses), name normalization between PokeAPI and Smogon, and the teammate recommender.
 
 ## Project Structure
 
@@ -57,7 +77,7 @@ pokemon-team-builder/
 ├── data/
 │   ├── pokemon_raw.json
 │   ├── pokemon_clean.csv
-│   ├── usage_gen9ou_YYYY-MM.txt
+│   ├── usage_<tier>_YYYY-MM.txt
 │   ├── usage_summary.csv
 │   └── teammates.csv
 ├── docs/
@@ -68,7 +88,10 @@ pokemon-team-builder/
 │   ├── type_chart.py
 │   ├── fetch_usage_data.py
 │   ├── parse_usage_data.py
-│   └── name_utils.py
+│   ├── name_utils.py
+│   └── recommend.py
+├── tests/
+│   └── test_core.py
 ├── app.py
 ├── requirements.txt
 ├── .gitignore
@@ -84,6 +107,7 @@ pokemon-team-builder/
 - `fetch_usage_data.py` — downloads Smogon usage stats
 - `parse_usage_data.py` — raw Smogon text → tidy usage/teammates CSVs
 - `name_utils.py` — bridges PokeAPI ↔ Smogon naming conventions
+- `recommend.py` — team-aware teammate recommender (summed co-occurrence across the team)
 
 **`app.py`** — the Streamlit dashboard.
 
@@ -92,8 +116,8 @@ pokemon-team-builder/
 This project is being built in stages, each a working milestone:
 
 - [x] **Stage 1 — Basic dashboard:** PokeAPI data, type coverage, stat comparison
-- [x] **Stage 2 — Real usage data:** incorporated [Smogon usage stats](https://www.smogon.com/stats/) to see what's actually played in the competitive meta, and calculated teammate co-occurrence rates *(this release)*
-- [ ] **Stage 3 — Basic recommender:** given a Pokemon, suggest common teammates based on co-occurrence
+- [x] **Stage 2 — Real usage data:** incorporated [Smogon usage stats](https://www.smogon.com/stats/) to see what's actually played in the competitive meta, and calculated teammate co-occurrence rates
+- [x] **Stage 3 — Basic recommender:** suggest additions for the whole team based on summed co-occurrence, with tier selection
 - [ ] **Stage 4 — Upgraded model:** move from co-occurrence counting to learned embeddings (e.g. word2vec-style training on team compositions) for synergy-aware recommendations
 - [ ] **Stage 5 — Deploy:** ship as a public web app (Streamlit Community Cloud) so the recommender is live and clickable, not just a notebook
 
