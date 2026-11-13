@@ -1,0 +1,384 @@
+{
+ "info": {
+  "metagame": "gen9championsvgc2026regmc",
+  "cutoff": 1630,
+  "number of battles": 12345
+ },
+ "data": {
+  "Rillaboom": {
+   "Raw count": 3000,
+   "usage": 0.3,
+   "Abilities": {
+    "grassysurge": 3000.0
+   },
+   "Items": {
+    "miracleseed": 1500.0,
+    "sitrusberry": 900.0
+   },
+   "Moves": {
+    "fakeout": 2850.0,
+    "grassyglide": 2700.0,
+    "woodhammer": 2100.0,
+    "uturn": 1800.0,
+    "highhorsepower": 1200.0
+   },
+   "Spreads": {
+    "Adamant:32/32/0/0/2/0": 1800.0,
+    "Jolly:2/32/0/0/0/32": 600.0
+   },
+   "Teammates": {
+    "Incineroar": 1350.0,
+    "Garchomp": 750.0,
+    "Garganacl": 300.0,
+    "Sinistcha": 150.0
+   },
+   "Checks and Counters": {
+    "Incineroar": [
+     120,
+     0.62,
+     0.05
+    ]
+   },
+   "Viability Ceiling": [
+    1,
+    1800,
+    1700,
+    1600
+   ],
+   "Happiness": {
+    "255.0": 3000
+   }
+  },
+  "Incineroar": {
+   "Raw count": 2600,
+   "usage": 0.26,
+   "Abilities": {
+    "intimidate": 2600.0
+   },
+   "Items": {
+    "sitrusberry": 1560.0,
+    "safetygoggles": 260.0
+   },
+   "Moves": {
+    "fakeout": 2470.0,
+    "flareblitz": 2080.0,
+    "partingshot": 2080.0,
+    "throatchop": 1040.0
+   },
+   "Spreads": {
+    "Careful:32/2/0/0/32/0": 1819.9999999999998
+   },
+   "Teammates": {
+    "Rillaboom": 1300.0,
+    "Garchomp": 520.0
+   },
+   "Checks and Counters": {},
+   "Viability Ceiling": [
+    1,
+    1800,
+    1700,
+    1600
+   ],
+   "Happiness": {
+    "255.0": 2600
+   }
+  },
+  "Garchomp": {
+   "Raw count": 2100,
+   "usage": 0.21,
+   "Abilities": {
+    "roughskin": 2100.0
+   },
+   "Items": {
+    "garchompitez": 1260.0,
+    "choicescarf": 525.0
+   },
+   "Moves": {
+    "earthquake": 1470.0,
+    "dragonclaw": 1260.0,
+    "rockslide": 1260.0,
+    "protect": 1470.0,
+    "dracometeor": 420.0
+   },
+   "Spreads": {
+    "Jolly:2/32/0/0/0/32": 1680.0
+   },
+   "Teammates": {
+    "Rillaboom": 735.0,
+    "Incineroar": 525.0
+   },
+   "Checks and Counters": {},
+   "Viability Ceiling": [
+    1,
+    1800,
+    1700,
+    1600
+   ],
+   "Happiness": {
+    "255.0": 2100
+   }
+  },
+  "Sneasler": {
+   "Raw count": 2900,
+   "usage": 0.29,
+   "Abilities": {
+    "unburden": 2900.0
+   },
+   "Items": {
+    "whiteherb": 1450.0,
+    "focussash": 870.0
+   },
+   "Moves": {
+    "closecombat": 2755.0,
+    "direclaw": 2610.0,
+    "fakeout": 2029.9999999999998,
+    "protect": 2029.9999999999998
+   },
+   "Spreads": {
+    "Jolly:2/32/0/0/0/32": 2610.0
+   },
+   "Teammates": {
+    "Incineroar": 870.0
+   },
+   "Checks and Counters": {},
+   "Viability Ceiling": [
+    1,
+    1800,
+    1700,
+    1600
+   ],
+   "Happiness": {
+    "255.0": 2900
+   }
+  },
+  "Basculegion": {
+   "Raw count": 1400,
+   "usage": 0.14,
+   "Abilities": {
+    "swiftswim": 840.0,
+    "adaptability": 560.0
+   },
+   "Items": {
+    "choicescarf": 420.0,
+    "mysticwater": 420.0
+   },
+   "Moves": {
+    "wavecrash": 1260.0,
+    "lastrespects": 0.0,
+    "aquajet": 979.9999999999999,
+    "protect": 700.0,
+    "shadowball": 420.0
+   },
+   "Spreads": {
+    "Adamant:2/32/0/0/0/32": 979.9999999999999
+   },
+   "Teammates": {
+    "Politoed": 840.0
+   },
+   "Checks and Counters": {},
+   "Viability Ceiling": [
+    1,
+    1800,
+    1700,
+    1600
+   ],
+   "Happiness": {
+    "255.0": 1400
+   }
+  },
+  "Garganacl": {
+   "Raw count": 500,
+   "usage": 0.05,
+   "Abilities": {
+    "purifyingsalt": 500.0
+   },
+   "Items": {
+    "leftovers": 350.0,
+    "sitrusberry": 50.0
+   },
+   "Moves": {
+    "saltcure": 475.0,
+    "wideguard": 300.0,
+    "protect": 300.0,
+    "bodypress": 250.0,
+    "irondefense": 150.0,
+    "recover": 150.0
+   },
+   "Spreads": {
+    "Careful:32/0/2/0/32/0": 400.0
+   },
+   "Teammates": {
+    "Rillaboom": 300.0,
+    "Sinistcha": 175.0,
+    "Farigiraf": 100.0
+   },
+   "Checks and Counters": {},
+   "Viability Ceiling": [
+    1,
+    1800,
+    1700,
+    1600
+   ],
+   "Happiness": {
+    "255.0": 500
+   }
+  },
+  "Sinistcha": {
+   "Raw count": 700,
+   "usage": 0.07,
+   "Abilities": {
+    "hospitality": 700.0
+   },
+   "Items": {
+    "sitrusberry": 350.0,
+    "mentalherb": 210.0
+   },
+   "Moves": {
+    "matchagotcha": 630.0,
+    "ragepowder": 630.0,
+    "trickroom": 420.0,
+    "lifedew": 280.0,
+    "protect": 210.0
+   },
+   "Spreads": {
+    "Bold:32/0/32/0/2/0": 420.0
+   },
+   "Teammates": {
+    "Garganacl": 175.0,
+    "Rillaboom": 140.0
+   },
+   "Checks and Counters": {},
+   "Viability Ceiling": [
+    1,
+    1800,
+    1700,
+    1600
+   ],
+   "Happiness": {
+    "255.0": 700
+   }
+  },
+  "Farigiraf": {
+   "Raw count": 2000,
+   "usage": 0.21,
+   "Abilities": {
+    "armortail": 2000.0
+   },
+   "Items": {
+    "sitrusberry": 800.0,
+    "electricseed": 400.0
+   },
+   "Moves": {
+    "trickroom": 1800.0,
+    "helpinghand": 1000.0,
+    "psychic": 800.0,
+    "hypervoice": 800.0,
+    "protect": 800.0
+   },
+   "Spreads": {
+    "Relaxed:32/0/32/0/2/0": 1000.0
+   },
+   "Teammates": {
+    "Garganacl": 100.0,
+    "Rillaboom": 400.0
+   },
+   "Checks and Counters": {},
+   "Viability Ceiling": [
+    1,
+    1800,
+    1700,
+    1600
+   ],
+   "Happiness": {
+    "255.0": 2000
+   }
+  },
+  "Gholdengo": {
+   "Raw count": 1400,
+   "usage": 0.14,
+   "Abilities": {
+    "goodasgold": 1400.0
+   },
+   "Items": {
+    "lifeorb": 560.0,
+    "choicescarf": 420.0
+   },
+   "Moves": {
+    "makeitrain": 1330.0,
+    "shadowball": 1120.0,
+    "nastyplot": 700.0,
+    "protect": 840.0
+   },
+   "Spreads": {
+    "Modest:2/0/0/32/0/32": 979.9999999999999
+   },
+   "Teammates": {
+    "Garganacl": 140.0,
+    "Rillaboom": 350.0
+   },
+   "Checks and Counters": {},
+   "Viability Ceiling": [
+    1,
+    1800,
+    1700,
+    1600
+   ],
+   "Happiness": {
+    "255.0": 1400
+   }
+  },
+  "Politoed": {
+   "Raw count": 1300,
+   "usage": 0.13,
+   "Abilities": {
+    "drizzle": 1300.0
+   },
+   "Items": {
+    "sitrusberry": 650.0
+   },
+   "Moves": {
+    "weatherball": 909.9999999999999,
+    "icywind": 1040.0,
+    "helpinghand": 650.0,
+    "perishsong": 390.0
+   },
+   "Spreads": {
+    "Calm:32/0/0/2/32/0": 780.0
+   },
+   "Teammates": {
+    "Basculegion": 780.0
+   },
+   "Checks and Counters": {},
+   "Viability Ceiling": [
+    1,
+    1800,
+    1700,
+    1600
+   ],
+   "Happiness": {
+    "255.0": 1300
+   }
+  },
+  "Rare Mon": {
+   "Raw count": 5,
+   "usage": 0.0001,
+   "Abilities": {
+    "pressure": 5.0
+   },
+   "Items": {},
+   "Moves": {},
+   "Spreads": {},
+   "Teammates": {},
+   "Checks and Counters": {},
+   "Viability Ceiling": [
+    1,
+    1800,
+    1700,
+    1600
+   ],
+   "Happiness": {
+    "255.0": 5
+   }
+  }
+ }
+}

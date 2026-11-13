@@ -1,131 +1,159 @@
-# Pokemon Team Builder
+# Pokémon Champions Team Builder
 
 [![Tests](https://github.com/mam084/pokemon-team-builder/actions/workflows/tests.yml/badge.svg)](https://github.com/mam084/pokemon-team-builder/actions/workflows/tests.yml)
+[![Refresh data](https://github.com/mam084/pokemon-team-builder/actions/workflows/refresh-data.yml/badge.svg)](https://github.com/mam084/pokemon-team-builder/actions/workflows/refresh-data.yml)
 
-An interactive dashboard for building a Pokemon team and analyzing it: type coverage, shared weaknesses, and stat comparisons across your chosen team.
+A team builder and analyzer for **Pokémon Champions**, built for the current
+regulation (VGC 2026 Reg M-C and Battle Stadium Singles M-C, with Reg M-B kept
+for reference). You build full competitive sets, the app checks them against the
+regulation's rules, and then it measures the team against what people actually
+play on the ladder.
 
-Built as a portfolio project, developed in stages — this repo is meant to show iterative growth from a basic dashboard toward a deployed ML-based recommender.
+![Defensive matchup heatmap and role checklist](docs/screenshot.png)
 
-![Dashboard screenshot](docs/screenshot.png)
+## What it does
 
-## Features
+**Build a legal team**
+- Every Pokémon, Mega Stone, item, ability and move list comes from the
+  regulation's legal pool. Pokémon, items and moves are sorted by real usage,
+  with each one's usage % shown.
+- The editor uses Champions rules: level 50, **66 Stat Points with at most 32
+  per stat**, and real level-50 stats for each nature. Mega Pokémon show their Mega
+  stats, types and ability.
+- When you pick a Pokémon, the app can fill in its most-used set (item, ability,
+  spread and moves). It skips items your team already holds, so Item Clause
+  is never broken.
+- Legality checks cover Species Clause, Item Clause, illegal moves and abilities,
+  and Stat Point limits. You also get a warning when more than one Pokémon holds
+  a Mega Stone, since only one can Mega Evolve per battle.
+- Import and export Showdown pastes.
 
-**Stage 1 — Dashboard basics**
-- Pulls live Pokemon data (types, base stats, abilities) from [PokeAPI](https://pokeapi.co/)
-- Build a team of up to 6 Pokemon via a simple picker
-- **Type coverage heatmap** — see at a glance which attacking types your team is weak or resistant to, plus a callout for any shared weaknesses (types that hit 2+ team members hard)
-- **Stat comparison** — radar chart and base-stat-total bar chart across your selected team
+**Analyze it**
+- **Defensive heatmap** shows how much damage each type does to each member.
+  It uses the Mega forms and accounts for abilities that change type matchups
+  (Levitate, Purifying Salt, Thick Fat, Water Absorb…). Shared weaknesses are
+  flagged.
+- **Role checklist**: speed control, Fake Out, Protect, Intimidate, redirection,
+  Wide Guard, pivoting, spread damage, weather/terrain, disruption and recovery.
+  The doubles-only roles are hidden in Singles.
+- **Speed tiers** compare your real Speed stats with the meta's most common
+  spreads. There's also a Trick Room view.
+- **Offensive coverage** shows what your moves hit super effectively, by type and
+  against the 30 most-used Pokémon in their usual battle form.
 
-**Stage 2 — Real competitive usage data**
-- Pulls monthly [Smogon usage stats](https://www.smogon.com/stats/) (Gen 9 OU by default) for real-world data on what's actually played
-- **Usage share** — approximate meta popularity for each team member
-- **Suggested teammates** — for each Pokemon on your team, see who competitive players most commonly pair them with, based on real teammate co-occurrence data
-- Bridges PokeAPI's and Smogon's differing name conventions (e.g. `ogerpon-wellspring` vs. `Ogerpon-Wellspring`, `Tapu Koko`, `Mr. Mime`) so both datasets join cleanly
+**Find what's missing**
+- **Recommendations**: every candidate gets five scores from 0 to 1, and you can
+  change how much each one counts:
 
-**Stage 3 — Team-aware recommender**
-- **Multiple tiers:** start by picking a tier (Gen 9 OU and UU included), or pick a Pokemon first and the app detects the tier it's most used in
-- **Recommended additions** for the whole team: each candidate's co-occurrence with every current team member is summed, so a Pokemon that pairs well with several of your picks ranks above one that pairs with just one
-- Each recommendation shows which of your team members it's commonly paired with
+  | signal | meaning |
+  |---|---|
+  | synergy | how much more often it appears next to your members than chance predicts. This is the mean log-lift from teammate stats, P(B\|A) / P(B) |
+  | defense | how well it resists the types your team is weak to |
+  | offense | how well it hits popular Pokémon your team can't hit super effectively (weighted by usage) |
+  | roles | whether it brings a role your team is missing |
+  | meta | its overall usage, as a prior |
 
-## Tech Stack
+  Each pick also gets a written reason, e.g. *"5.0x more common than usual next to
+  Garganacl; resists Water, Grass, Ground"*.
+- **Threats** ranks popular Pokémon by `usage × (members hit super effectively + 1) ÷ (answers + 1)`.
+  An *answer* is a member that takes neutral or less from every type the threat
+  usually attacks with, and that hits it super effectively back.
+- **Meta explorer**: the usage leaderboard and each Pokémon's moves, items,
+  abilities, spreads, teammates, and checks & counters.
 
-- **Data:** [PokeAPI](https://pokeapi.co/) (REST), fetched concurrently with `concurrent.futures`; [Smogon usage stats](https://www.smogon.com/stats/) (plain text)
-- **Processing:** pandas
-- **Dashboard:** Streamlit
-- **Charts:** Plotly
-- **Tests:** stdlib `unittest`, run in CI with GitHub Actions along with an app startup check
+## Data
 
-## Setup
+| What | Source | How it gets here |
+|---|---|---|
+| Legal Pokémon, Megas, movepools, items, abilities, type chart | [Pokémon Showdown](https://github.com/smogon/pokemon-showdown)'s `champions` mod, the same code that validates teams on the ladder | `scripts/export_dex.js` → `data/dex/<regulation>.json` |
+| Usage, sets, teammates, checks & counters | [Smogon monthly usage stats](https://www.smogon.com/stats/) (`chaos` JSON, 1630+ rating) | `scripts/fetch_usage.py` → `data/usage/<format>.json` |
+
+The **Refresh data** GitHub Action rebuilds both on the 3rd of every month,
+after Smogon publishes the previous month's stats. It also runs whenever the
+data scripts change, and you can start it by hand from the Actions tab. If
+anything changed, it commits the new data. So when a new regulation launches,
+the only code change is adding it to `src/formats.py` and `scripts/export_dex.js`.
+
+A few things to know about the data:
+- Smogon lists each Mega under its own name ("Charizard-Mega-Y"), because that's
+  the form that battles. Team sheets list the base Pokémon plus its stone, so the
+  app merges the two views (`UsageData.variants`).
+- Teammate % is P(B on team | A on team), so it isn't symmetric. The recommender
+  uses *lift* so that Pokémon that are just popular everywhere don't dominate the
+  results.
+- The type analysis doesn't calculate damage. It models types and the abilities
+  that change type matchups, but not items, stat boosts or field effects.
+
+## Run it
 
 ```bash
-# clone and enter the repo
 git clone https://github.com/mam084/pokemon-team-builder.git
 cd pokemon-team-builder
-
-# install dependencies
 pip install -r requirements.txt
-
-# launch the dashboard (processed data for Gen 9 OU and UU is included)
-streamlit run app.py
+streamlit run app.py          # data for every supported format is included
 ```
 
-To rebuild the data from scratch:
+Click **Example team** in the sidebar to load a Garganacl team for Reg M-C.
+
+To rebuild the data yourself:
 
 ```bash
-# fetch and clean the dex data (full national dex recommended)
-python src/fetch_data.py --start 1 --end 1025
-python src/clean_data.py
+# legal dex (needs Node 22 and a built Showdown checkout)
+git clone --depth 1 https://github.com/smogon/pokemon-showdown.git ../pokemon-showdown
+(cd ../pokemon-showdown && npm ci && node build)
+node scripts/export_dex.js --ps ../pokemon-showdown --out data/dex
 
-# fetch and parse real competitive usage data (optional but recommended -
-# check https://www.smogon.com/stats/ for available months)
-python src/fetch_usage_data.py --month 2026-06 --format gen9ou
-python src/parse_usage_data.py --input data/usage_gen9ou_2026-06.txt --tier gen9ou
+# usage stats (newest published month, or pass --month YYYY-MM)
+python scripts/fetch_usage.py
 ```
 
-## Testing
+## Tests
 
 ```bash
 python -m unittest discover -s tests -v
 ```
 
-Tests cover the type chart (every matchup checked against current game rules, including immunities and 4x weaknesses), name normalization between PokeAPI and Smogon, and the teammate recommender.
+The tests check:
+- the hand-written type chart against Showdown's exported chart, matchup by matchup
+- the Champions stat formula, including nature rounding, and the Stat Point limits
+- paste import and export round-trips, including Megas named directly in a paste
+- every legality rule
+- chaos-file parsing (using a fixture in Smogon's real layout)
+- the analysis views, threat logic and recommender
 
-## Project Structure
+CI runs the tests and a check that the app starts.
+
+## Project structure
 
 ```
-pokemon-team-builder/
-├── data/
-│   ├── pokemon_raw.json
-│   ├── pokemon_clean.csv
-│   ├── usage_<tier>_YYYY-MM.txt
-│   ├── usage_summary.csv
-│   └── teammates.csv
-├── docs/
-│   └── screenshot.png
+├── app.py                    Streamlit UI
 ├── src/
-│   ├── fetch_data.py
-│   ├── clean_data.py
-│   ├── type_chart.py
-│   ├── fetch_usage_data.py
-│   ├── parse_usage_data.py
-│   ├── name_utils.py
-│   └── recommend.py
-├── tests/
-│   └── test_core.py
-├── app.py
-├── requirements.txt
-├── .gitignore
-└── README.md
+│   ├── formats.py            supported formats (regulation, singles/doubles, pick count)
+│   ├── dex.py                legal-data loader: species, Mega forms, items, learnsets
+│   ├── stats.py              Champions stat formula and Stat Point rules
+│   ├── team.py               PokemonSet / team model
+│   ├── paste.py              Showdown paste import and export
+│   ├── legality.py           regulation checks
+│   ├── type_chart.py         type effectiveness plus abilities that change matchups
+│   ├── usage.py              Smogon chaos parsing, popular sets, team-sheet merging of Megas
+│   ├── analysis.py           matchups, coverage, roles, speed tiers, threats
+│   └── recommend.py          explainable multi-signal recommender
+├── scripts/
+│   ├── export_dex.js         Showdown → data/dex
+│   └── fetch_usage.py        Smogon → data/usage
+├── data/dex, data/usage      generated data (committed so the app runs without setup)
+├── tests/                    unittest suite and chaos fixture
+└── .github/workflows/        tests and the monthly data refresh
 ```
-
-**`data/`** — cached PokeAPI pulls (`pokemon_raw.json`), the tidy dex dataset (`pokemon_clean.csv`), the raw Smogon download, and the tidy usage/teammates CSVs parsed from it.
-
-**`src/`**
-- `fetch_data.py` — pulls dex data from PokeAPI (concurrent, resumable)
-- `clean_data.py` — raw JSON → tidy DataFrame
-- `type_chart.py` — type effectiveness lookup logic
-- `fetch_usage_data.py` — downloads Smogon usage stats
-- `parse_usage_data.py` — raw Smogon text → tidy usage/teammates CSVs
-- `name_utils.py` — bridges PokeAPI ↔ Smogon naming conventions
-- `recommend.py` — team-aware teammate recommender (summed co-occurrence across the team)
-
-**`app.py`** — the Streamlit dashboard.
 
 ## Roadmap
 
-This project is being built in stages, each a working milestone:
-
-- [x] **Stage 1 — Basic dashboard:** PokeAPI data, type coverage, stat comparison
-- [x] **Stage 2 — Real usage data:** incorporated [Smogon usage stats](https://www.smogon.com/stats/) to see what's actually played in the competitive meta, and calculated teammate co-occurrence rates
-- [x] **Stage 3 — Basic recommender:** suggest additions for the whole team based on summed co-occurrence, with tier selection
-- [ ] **Stage 4 — Upgraded model:** move from co-occurrence counting to learned embeddings (e.g. word2vec-style training on team compositions) for synergy-aware recommendations
-- [ ] **Stage 5 — Deploy:** ship as a public web app (Streamlit Community Cloud) so the recommender is live and clickable, not just a notebook
-
-## Data Source
-
-- Pokemon dex data via [PokeAPI](https://pokeapi.co/), a free and open Pokemon API. Type effectiveness values follow current (Gen 6+) game rules.
-- Competitive usage and teammate data via [Smogon University's usage stats](https://www.smogon.com/stats/), which are published monthly and freely available. Defaults to the Gen 9 OU format.
-
-**A couple of caveats worth knowing:**
-- "Usage Share" in the dashboard is an approximation based on each Pokemon's raw appearance count relative to the dataset total — Smogon's true weighted usage % isn't available from the moveset file this project parses, so treat this as a relative ranking rather than an exact published figure.
-- Teammate co-occurrence % is not symmetric — e.g. "of teams running Pokemon A, X% also ran Pokemon B" is a different number than the reverse, since A and B aren't used equally often overall. This is expected and reflects how the underlying data works, not a bug.
+- [x] Stage 1: dashboard with type coverage and stat comparison (original PokéAPI version)
+- [x] Stage 2: Smogon usage data and teammate co-occurrence
+- [x] Stage 3: team-aware recommender
+- [x] **Stage 4: Champions rebuild**: regulation-accurate legality, Stat Points,
+  Megas, an automated data pipeline, threat analysis, and a multi-signal
+  explainable recommender
+- [ ] Stage 5: learned embeddings (e.g. word2vec on tournament team lists) as an extra synergy signal, evaluated against held-out teams
+- [ ] Stage 6: a damage calculator for the matchups the threat view flags
+- [ ] Deploy to Streamlit Community Cloud

@@ -1,346 +1,651 @@
 """
-app.py
+app.py - Pokemon Champions Team Builder
 
-Streamlit dashboard: build a team of up to 6 Pokemon and see:
-  - a type-coverage heatmap (where the team is collectively weak/resistant)
-  - a stat comparison chart across the selected team
+Build a full Champions team (items, abilities, natures, Stat Points, moves),
+check it against the regulation's rules, and analyze it against the live meta:
+type matchups, role coverage, speed tiers, threats, and explainable
+recommendations for what to add next.
 
 Run with:
     streamlit run app.py
 """
 
-from pathlib import Path
+from __future__ import annotations
 
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
-from src.name_utils import normalize_name
-from src.recommend import recommend_teammates
-from src.type_chart import ALL_TYPES, team_weaknesses
+from src.analysis import (build_members, coverage_vs_meta, defense_matrix, defense_summary,
+                          offense_by_type, role_checklist, speed_table, threat_report)
+from src.dex import STAT_LABELS, STATS, Dex, load_dex, to_id
+from src.formats import DEFAULT_FORMAT, FORMATS
+from src.legality import check_team
+from src.paste import export_paste, parse_paste
+from src.recommend import DEFAULT_WEIGHTS, recommend
+from src.team import PokemonSet, default_set
+from src.usage import UsageData, load_usage
 
-DATA_FILE = Path(__file__).resolve().parent / "data" / "pokemon_clean.csv"
-USAGE_SUMMARY_FILE = Path(__file__).resolve().parent / "data" / "usage_summary.csv"
-TEAMMATES_FILE = Path(__file__).resolve().parent / "data" / "teammates.csv"
-STAT_COLS = ["hp", "attack", "defense", "special_attack", "special_defense", "speed"]
+st.set_page_config(page_title="Champions Team Builder", page_icon="🏆", layout="wide")
 
-st.set_page_config(page_title="Pokemon Team Builder", page_icon="🎮", layout="wide")
+NONE = "—"
+SLOTS = 6
+
+# Palette (dataviz reference instance): diverging blue <-> red with a gray
+# midpoint for matchups, series blue for "your team", muted gray for context.
+BLUE, RED, GRAY_MID, MUTED, INK = "#2a78d6", "#e34948", "#f0efec", "#898781", "#52514e"
+MATCHUP_SCALE = [  # value = log2(multiplier), clipped to [-2, 2]; immunity drawn at -2.5
+    [0.0, "#104281"], [0.11, "#256abf"], [0.33, "#86b6ef"], [0.56, GRAY_MID],
+    [0.78, "#f2a3a2"], [1.0, "#b8282a"],
+]
+TYPE_COLORS = {
+    "Normal": "#9fa19f", "Fire": "#e62829", "Water": "#2980ef", "Electric": "#fac000",
+    "Grass": "#3fa129", "Ice": "#3dcef3", "Fighting": "#ff8000", "Poison": "#9141cb",
+    "Ground": "#915121", "Flying": "#81b9ef", "Psychic": "#ef4179", "Bug": "#91a119",
+    "Rock": "#afa981", "Ghost": "#704170", "Dragon": "#5060e1", "Dark": "#624d4e",
+    "Steel": "#60a1b8", "Fairy": "#ef70ef",
+}
+
+SAMPLE_TEAM = """Garganacl @ Leftovers
+Ability: Purifying Salt
+EVs: 32 HP / 2 Def / 32 SpD
+Careful Nature
+- Salt Cure
+- Body Press
+- Iron Defense
+- Wide Guard
+
+Garchomp @ Garchompite Z
+Ability: Rough Skin
+EVs: 2 HP / 32 SpA / 32 Spe
+Timid Nature
+- Draco Meteor
+- Earth Power
+- Flamethrower
+- Protect
+
+Rillaboom @ Miracle Seed
+Ability: Grassy Surge
+EVs: 32 HP / 32 Atk / 2 SpD
+Adamant Nature
+- Fake Out
+- Grassy Glide
+- Wood Hammer
+- U-turn
+
+Sinistcha @ Mental Herb
+Ability: Hospitality
+EVs: 32 HP / 32 Def / 2 SpD
+Bold Nature
+- Matcha Gotcha
+- Rage Powder
+- Strength Sap
+- Protect
+
+Incineroar @ Sitrus Berry
+Ability: Intimidate
+EVs: 32 HP / 2 Atk / 32 SpD
+Careful Nature
+- Fake Out
+- Flare Blitz
+- Parting Shot
+- Throat Chop
+
+Gholdengo @ Life Orb
+Ability: Good as Gold
+EVs: 2 HP / 32 SpA / 32 Spe
+Modest Nature
+- Make It Rain
+- Shadow Ball
+- Nasty Plot
+- Protect
+"""
 
 
-@st.cache_data
-def load_data() -> pd.DataFrame:
-    if not DATA_FILE.exists():
-        st.error(
-            "No data found. Run `python src/fetch_data.py` then "
-            "`python src/clean_data.py` first."
-        )
-        st.stop()
-    df = pd.read_csv(DATA_FILE)
-    df["name_key"] = df["name"].apply(normalize_name)
-    return df
+# ==========================================================================
+# State: the team lives in session_state["team"] as a list of dicts (or None
+# for an empty slot). Widgets use keys "s{slot}_{field}"; `write_slot` pushes a
+# set into those keys and `read_slot` pulls the widgets back into a set.
+# ==========================================================================
+def k(slot: int, field: str) -> str:
+    return f"s{slot}_{field}"
 
 
-@st.cache_data
-def load_usage_data() -> tuple[pd.DataFrame | None, pd.DataFrame | None]:
-    """
-    Loads Smogon usage summary + teammates data if available. Returns
-    (None, None) if Stage 2 hasn't been run yet - the app should still work
-    fine with just Stage 1 features in that case.
-    """
-    if not USAGE_SUMMARY_FILE.exists() or not TEAMMATES_FILE.exists():
-        return None, None
-
-    usage_df = pd.read_csv(USAGE_SUMMARY_FILE)
-    usage_df["name_key"] = usage_df["pokemon"].apply(normalize_name)
-    # Approximate "meta share" within each tier - real Smogon usage % is based
-    # on a weighted count we don't have access to from the moveset file alone,
-    # so this uses raw_count as a stand-in, normalized per-tier so tiers with
-    # very different sample sizes stay comparable.
-    usage_df["usage_share_pct"] = usage_df.groupby("tier")["raw_count"].transform(
-        lambda counts: counts / counts.sum() * 100
-    )
-
-    teammates_df = pd.read_csv(TEAMMATES_FILE)
-    teammates_df["name_key"] = teammates_df["pokemon"].apply(normalize_name)
-
-    return usage_df, teammates_df
+def write_slot(slot: int, pset: PokemonSet | None) -> None:
+    ss = st.session_state
+    ss[k(slot, "species")] = pset.species if pset else NONE
+    if pset is None:
+        return
+    ss[k(slot, "item")] = pset.item or NONE
+    ss[k(slot, "ability")] = pset.ability
+    ss[k(slot, "nature")] = pset.nature
+    ss[k(slot, "nick")] = pset.nickname
+    for i in range(4):
+        ss[k(slot, f"move{i}")] = pset.moves[i] if i < len(pset.moves) else NONE
+    for stat in STATS:
+        ss[k(slot, f"sp_{stat}")] = int(pset.sps.get(stat, 0))
 
 
-def get_types(df: pd.DataFrame, name: str) -> list[str]:
-    row = df[df["name"] == name].iloc[0]
-    types = [row["type_1"]]
-    if pd.notna(row["type_2"]):
-        types.append(row["type_2"])
-    return types
-
-
-def detect_tier(usage_df: pd.DataFrame, pokemon_name: str) -> str | None:
-    """
-    Given a Pokemon, find the tier it's most commonly used in (highest raw
-    count among tiers it appears in). Returns None if we have no usage data
-    for it in any tier.
-    """
-    key = normalize_name(pokemon_name)
-    matches = usage_df[usage_df["name_key"] == key]
-    if matches.empty:
+def read_slot(slot: int) -> PokemonSet | None:
+    ss = st.session_state
+    species = ss.get(k(slot, "species"), NONE)
+    if species == NONE:
         return None
-    return matches.sort_values("raw_count", ascending=False).iloc[0]["tier"]
-
-
-def names_in_tier(usage_df: pd.DataFrame, tier: str) -> set[str]:
-    """Set of name_keys that appear in a given tier's usage data."""
-    return set(usage_df[usage_df["tier"] == tier]["name_key"])
-
-
-def render_type_coverage(df: pd.DataFrame, team_names: list[str]):
-    st.subheader("Type Coverage")
-    st.caption(
-        "How your team holds up defensively against each attacking type. "
-        "Red = weak (takes extra damage), green = resists, gray = no effect."
+    item = ss.get(k(slot, "item"), NONE)
+    return PokemonSet(
+        species=species,
+        item="" if item == NONE else item,
+        ability=ss.get(k(slot, "ability"), ""),
+        nature=ss.get(k(slot, "nature"), "Serious"),
+        nickname=ss.get(k(slot, "nick"), ""),
+        moves=[m for m in (ss.get(k(slot, f"move{i}"), NONE) for i in range(4)) if m != NONE],
+        sps={s: int(ss.get(k(slot, f"sp_{s}"), 0)) for s in STATS},
     )
 
-    team_types = [get_types(df, name) for name in team_names]
-    weaknesses = team_weaknesses(team_types)
 
-    # Build a matrix: rows = team members, columns = attacking types
-    z = [[weaknesses[t][i] for t in ALL_TYPES] for i in range(len(team_names))]
+def current_team() -> list[PokemonSet]:
+    return [p for p in (read_slot(i) for i in range(SLOTS)) if p is not None]
 
-    # Custom text labels so 0.25/4.0 etc. read clearly instead of raw floats
-    def label(mult: float) -> str:
-        if mult == 0:
-            return "0"
-        if mult == 1:
-            return ""
-        if mult < 1:
-            return f"{mult:g}x"
-        return f"{mult:g}x"
 
-    text = [[label(v) for v in row] for row in z]
+def load_team(team: list[PokemonSet]) -> None:
+    for i in range(SLOTS):
+        write_slot(i, team[i] if i < len(team) else None)
 
-    fig = go.Figure(
-        data=go.Heatmap(
-            z=z,
-            x=[t.title() for t in ALL_TYPES],
-            y=team_names,
-            text=text,
-            texttemplate="%{text}",
-            colorscale=[
-                [0.0, "#6b7280"],   # 0x - gray (immune)
-                [0.2, "#22c55e"],   # resists - green
-                [0.4, "#e5e7eb"],   # neutral - light gray
-                [0.6, "#f97316"],   # weak - orange
-                [1.0, "#dc2626"],   # very weak - red
-            ],
-            zmin=0,
-            zmax=4,
-            showscale=False,
-            hovertemplate="%{y} vs %{x}: %{z}x<extra></extra>",
+
+def starting_set(species: str, dex: Dex, usage: UsageData | None, slot: int) -> PokemonSet:
+    """Popular set when usage data exists (respecting Item Clause), else a blank set."""
+    taken = {p.item for i, p in enumerate(read_slot(j) for j in range(SLOTS)) if p and i != slot and p.item}
+    if usage is not None and st.session_state.get("autofill", True):
+        pset = usage.popular_set(species, dex, taken_items=taken)
+        if pset is not None:
+            return pset
+    return default_set(dex, species)
+
+
+def on_species_change(slot: int, dex: Dex, usage: UsageData | None) -> None:
+    species = st.session_state[k(slot, "species")]
+    write_slot(slot, None if species == NONE else starting_set(species, dex, usage, slot))
+
+
+def add_to_team(species: str, dex: Dex, usage: UsageData | None) -> bool:
+    for slot in range(SLOTS):
+        if st.session_state.get(k(slot, "species"), NONE) == NONE:
+            write_slot(slot, starting_set(species, dex, usage, slot))
+            return True
+    return False
+
+
+# ==========================================================================
+# Small view helpers
+# ==========================================================================
+def sprite(species, dex: Dex) -> str:
+    """Sprite of the team-sheet Pokemon (newer Mega formes lack sprites on Showdown)."""
+    if species.is_mega or species.battle_only:
+        base = dex.get_species(species.battle_only[0] if species.battle_only else species.base_species)
+        species = base or species
+    return species.sprite_url
+
+
+def type_badges(types) -> str:
+    return " ".join(
+        f"<span style='background:{TYPE_COLORS.get(t, MUTED)};color:white;padding:1px 8px;"
+        f"border-radius:10px;font-size:0.75rem;font-weight:600'>{t}</span>"
+        for t in types
+    )
+
+
+def nature_label(name: str, dex: Dex) -> str:
+    n = dex.get_nature(name)
+    if not n or not n["plus"]:
+        return f"{name} (neutral)"
+    return f"{name} (+{STAT_LABELS[n['plus']]} −{STAT_LABELS[n['minus']]})"
+
+
+def fmt_mult(x: float) -> str:
+    return {0: "0", 0.25: "¼", 0.5: "½", 1: "", 2: "2×", 4: "4×"}.get(x, f"{x:g}×")
+
+
+def ranked_options(all_names: list[str], popular: dict, dex_lookup) -> list[str]:
+    """Popular choices first (in usage order), then everything else alphabetically."""
+    lookup = {to_id(n): n for n in all_names}
+    first = [lookup[to_id(p)] for p in popular if to_id(p) in lookup]
+    rest = [n for n in all_names if n not in set(first)]
+    return first + rest
+
+
+# ==========================================================================
+# Sidebar
+# ==========================================================================
+def sidebar() -> tuple[str, Dex, UsageData | None]:
+    with st.sidebar:
+        st.header("🏆 Champions Team Builder")
+        fmt_id = st.selectbox(
+            "Format", list(FORMATS), index=list(FORMATS).index(DEFAULT_FORMAT),
+            format_func=lambda f: FORMATS[f].label,
         )
-    )
-    fig.update_layout(height=120 + 40 * len(team_names), margin=dict(l=0, r=0, t=10, b=0))
-    st.plotly_chart(fig, use_container_width=True)
-
-    # Team-wide summary: which types hit 3+ team members super effectively
-    st.markdown("**Shared weaknesses (2+ team members hit for 2x or more):**")
-    shared = []
-    for t in ALL_TYPES:
-        count = sum(1 for m in weaknesses[t] if m >= 2.0)
-        if count >= 2:
-            shared.append((t.title(), count))
-    if shared:
-        for type_name, count in sorted(shared, key=lambda x: -x[1]):
-            st.write(f"- **{type_name}**: hits {count} of your team members hard")
-    else:
-        st.write("No major shared weaknesses found. Nice balance!")
-
-
-def render_stat_comparison(df: pd.DataFrame, team_names: list[str]):
-    st.subheader("Stat Comparison")
-
-    team_df = df[df["name"].isin(team_names)].set_index("name").loc[team_names]
-
-    fig = go.Figure()
-    for name in team_names:
-        fig.add_trace(
-            go.Scatterpolar(
-                r=team_df.loc[name, STAT_COLS].values,
-                theta=[c.replace("_", " ").title() for c in STAT_COLS],
-                fill="toself",
-                name=name.title(),
-            )
-        )
-    fig.update_layout(
-        polar=dict(radialaxis=dict(visible=True, range=[0, 200])),
-        height=450,
-        margin=dict(l=0, r=0, t=10, b=0),
-    )
-    st.plotly_chart(fig, use_container_width=True)
-
-    st.markdown("**Base stat totals:**")
-    totals = team_df[STAT_COLS].sum(axis=1).sort_values(ascending=False)
-    st.bar_chart(totals)
-
-
-def render_usage_share(usage_df: pd.DataFrame, team_names: list[str], tier_label: str):
-    st.subheader(f"Competitive Usage ({tier_label})")
-    st.caption(
-        "Approximate meta share among competitively-played teams, based on "
-        "Smogon usage stats. Pokemon with no bar likely aren't commonly used "
-        "in this tier."
-    )
-
-    team_keys = [normalize_name(name) for name in team_names]
-    rows = []
-    for display_name, key in zip(team_names, team_keys):
-        match = usage_df[usage_df["name_key"] == key]
-        usage_pct = round(match.iloc[0]["usage_share_pct"], 2) if not match.empty else 0
-        rows.append({"Pokemon": display_name.title(), "Usage Share": usage_pct})
-
-    usage_table = pd.DataFrame(rows).set_index("Pokemon")
-    st.bar_chart(usage_table["Usage Share"])
-
-
-def render_teammate_suggestions(teammates_df: pd.DataFrame, team_names: list[str]):
-    st.subheader("Suggested Teammates (from real usage data)")
-    st.caption(
-        "What competitive players most often pair with each of your team members. "
-        "Already-selected teammates are marked."
-    )
-
-    team_keys = set(normalize_name(name) for name in team_names)
-    any_matches = False
-
-    for display_name in team_names:
-        key = normalize_name(display_name)
-        matches = teammates_df[teammates_df["name_key"] == key].sort_values(
-            "co_occurrence_pct", ascending=False
-        )
-
-        if matches.empty:
-            continue
-
-        any_matches = True
-        st.markdown(f"**{display_name.title()}**")
-        for _, row in matches.head(5).iterrows():
-            teammate_key = normalize_name(row["teammate"])
-            already_on_team = teammate_key in team_keys
-            marker = " ✅ *(already on your team)*" if already_on_team else ""
-            st.write(f"- {row['teammate']} — {row['co_occurrence_pct']:.1f}%{marker}")
-
-    if not any_matches:
-        st.info("No competitive teammate data found for this team.")
-
-
-def render_recommendations(teammates_df: pd.DataFrame, team_names: list[str]):
-    st.subheader("Recommended Additions")
-    st.caption(
-        "Ranked by combined real-world synergy with your whole team - a Pokemon "
-        "that pairs well with multiple team members ranks above one that only "
-        "pairs well with one."
-    )
-
-    if len(team_names) >= 6:
-        st.info("Your team is full (6/6) - remove someone to see new recommendations.")
-        return
-
-    recommendations = recommend_teammates(teammates_df, team_names, top_n=8)
-
-    if not recommendations:
-        st.info("No recommendations found - try adding a more commonly-used competitive Pokemon.")
-        return
-
-    for rec in recommendations:
-        paired_str = ", ".join(rec["paired_with"])
-        st.write(f"**{rec['name']}** — synergy score {rec['score']} (pairs well with {paired_str})")
-
-
-def main():
-    df = load_data()
-    usage_df, teammates_df = load_usage_data()
-    has_tier_data = usage_df is not None and teammates_df is not None
-
-    st.title("🎮 Pokemon Team Builder")
-    st.caption("Build a team and see how it stacks up defensively and statistically.")
-
-    selected_tier = None
-    all_options = sorted(df["name"].str.title())
-
-    if has_tier_data:
-        tiers = sorted(usage_df["tier"].unique())
-        mode = st.radio(
-            "How do you want to start?",
-            ["Pick a tier first", "Pick a Pokemon first"],
-            horizontal=True,
-        )
-
-        if mode == "Pick a tier first":
-            selected_tier = st.selectbox("Competitive tier", tiers)
-            allowed_keys = names_in_tier(usage_df, selected_tier)
-            options = sorted(
-                df[df["name_key"].isin(allowed_keys)]["name"].str.title()
-            )
-            if not options:
-                st.warning(f"No dex data matches any Pokemon used in {selected_tier}.")
-                options = all_options
-            team_names = st.multiselect(
-                f"Pick up to 6 Pokemon used in {selected_tier}:",
-                options=options,
-                max_selections=6,
-            )
+        fmt = FORMATS[fmt_id]
+        dex = load_dex(fmt.regulation)
+        usage = load_usage(fmt_id)
+        st.caption(f"{fmt.active} · bring 6, pick {fmt.pick} · Level 50 · 66 Stat Points")
+        if usage:
+            info = usage.info
+            st.caption(f"Usage: Smogon {info['month']}, {info['battles']:,} battles rated {info['cutoff']}+")
         else:
-            team_names = st.multiselect(
-                "Pick up to 6 Pokemon for your team:",
-                options=all_options,
-                max_selections=6,
-            )
-            if team_names:
-                detected = detect_tier(usage_df, team_names[0])
-                if detected:
-                    selected_tier = detected
-                    st.info(f"Detected tier: **{selected_tier}** (based on {team_names[0]})")
-                else:
-                    st.info(
-                        f"No competitive usage data found for {team_names[0]} in any tier - "
-                        "usage/teammate sections below will be unavailable for this team."
-                    )
-    else:
-        team_names = st.multiselect(
-            "Pick up to 6 Pokemon for your team:",
-            options=all_options,
-            max_selections=6,
-        )
+            st.caption("No usage stats for this format yet - recommendations use type and role fit only.")
+        st.toggle("Auto-fill popular sets", value=True, key="autofill",
+                  help="When you pick a Pokémon, fill in its most-used item, ability, spread and moves.")
 
-    team_names = [n.lower() for n in team_names]
+        st.divider()
+        st.subheader("Import / export")
+        paste = st.text_area("Showdown paste", height=150, placeholder="Paste a team here…",
+                             label_visibility="collapsed")
+        c1, c2 = st.columns(2)
+        if c1.button("Import", width="stretch", disabled=not paste.strip()):
+            team, warnings = parse_paste(paste, dex)
+            load_team(team)
+            st.session_state["import_warnings"] = warnings
+            st.rerun()
+        if c2.button("Example team", width="stretch",
+                     help="A Garganacl team for VGC Reg M-C"):
+            team, _ = parse_paste(SAMPLE_TEAM, dex)
+            load_team(team)
+            st.rerun()
+        for w in st.session_state.pop("import_warnings", []):
+            st.warning(w)
 
-    if not team_names:
-        st.info("Select at least one Pokemon above to get started.")
+        team = current_team()
+        if team:
+            text = export_paste(team)
+            with st.expander("Export paste"):
+                st.code(text, language=None)
+            st.download_button("Download .txt", text, file_name="champions-team.txt", width="stretch")
+        if st.button("Clear team", width="stretch", type="secondary"):
+            load_team([])
+            st.rerun()
+        st.caption(f"Legality data: Pokémon Showdown ({dex.format_name}), exported {dex.generated_at}.")
+    return fmt_id, dex, usage
+
+
+# ==========================================================================
+# Team tab
+# ==========================================================================
+def slot_editor(slot: int, dex: Dex, usage: UsageData | None) -> None:
+    ss = st.session_state
+    species_names = [s.name for s in dex.selectable_species()]
+    sheet_usage = usage.team_sheet_usage(dex) if usage else {}
+    species_opts = [NONE] + ranked_options(species_names, sheet_usage, None)
+    if ss.get(k(slot, "species"), NONE) not in species_opts:
+        ss[k(slot, "species")] = NONE
+
+    top = st.columns([1, 3, 3])
+    current = ss.get(k(slot, "species"), NONE)
+    top[1].selectbox(
+        "Pokémon", species_opts, key=k(slot, "species"),
+        on_change=on_species_change, args=(slot, dex, usage),
+        format_func=lambda n: f"{n}  ·  {sheet_usage[n]:.1f}%" if n in sheet_usage else n,
+    )
+    if current == NONE:
+        top[0].markdown("<div style='font-size:3rem;text-align:center;opacity:.3'>＋</div>", unsafe_allow_html=True)
+        st.caption("Pick a Pokémon - sorted by usage, with its usage share shown.")
         return
 
-    col1, col2 = st.columns([1, 1])
-    with col1:
-        render_type_coverage(df, team_names)
-    with col2:
-        render_stat_comparison(df, team_names)
+    pset = read_slot(slot)
+    base = dex.get_species(pset.species)
+    form = pset.battle_form(dex)
+    top[0].image(sprite(form, dex), width=96)
+    top[2].text_input("Nickname (optional)", key=k(slot, "nick"))
 
-    if has_tier_data and selected_tier:
-        tier_usage_df = usage_df[usage_df["tier"] == selected_tier]
-        tier_teammates_df = teammates_df[teammates_df["tier"] == selected_tier]
+    # item / ability / nature
+    c = st.columns(3)
+    item_pct = usage.combined_section(base.name, "items", dex) if usage else {}
+    items = [NONE] + ranked_options(dex.legal_items(base.name), item_pct, None)
+    if ss.get(k(slot, "item"), NONE) not in items:
+        ss[k(slot, "item")] = NONE
+    c[0].selectbox("Item", items, key=k(slot, "item"),
+                   format_func=lambda n: f"{n}  ·  {item_pct[to_id(n)]:.0f}%" if to_id(n) in item_pct else n)
+    abilities = list(base.abilities)
+    if ss.get(k(slot, "ability")) not in abilities:
+        ss[k(slot, "ability")] = abilities[0]
+    c[1].selectbox("Ability", abilities, key=k(slot, "ability"),
+                   disabled=form.is_mega,
+                   help=f"Mega form uses {form.abilities[0]}" if form.is_mega else None)
+    natures = sorted(n["name"] for n in dex.natures.values())
+    if ss.get(k(slot, "nature")) not in natures:
+        ss[k(slot, "nature")] = "Serious"
+    c[2].selectbox("Nature", natures, key=k(slot, "nature"), format_func=lambda n: nature_label(n, dex))
 
-        st.divider()
-        col3, col4 = st.columns([1, 1])
-        with col3:
-            render_usage_share(tier_usage_df, team_names, selected_tier)
-        with col4:
-            render_teammate_suggestions(tier_teammates_df, team_names)
+    if form.is_mega:
+        st.markdown(f"**Mega Evolves into {form.name}** {type_badges(form.types)} · {form.abilities[0]}",
+                    unsafe_allow_html=True)
+    else:
+        st.markdown(type_badges(form.types), unsafe_allow_html=True)
 
-        st.divider()
-        render_recommendations(tier_teammates_df, team_names)
-    elif not has_tier_data:
-        st.caption(
-            "Tip: run `fetch_usage_data.py` and `parse_usage_data.py` to unlock "
-            "real competitive usage data and teammate suggestions."
-        )
+    # moves
+    move_pct = usage.combined_section(base.name, "moves", dex) if usage else {}
+    move_opts = [NONE] + ranked_options(dex.learnable_moves(base.name), move_pct, None)
+
+    def move_label(n: str) -> str:
+        if n == NONE:
+            return n
+        mv = dex.get_move(n)
+        bp = f" {mv['basePower']}" if mv["basePower"] else ""
+        pct = f"  ·  {move_pct[to_id(n)]:.0f}%" if to_id(n) in move_pct else ""
+        return f"{n}  ({mv['type']} {mv['category'][:4]}{bp}){pct}"
+
+    mc = st.columns(4)
+    for i in range(4):
+        if ss.get(k(slot, f"move{i}"), NONE) not in move_opts:
+            ss[k(slot, f"move{i}")] = NONE
+        mc[i].selectbox(f"Move {i + 1}", move_opts, key=k(slot, f"move{i}"), format_func=move_label)
+
+    # stat points + final stats
+    spent = sum(int(ss.get(k(slot, f"sp_{s}"), 0)) for s in STATS)
+    remaining = dex.rules["statPointTotal"] - spent
+    st.markdown(
+        f"**Stat Points** — {spent}/{dex.rules['statPointTotal']} used"
+        + (f" · :red[{-remaining} over]" if remaining < 0 else f" · {remaining} left")
+    )
+    if form.is_mega:
+        st.caption(f"Stats below are {form.name}'s, after Mega Evolving.")
+    sc = st.columns(6)
+    nature = dex.get_nature(ss.get(k(slot, "nature")))
+    stats = pset.stats(dex)
+    for i, stat in enumerate(STATS):
+        arrow = ""
+        if nature and nature["plus"] == stat:
+            arrow = " ▲"
+        elif nature and nature["minus"] == stat:
+            arrow = " ▼"
+        sc[i].number_input(f"{STAT_LABELS[stat]}{arrow}", min_value=0, max_value=dex.rules["statPointMax"],
+                           step=1, key=k(slot, f"sp_{stat}"))
+        sc[i].metric(f"{STAT_LABELS[stat]} stat", stats[stat], help=f"Base {form.base_stats[stat]}",
+                     label_visibility="collapsed")
+
+    b = st.columns([1, 1, 4])
+    if usage and usage.variants(base.name, dex) and b[0].button("Popular set", key=k(slot, "pop"),
+                                                       help="Replace with the most-used set"):
+        taken = {p.item for j, p in enumerate(read_slot(x) for x in range(SLOTS)) if p and j != slot}
+        write_slot(slot, usage.popular_set(base.name, dex, taken))
+        st.rerun()
+    if b[1].button("Remove", key=k(slot, "rm")):
+        write_slot(slot, None)
+        st.rerun()
 
 
-if __name__ == "__main__":
-    main()
+def team_strip(team: list[PokemonSet], dex: Dex) -> None:
+    cols = st.columns(SLOTS)
+    for i in range(SLOTS):
+        with cols[i]:
+            if i < len(team):
+                form = team[i].battle_form(dex)
+                st.image(sprite(form, dex), width=72)
+                st.markdown(f"**{team[i].nickname or team[i].species}**<br>{type_badges(form.types)}",
+                            unsafe_allow_html=True)
+            else:
+                st.markdown("<div style='height:72px;opacity:.25;font-size:2.5rem'>○</div>", unsafe_allow_html=True)
+
+
+def team_tab(dex: Dex, usage: UsageData | None) -> None:
+    labels = []
+    for i in range(SLOTS):
+        sp = st.session_state.get(k(i, "species"), NONE)
+        labels.append(f"{i + 1}. {sp}" if sp != NONE else f"{i + 1}. empty")
+    for i, tab in enumerate(st.tabs(labels)):
+        with tab:
+            slot_editor(i, dex, usage)
+
+
+# ==========================================================================
+# Analysis tab
+# ==========================================================================
+def matchup_heatmap(matrix: pd.DataFrame) -> go.Figure:
+    import numpy as np
+    z = np.where(matrix.values == 0, -2.5, np.log2(matrix.values.clip(min=0.25)))
+    text = matrix.map(fmt_mult).values
+    fig = go.Figure(go.Heatmap(
+        z=z, x=list(matrix.columns), y=list(matrix.index), text=text, texttemplate="%{text}",
+        zmin=-2.5, zmax=2, colorscale=MATCHUP_SCALE, showscale=False, xgap=2, ygap=2,
+        customdata=matrix.values,
+        hovertemplate="%{y} → %{x}: %{customdata}× damage<extra></extra>",
+    ))
+    fig.update_layout(height=560, margin=dict(l=10, r=10, t=10, b=10),
+                      xaxis=dict(side="top"), yaxis=dict(autorange="reversed"))
+    return fig
+
+
+def speed_chart(df: pd.DataFrame, trick_room: bool) -> go.Figure:
+    df = df.sort_values("speed", ascending=trick_room).reset_index(drop=True)
+    colors = [BLUE if w == "Your team" else "#c3c2b7" for w in df["who"]]
+    fig = go.Figure(go.Bar(
+        x=df["speed"], y=df["pokemon"], orientation="h", marker_color=colors,
+        text=df["speed"], textposition="outside", cliponaxis=False,
+        customdata=df[["who", "note"]], hovertemplate="%{y}: %{x} Speed<br>%{customdata[0]} %{customdata[1]}<extra></extra>",
+    ))
+    fig.update_layout(height=max(320, 24 * len(df)), margin=dict(l=10, r=40, t=10, b=10),
+                      yaxis=dict(autorange="reversed"), xaxis_title="Speed at level 50", bargap=0.25)
+    return fig
+
+
+def analysis_tab(team, members, dex, usage, fmt) -> None:
+    if not members:
+        st.info("Add Pokémon on the **Team** tab to see the analysis.")
+        return
+
+    st.subheader("Defensive matchups")
+    st.caption("Damage each attacking type deals to each member, with Mega forms and type-changing abilities "
+               "(Levitate, Purifying Salt, Thick Fat…) applied. Red = weak, blue = resists.")
+    matrix = defense_matrix(members)
+    left, right = st.columns([3, 2])
+    left.plotly_chart(matchup_heatmap(matrix), width="stretch")
+    summary = defense_summary(matrix)
+    flagged = summary[summary["verdict"] != ""]
+    with right:
+        if flagged.empty:
+            st.success("No shared weaknesses - every type is answered by at least one resist.")
+        else:
+            st.markdown("**Types to watch**")
+            st.dataframe(flagged, width="stretch")
+        st.markdown("**Role checklist**")
+        st.dataframe(role_checklist(members, fmt.is_doubles), hide_index=True, width="stretch",
+                     column_config={"why it matters": st.column_config.TextColumn(width="medium")})
+
+    st.subheader("Speed tiers")
+    tr = st.toggle("Trick Room order (slowest first)", value=False)
+    st.caption("Your team's real Speed stats next to the meta's most common spreads."
+               + ("" if usage else " Add usage data to see meta benchmarks."))
+    st.plotly_chart(speed_chart(speed_table(members, dex, usage, n=20), tr), width="stretch")
+
+    st.subheader("Offensive coverage")
+    c1, c2 = st.columns([2, 3])
+    with c1:
+        off = offense_by_type(members)
+        st.caption("Best effectiveness your damaging moves get against each type.")
+        st.dataframe(off.assign(best=off["best"].map(lambda x: fmt_mult(x) or "1×")),
+                     width="stretch", height=420)
+    with c2:
+        if usage:
+            st.caption("…and against the 30 most-used Pokémon, in their common battle form.")
+            cov = coverage_vs_meta(members, dex, usage, n=30)
+            cov["best hit"] = cov["best hit"].map(lambda x: fmt_mult(x) or "1×")
+            st.dataframe(cov, hide_index=True, width="stretch", height=420)
+        else:
+            st.info("Coverage against the meta needs usage stats for this format.")
+
+    st.subheader("Stats")
+    rows = [{"Pokémon": m.label, **{STAT_LABELS[s]: m.stats[s] for s in STATS}} for m in members]
+    st.dataframe(pd.DataFrame(rows), hide_index=True, width="stretch")
+
+
+# ==========================================================================
+# Recommendations / Threats / Meta tabs
+# ==========================================================================
+def recommendations_tab(team, members, dex, usage, fmt) -> None:
+    if len(team) >= SLOTS:
+        st.info("Your team is full - remove a member to get suggestions for that slot.")
+    st.caption("Every legal Pokémon is scored on five signals (0–1 each) and ranked by the weighted blend. "
+               "The **why** column shows what drove each pick.")
+    with st.expander("Adjust weights"):
+        cols = st.columns(5)
+        help_text = {
+            "synergy": "Appears with your current members more often than chance (Smogon teammate lift).",
+            "defense": "Resists the types your team is weak to.",
+            "offense": "Hits popular Pokémon your team can't hit super effectively.",
+            "roles": "Commonly brings a role you're missing (Fake Out, speed control…).",
+            "meta": "Overall usage - proven Pokémon tend to be good.",
+        }
+        weights = {key: cols[i].slider(key.title(), 0.0, 1.0, DEFAULT_WEIGHTS[key], 0.05, help=help_text[key])
+                   for i, key in enumerate(DEFAULT_WEIGHTS)}
+    recs = recommend(members, dex, usage, doubles=fmt.is_doubles,
+                     weights=weights, top_n=15)
+    if recs.empty:
+        st.info("No candidates.")
+        return
+    st.dataframe(
+        recs.drop(columns=["form"]), hide_index=True, width="stretch",
+        column_config={
+            "score": st.column_config.ProgressColumn("score", min_value=0, max_value=100, format="%.0f"),
+            **{c: st.column_config.NumberColumn(c, format="%.2f", width="small")
+               for c in ["synergy", "defense", "offense", "roles", "meta"]},
+            "why": st.column_config.TextColumn(width="large"),
+        },
+    )
+    if len(team) < SLOTS:
+        st.markdown("**Add a suggestion**")
+        cols = st.columns(5)
+        for i, name in enumerate(recs["pokemon"].head(5)):
+            if cols[i].button(f"＋ {name}", key=f"rec_add_{name}", width="stretch"):
+                add_to_team(name, dex, usage)
+                st.rerun()
+
+
+def threats_tab(members, dex, usage) -> None:
+    if usage is None:
+        st.info("Threat analysis needs usage stats for this format.")
+        return
+    if not members:
+        st.info("Add Pokémon on the **Team** tab first.")
+        return
+    st.caption("Popular Pokémon ranked by **usage × (members they hit super effectively + 1) ÷ (answers + 1)**. "
+               "An *answer* takes neutral or less from everything the threat commonly attacks with "
+               "and hits it super effectively back.")
+    threats = threat_report(members, dex, usage, n=40)
+    top = threats.head(3)
+    cols = st.columns(3)
+    for i, row in top.iterrows():
+        with cols[i]:
+            with st.container(border=True):
+                form = dex.get_species(row["pokemon"])
+                if form:
+                    st.image(sprite(form, dex), width=72)
+                st.markdown(f"**{row['pokemon']}** · {row['usage %']:.1f}% usage")
+                st.caption(f"Attacks with {row['attacks with']}. Hits {row['hits SE']} of your team "
+                           f"super effectively; answers: {row['answers']}.")
+    st.dataframe(threats, hide_index=True, width="stretch",
+                 column_config={"threat score": st.column_config.ProgressColumn(
+                     "threat score", min_value=0, max_value=float(threats["threat score"].max() or 1),
+                     format="%.1f")})
+
+
+def bar_section(title: str, data: dict, dex: Dex, kind: str, n: int = 8) -> None:
+    if not data:
+        return
+    names = []
+    for key in list(data)[:n]:
+        entry = {"items": dex.items, "moves": dex.moves, "abilities": dex.abilities}.get(kind, {}).get(to_id(key))
+        names.append(entry["name"] if entry else key)
+    values = list(data.values())[:n]
+    fig = go.Figure(go.Bar(x=values, y=names, orientation="h", marker_color=BLUE,
+                           text=[f"{v:.0f}%" for v in values], textposition="outside", cliponaxis=False,
+                           hovertemplate="%{y}: %{x:.1f}%<extra></extra>"))
+    fig.update_layout(title=dict(text=title, font=dict(size=14)), height=60 + 26 * len(values),
+                      margin=dict(l=10, r=40, t=30, b=10), yaxis=dict(autorange="reversed"),
+                      xaxis=dict(visible=False, range=[0, max(values) * 1.25]), bargap=0.3)
+    st.plotly_chart(fig, width="stretch")
+
+
+def meta_tab(dex: Dex, usage: UsageData | None, team_size: int) -> None:
+    if usage is None:
+        st.info("No usage stats for this format yet. Run `python scripts/fetch_usage.py` "
+                "or wait for the monthly data refresh.")
+        return
+    info = usage.info
+    st.caption(f"Smogon ladder stats for {info['month']}: {info['battles']:,} battles, players rated {info['cutoff']}+.")
+    left, right = st.columns([2, 3])
+    with left:
+        board = pd.DataFrame(usage.ranked(60), columns=["Pokémon", "usage %"])
+        board.index += 1
+        st.dataframe(board, width="stretch", height=640,
+                     column_config={"usage %": st.column_config.ProgressColumn(
+                         "usage %", min_value=0, max_value=float(board["usage %"].max()), format="%.1f%%")})
+    with right:
+        name = st.selectbox("Pokémon", [n for n, _ in usage.ranked()])
+        species = dex.get_species(name)
+        head = st.columns([1, 4])
+        if species:
+            head[0].image(sprite(species, dex), width=80)
+            head[1].markdown(f"### {name}\n{type_badges(species.types)} · {usage.usage(name):.1f}% usage",
+                             unsafe_allow_html=True)
+            if team_size < SLOTS and head[1].button(f"＋ Add {name} with its popular set"):
+                add_to_team(name, dex, usage)
+                st.rerun()
+        c1, c2 = st.columns(2)
+        with c1:
+            bar_section("Moves", usage.section(name, "moves"), dex, "moves", 10)
+            bar_section("Abilities", usage.section(name, "abilities"), dex, "abilities", 4)
+        with c2:
+            bar_section("Items", usage.section(name, "items"), dex, "items", 8)
+            bar_section("Teammates", usage.section(name, "teammates"), dex, "teammates", 8)
+        spreads = usage.section(name, "spreads")
+        if spreads:
+            st.markdown("**Common spreads** (nature: HP/Atk/Def/SpA/SpD/Spe Stat Points)")
+            st.dataframe(pd.DataFrame(list(spreads.items())[:6], columns=["spread", "% of sets"]),
+                         hide_index=True, width="stretch")
+        counters = usage.section(name, "counters")
+        if counters:
+            st.markdown("**Checks & counters** (how often each KOs or forces it out)")
+            st.dataframe(pd.DataFrame(list(counters.items()), columns=["Pokémon", "% KO / switch"]),
+                         hide_index=True, width="stretch")
+
+
+# ==========================================================================
+# Main
+# ==========================================================================
+def main() -> None:
+    fmt_id, dex, usage = sidebar()
+    fmt = FORMATS[fmt_id]
+    team = current_team()
+    members = build_members(team, dex)
+
+    st.title("Pokémon Champions Team Builder")
+    team_strip(team, dex)
+
+    issues = check_team(team, dex) if team else []
+    errors = [i for i in issues if i.level == "error"]
+    warnings = [i for i in issues if i.level == "warning"]
+    if team:
+        if errors:
+            label = f"❌ {len(errors)} legality problem(s)"
+        elif len(team) == SLOTS:
+            label = "✅ Legal for " + fmt.label
+        else:
+            label = f"🛠️ {len(team)}/6 - no rule violations so far"
+        with st.expander(label + (f" · {len(warnings)} note(s)" if warnings else ""), expanded=bool(errors)):
+            for i in errors:
+                st.error(i.message)
+            for i in warnings:
+                st.warning(i.message)
+
+    tabs = st.tabs(["🧩 Team", "🛡️ Analysis", "✨ Recommendations", "⚠️ Threats", "📊 Meta"])
+    with tabs[0]:
+        team_tab(dex, usage)
+    with tabs[1]:
+        analysis_tab(team, members, dex, usage, fmt)
+    with tabs[2]:
+        recommendations_tab(team, members, dex, usage, fmt)
+    with tabs[3]:
+        threats_tab(members, dex, usage)
+    with tabs[4]:
+        meta_tab(dex, usage, len(team))
+
+
+main()

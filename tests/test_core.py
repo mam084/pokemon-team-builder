@@ -1,140 +1,318 @@
 """
-Unit tests for the type chart, name normalization, and teammate recommender.
+Core tests: type chart, Champions stat math, paste round-trips, legality,
+usage parsing, analysis and the recommender.
 
-Run with:
-    python -m unittest discover -s tests -v
+The dex tests run against the real exported data in data/dex/, so they also
+catch a broken or stale export. Usage tests use a small synthetic file in
+tests/fixtures/ laid out exactly like Smogon's chaos JSON.
+
+Run with:  python -m unittest discover -s tests -v
 """
 
+import json
 import unittest
+from pathlib import Path
 
-import pandas as pd
+from src.analysis import (build_members, coverage_vs_meta, defense_matrix, defense_summary,
+                          role_checklist, speed_table, threat_report)
+from src.dex import load_dex, to_id
+from src.legality import check_team, is_legal
+from src.paste import export_paste, parse_paste
+from src.recommend import recommend
+from src.stats import calc_stat, calc_stats, parse_spread, sp_problems
+from src.team import PokemonSet
+from src.type_chart import (ALL_TYPES, ability_defensive_multiplier, defensive_multiplier,
+                            get_multiplier)
+from src.usage import UsageData, load_usage, trim_chaos
 
-from src.name_utils import normalize_name
-from src.recommend import recommend_teammates
-from src.type_chart import ALL_TYPES, defensive_multiplier, get_multiplier, team_weaknesses
+FIXTURES = Path(__file__).resolve().parent / "fixtures"
+
+GARGANACL_TEAM = """
+Garganacl @ Leftovers
+Ability: Purifying Salt
+Level: 50
+EVs: 32 HP / 2 Def / 32 SpD
+Careful Nature
+- Salt Cure
+- Body Press
+- Iron Defense
+- Wide Guard
+
+Chompy (Garchomp) (F) @ Garchompite Z
+Ability: Rough Skin
+Level: 50
+EVs: 2 HP / 32 SpA / 32 Spe
+Timid Nature
+- Draco Meteor
+- Earth Power
+- Flamethrower
+- Protect
+
+Rillaboom @ Miracle Seed
+Ability: Grassy Surge
+Level: 50
+EVs: 32 HP / 32 Atk / 2 SpD
+Adamant Nature
+- Fake Out
+- Grassy Glide
+- Wood Hammer
+- U-turn
+
+Sinistcha @ Mental Herb
+Ability: Hospitality
+Level: 50
+EVs: 32 HP / 32 Def / 2 SpD
+Bold Nature
+- Matcha Gotcha
+- Rage Powder
+- Strength Sap
+- Protect
+
+Incineroar @ Sitrus Berry
+Ability: Intimidate
+Level: 50
+EVs: 32 HP / 2 Atk / 32 SpD
+Careful Nature
+- Fake Out
+- Flare Blitz
+- Parting Shot
+- Throat Chop
+
+Gholdengo @ Life Orb
+Ability: Good as Gold
+Level: 50
+EVs: 2 HP / 32 SpA / 32 Spe
+Modest Nature
+- Make It Rain
+- Shadow Ball
+- Nasty Plot
+- Protect
+"""
 
 
-# Gen 6+ type chart, written out independently of src/type_chart.py so the
-# two can be checked against each other.
-SUPER_EFFECTIVE = {
-    "normal": [], "fire": ["grass", "ice", "bug", "steel"], "water": ["fire", "ground", "rock"],
-    "electric": ["water", "flying"], "grass": ["water", "ground", "rock"],
-    "ice": ["grass", "ground", "flying", "dragon"], "fighting": ["normal", "ice", "rock", "dark", "steel"],
-    "poison": ["grass", "fairy"], "ground": ["fire", "electric", "poison", "rock", "steel"],
-    "flying": ["grass", "fighting", "bug"], "psychic": ["fighting", "poison"],
-    "bug": ["grass", "psychic", "dark"], "rock": ["fire", "ice", "flying", "bug"],
-    "ghost": ["psychic", "ghost"], "dragon": ["dragon"], "dark": ["psychic", "ghost"],
-    "steel": ["ice", "rock", "fairy"], "fairy": ["fighting", "dragon", "dark"],
-}
-NOT_VERY_EFFECTIVE = {
-    "normal": ["rock", "steel"], "fire": ["fire", "water", "rock", "dragon"],
-    "water": ["water", "grass", "dragon"], "electric": ["electric", "grass", "dragon"],
-    "grass": ["fire", "grass", "poison", "flying", "bug", "dragon", "steel"],
-    "ice": ["fire", "water", "ice", "steel"], "fighting": ["poison", "flying", "psychic", "bug", "fairy"],
-    "poison": ["poison", "ground", "rock", "ghost"], "ground": ["grass", "bug"],
-    "flying": ["electric", "rock", "steel"], "psychic": ["psychic", "steel"],
-    "bug": ["fire", "fighting", "poison", "flying", "ghost", "steel", "fairy"],
-    "rock": ["fighting", "ground", "steel"], "ghost": ["dark"], "dragon": ["steel"],
-    "dark": ["fighting", "dark", "fairy"], "steel": ["fire", "water", "electric", "steel"],
-    "fairy": ["fire", "poison", "steel"],
-}
-IMMUNE = {
-    "normal": ["ghost"], "electric": ["ground"], "fighting": ["ghost"], "poison": ["steel"],
-    "ground": ["flying"], "psychic": ["dark"], "ghost": ["normal"], "dragon": ["fairy"],
-}
+def sample_usage() -> UsageData:
+    raw = json.loads((FIXTURES / "chaos_sample.json").read_text())
+    return UsageData(trim_chaos(raw, fmt="gen9championsvgc2026regmc", month="2026-10", cutoff=1630))
 
 
 class TestTypeChart(unittest.TestCase):
-    def test_every_matchup_matches_reference_chart(self):
-        for attacking in ALL_TYPES:
-            for defending in ALL_TYPES:
-                if defending in SUPER_EFFECTIVE[attacking]:
-                    expected = 2.0
-                elif defending in NOT_VERY_EFFECTIVE[attacking]:
-                    expected = 0.5
-                elif defending in IMMUNE.get(attacking, []):
-                    expected = 0.0
-                else:
-                    expected = 1.0
-                with self.subTest(attacking=attacking, defending=defending):
-                    self.assertEqual(get_multiplier(attacking, defending), expected)
-
-    def test_eighteen_types(self):
-        self.assertEqual(len(ALL_TYPES), 18)
-        self.assertIn("fairy", ALL_TYPES)
-
-    def test_single_type_matchups(self):
+    def test_basic_matchups(self):
+        self.assertEqual(get_multiplier("fire", "grass"), 2.0)
         self.assertEqual(get_multiplier("water", "fire"), 2.0)
         self.assertEqual(get_multiplier("fire", "water"), 0.5)
+        self.assertEqual(get_multiplier("fire", "fire"), 0.5)
         self.assertEqual(get_multiplier("normal", "normal"), 1.0)
 
     def test_immunities(self):
-        self.assertEqual(get_multiplier("ground", "flying"), 0.0)
+        self.assertEqual(get_multiplier("normal", "ghost"), 0.0)
         self.assertEqual(get_multiplier("ghost", "normal"), 0.0)
+        self.assertEqual(get_multiplier("ground", "flying"), 0.0)
+        self.assertEqual(get_multiplier("electric", "ground"), 0.0)
+        self.assertEqual(get_multiplier("psychic", "dark"), 0.0)
         self.assertEqual(get_multiplier("dragon", "fairy"), 0.0)
+        self.assertEqual(get_multiplier("poison", "steel"), 0.0)
+        self.assertEqual(get_multiplier("fighting", "ghost"), 0.0)
 
-    def test_dual_types_multiply(self):
-        # Ice is 4x against Grass/Ground (e.g. Torterra)
-        self.assertEqual(defensive_multiplier(["grass", "ground"], "ice"), 4.0)
-        # Electric does nothing to Water/Ground (e.g. Swampert): 2x * 0x
+    def test_dual_types(self):
+        self.assertEqual(defensive_multiplier(["grass", "flying"], "ice"), 4.0)
+        self.assertEqual(defensive_multiplier(["water", "ground"], "grass"), 4.0)
         self.assertEqual(defensive_multiplier(["water", "ground"], "electric"), 0.0)
-        # Fire is neutral against Water/Grass: 0.5x * 2x
-        self.assertEqual(defensive_multiplier(["water", "grass"], "fire"), 1.0)
 
-    def test_team_weaknesses_shape(self):
-        team = [["fire"], ["water", "flying"], ["steel", "fairy"]]
-        result = team_weaknesses(team)
-        self.assertEqual(set(result), set(ALL_TYPES))
-        self.assertTrue(all(len(v) == len(team) for v in result.values()))
-        self.assertEqual(result["electric"], [1.0, 4.0, 1.0])
+    def test_matches_showdown_type_chart(self):
+        """Our hand-written chart must agree with the one exported from Showdown."""
+        chart = load_dex("regmc").typechart
+        for atk in ALL_TYPES:
+            for dfn in ALL_TYPES:
+                self.assertEqual(get_multiplier(atk, dfn), chart[atk.title()][dfn.title()], (atk, dfn))
 
-
-class TestNormalizeName(unittest.TestCase):
-    def test_pokeapi_and_smogon_names_match(self):
-        pairs = [
-            ("ogerpon-wellspring", "Ogerpon-Wellspring"),
-            ("tapu-koko", "Tapu Koko"),
-            ("mr-mime", "Mr. Mime"),
-            ("farfetchd", "Farfetch'd"),
-            ("type-null", "Type: Null"),
-        ]
-        for pokeapi, smogon in pairs:
-            with self.subTest(smogon=smogon):
-                self.assertEqual(normalize_name(pokeapi), normalize_name(smogon))
+    def test_abilities(self):
+        self.assertEqual(ability_defensive_multiplier(["dragon"], "ground", "levitate"), 0.0)
+        self.assertEqual(ability_defensive_multiplier(["rock"], "ghost", "purifyingsalt"), 0.5)
+        self.assertEqual(ability_defensive_multiplier(["fire", "dark"], "water", "intimidate"), 2.0)
 
 
-class TestRecommendTeammates(unittest.TestCase):
+class TestStats(unittest.TestCase):
+    def test_champions_formula(self):
+        # Garganacl: HP 100 / Def 130 / SpD 90 / Spe 35, Careful 32 HP / 2 Def / 32 SpD
+        careful = {"plus": "spd", "minus": "spa"}
+        stats = calc_stats({"hp": 100, "atk": 100, "def": 130, "spa": 45, "spd": 90, "spe": 35},
+                           {"hp": 32, "def": 2, "spd": 32}, careful)
+        self.assertEqual(stats, {"hp": 207, "atk": 120, "def": 152, "spa": 58, "spd": 156, "spe": 55})
+
+    def test_nature_truncates(self):
+        self.assertEqual(calc_stat(151, 32, "spe", {"plus": "spe"}), 223)  # (151+32+20)*1.1 = 223.3
+        self.assertEqual(calc_stat(35, 0, "spe", {"minus": "spe"}), 49)    # 55*0.9 = 49.5
+
+    def test_sp_limits(self):
+        self.assertEqual(sp_problems({"hp": 32, "def": 2, "spd": 32}), [])
+        self.assertTrue(sp_problems({"hp": 33}))
+        self.assertTrue(sp_problems({"hp": 32, "def": 32, "spd": 32}))
+
+    def test_parse_spread(self):
+        nature, sps = parse_spread("Careful:32/0/2/0/32/0")
+        self.assertEqual(nature, "Careful")
+        self.assertEqual(sps, {"hp": 32, "atk": 0, "def": 2, "spa": 0, "spd": 32, "spe": 0})
+
+
+class TestDex(unittest.TestCase):
     def setUp(self):
-        rows = [
-            ("Great Tusk", "Gholdengo", 30.0),
-            ("Great Tusk", "Kingambit", 25.0),
-            ("Great Tusk", "Dragapult", 10.0),
-            ("Kingambit", "Gholdengo", 20.0),
-            ("Kingambit", "Great Tusk", 28.0),
-        ]
-        df = pd.DataFrame(rows, columns=["pokemon", "teammate", "co_occurrence_pct"])
-        df["name_key"] = df["pokemon"].map(normalize_name)
-        self.df = df
+        self.dex = load_dex("regmc")
 
-    def test_scores_sum_across_team_members(self):
-        recs = recommend_teammates(self.df, ["great tusk", "kingambit"])
-        top = recs[0]
-        self.assertEqual(top["name"], "Gholdengo")
-        self.assertEqual(top["score"], 50.0)
-        self.assertEqual(len(top["paired_with"]), 2)
+    def test_ids(self):
+        self.assertEqual(to_id("Rotom-Wash"), "rotomwash")
+        self.assertEqual(to_id("Farfetch’d"), "farfetchd")
 
-    def test_excludes_pokemon_already_on_team(self):
-        recs = recommend_teammates(self.df, ["great tusk", "kingambit"])
-        names = {r["name"] for r in recs}
-        self.assertNotIn("Kingambit", names)
-        self.assertNotIn("Great Tusk", names)
+    def test_mega_forms(self):
+        form = self.dex.battle_form("Garchomp", "Garchompite Z")
+        self.assertEqual(form.name, "Garchomp-Mega-Z")
+        self.assertEqual(self.dex.battle_form("Garchomp", "Leftovers").name, "Garchomp")
+        self.assertIn("Charizardite Y", self.dex.mega_options("Charizard"))
 
-    def test_top_n_and_ordering(self):
-        recs = recommend_teammates(self.df, ["great tusk"], top_n=2)
-        self.assertEqual([r["name"] for r in recs], ["Gholdengo", "Kingambit"])
+    def test_selectable_excludes_battle_forms(self):
+        names = {s.name for s in self.dex.selectable_species()}
+        self.assertIn("Garganacl", names)
+        self.assertNotIn("Garchomp-Mega-Z", names)
+        self.assertNotIn("Palafin-Hero", names)
 
-    def test_unknown_pokemon_returns_empty(self):
-        self.assertEqual(recommend_teammates(self.df, ["missingno"]), [])
+    def test_items_hide_other_stones(self):
+        items = self.dex.legal_items("Garganacl")
+        self.assertIn("Leftovers", items)
+        self.assertNotIn("Charizardite Y", items)
+
+    def test_learnsets(self):
+        self.assertTrue(self.dex.can_learn("Garganacl", "Salt Cure"))
+        self.assertFalse(self.dex.can_learn("Garganacl", "Spore"))
+
+
+class TestPasteAndLegality(unittest.TestCase):
+    def setUp(self):
+        self.dex = load_dex("regmc")
+
+    def test_parse(self):
+        team, warnings = parse_paste(GARGANACL_TEAM, self.dex)
+        self.assertEqual(warnings, [])
+        self.assertEqual(len(team), 6)
+        chomp = team[1]
+        self.assertEqual((chomp.species, chomp.nickname, chomp.item), ("Garchomp", "Chompy", "Garchompite Z"))
+        self.assertEqual(team[0].sps["spd"], 32)
+        self.assertEqual(team[0].moves[0], "Salt Cure")
+
+    def test_round_trip(self):
+        team, _ = parse_paste(GARGANACL_TEAM, self.dex)
+        again, _ = parse_paste(export_paste(team), self.dex)
+        self.assertEqual([p.to_dict() for p in team], [p.to_dict() for p in again])
+
+    def test_mega_name_in_paste(self):
+        team, _ = parse_paste("Garchomp-Mega-Z\nAbility: Levitate\n- Protect", self.dex)
+        self.assertEqual((team[0].species, team[0].item), ("Garchomp", "Garchompite Z"))
+
+    def test_sample_team_is_legal(self):
+        team, _ = parse_paste(GARGANACL_TEAM, self.dex)
+        self.assertTrue(is_legal(team, self.dex), check_team(team, self.dex))
+
+    def test_clauses_and_limits(self):
+        team, _ = parse_paste(GARGANACL_TEAM, self.dex)
+        team[2].item = "Leftovers"                # duplicate item
+        team[3].sps = {**team[3].sps, "spe": 32}  # 98 SP
+        team[4].moves[0] = "Spore"                # can't learn
+        messages = " ".join(i.message for i in check_team(team, self.dex) if i.level == "error")
+        self.assertIn("Item Clause", messages)
+        self.assertIn("Stat Points", messages)
+        self.assertIn("can't learn Spore", messages)
+
+    def test_two_megas_warns(self):
+        team = [PokemonSet("Garchomp", item="Garchompite Z"), PokemonSet("Charizard", item="Charizardite Y")]
+        warnings = [i.message for i in check_team(team, self.dex) if i.level == "warning"]
+        self.assertTrue(any("only one Pokemon can Mega Evolve" in w for w in warnings))
+
+
+class TestUsage(unittest.TestCase):
+    def setUp(self):
+        self.dex = load_dex("regmc")
+        self.usage = sample_usage()
+
+    def test_trim(self):
+        self.assertEqual(self.usage.info["battles"], 12345)
+        self.assertNotIn("Rare Mon", self.usage.pokemon)       # below the usage floor
+        self.assertEqual(self.usage.ranked(1)[0][0], "Rillaboom")
+        self.assertAlmostEqual(self.usage.section("Garganacl", "items")["leftovers"], 70.0)
+
+    def test_teammates_and_lift(self):
+        self.assertAlmostEqual(self.usage.teammate_pct("Garganacl", "Rillaboom"), 60.0)
+        self.assertAlmostEqual(self.usage.lift("Garganacl", "Sinistcha"), 5.0)
+
+    def test_popular_set_respects_item_clause(self):
+        pset = self.usage.popular_set("Garganacl", self.dex, taken_items={"Leftovers"})
+        self.assertEqual(pset.item, "Sitrus Berry")
+        self.assertEqual(pset.nature, "Careful")
+        self.assertEqual(len(pset.moves), 4)
+        self.assertTrue(all(self.dex.can_learn("Garganacl", m) for m in pset.moves))
+
+
+class TestAnalysis(unittest.TestCase):
+    def setUp(self):
+        self.dex = load_dex("regmc")
+        self.usage = sample_usage()
+        team, _ = parse_paste(GARGANACL_TEAM, self.dex)
+        self.members = build_members(team, self.dex)
+
+    def test_megas_and_abilities_applied(self):
+        matrix = defense_matrix(self.members)
+        self.assertIn("Garchomp-Mega-Z", matrix.columns)
+        self.assertEqual(matrix.loc["Ground", "Garchomp-Mega-Z"], 0.0)      # Levitate
+        self.assertEqual(matrix.loc["Ghost", "Garganacl"], 0.5)             # Purifying Salt
+        self.assertEqual(defense_summary(matrix).loc["Fighting", "immune"], 2)  # Sinistcha, Gholdengo
+
+    def test_roles(self):
+        roles = role_checklist(self.members, doubles=True).set_index("role")
+        self.assertIn("Rillaboom", roles.loc["Fake Out", "covered by"])
+        self.assertIn("Sinistcha", roles.loc["Redirection", "covered by"])
+        self.assertIn("Incineroar", roles.loc["Intimidate / Attack drops", "covered by"])
+        singles = role_checklist(self.members, doubles=False)
+        self.assertNotIn("Fake Out", set(singles["role"]))
+
+    def test_speed_and_meta_views(self):
+        speeds = speed_table(self.members, self.dex, self.usage)
+        self.assertEqual(speeds.iloc[0]["pokemon"], "Garchomp-Mega-Z (yours)")   # 223 Speed
+        cover = coverage_vs_meta(self.members, self.dex, self.usage, n=5)
+        self.assertEqual(len(cover), 5)
+
+    def test_threats(self):
+        threats = threat_report(self.members, self.dex, self.usage)
+        sneasler = threats.set_index("pokemon").loc["Sneasler"]
+        # Mega Garchomp Z takes neutral from Fighting/Poison and Earth Power hits Poison super effectively
+        self.assertIn("Garchomp-Mega-Z", sneasler["answers"])
+        self.assertIn("Garganacl", sneasler["pressured"])
+        self.assertGreater(len(threats), 5)
+
+
+class TestRecommender(unittest.TestCase):
+    def setUp(self):
+        self.dex = load_dex("regmc")
+        self.usage = sample_usage()
+
+    def test_recommends_partners_and_excludes_team(self):
+        team, _ = parse_paste(GARGANACL_TEAM, self.dex)
+        team = team[:1]  # just Garganacl
+        recs = recommend(build_members(team, self.dex), self.dex, self.usage, doubles=True)
+        self.assertNotIn("Garganacl", set(recs["pokemon"]))
+        # Sinistcha has 5x lift with Garganacl and resists its Water/Grass/Fighting/Ground weaknesses
+        self.assertIn("Sinistcha", list(recs["pokemon"])[:3])
+        self.assertTrue((recs["score"].diff().dropna() <= 0).all())
+
+    def test_mega_candidates_are_team_sheet_aware(self):
+        dex, usage = self.dex, load_usage("gen9championsvgc2026regmc")
+        if usage is None:
+            self.skipTest("no shipped usage data")
+        team = [PokemonSet("Garchomp", item="Garchompite Z", moves=["Earth Power"])]
+        recs = recommend(build_members(team, dex), dex, usage, top_n=40)
+        self.assertFalse(any(name.startswith("Garchomp") for name in recs["pokemon"]))
+        pset = usage.popular_set("Charizard-Mega-Y", dex)
+        self.assertEqual((pset.species, pset.item), ("Charizard", "Charizardite Y"))
+
+    def test_works_without_usage(self):
+        recs = recommend([], self.dex, None, doubles=False, top_n=5)
+        self.assertEqual(len(recs), 5)
 
 
 if __name__ == "__main__":

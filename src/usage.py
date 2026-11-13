@@ -18,6 +18,11 @@ that sum turns every section into a percentage of "teams with this Pokemon":
     move %      = share running that move (4 moves, so these sum to ~400%)
     teammate %  = P(teammate on the team | this Pokemon on the team)
 
+Smogon lists each Mega as its own entry ("Charizard-Mega-Y"), because that is
+the form that battles. Team sheets list the base Pokemon plus its Mega Stone, so
+`variants` / `combined_section` fold a species' base and Mega entries together
+when the app needs the team-sheet view.
+
 Teammate % is not symmetric: P(B | A) != P(A | B) when A and B have different
 usage, which is why the recommender also looks at *lift* (P(B | A) / P(B)).
 """
@@ -36,7 +41,7 @@ USAGE_DIR = Path(__file__).resolve().parent.parent / "data" / "usage"
 
 # How much of each section to keep when trimming (the long tails are noise).
 KEEP = {"abilities": 4, "items": 10, "moves": 16, "spreads": 8, "teammates": 30, "counters": 12}
-MIN_USAGE_PCT = 0.2
+MIN_USAGE_PCT = 0.02
 
 
 def _percentages(section: dict, total: float, keep: int) -> dict:
@@ -124,6 +129,53 @@ class UsageData:
         e = self.entry(species)
         return e.get(key, {}) if e else {}
 
+    # ---- team-sheet view (base species + its Mega entries) -------------
+    def variants(self, species: str, dex: Dex) -> list[str]:
+        """Usage entries that are this Pokemon on a team sheet, most used first."""
+        base = dex.get_species(species)
+        if base is None:
+            return []
+        base_id = to_id(base.battle_only[0] if base.battle_only else base.base_species)
+        out = []
+        for name in self.pokemon:
+            s = dex.get_species(name)
+            if s is None:
+                continue
+            root = to_id(s.battle_only[0] if s.battle_only else s.base_species)
+            if s.id == base_id or (root == base_id and (s.is_mega or s.battle_only)):
+                out.append(name)
+        return sorted(out, key=lambda n: -self.pokemon[n]["usage"])
+
+    def species_usage(self, species: str, dex: Dex) -> float:
+        return round(sum(self.pokemon[v]["usage"] for v in self.variants(species, dex)), 3)
+
+    def team_sheet_usage(self, dex: Dex) -> dict[str, float]:
+        """{base species name: usage incl. its Megas}, highest first."""
+        if getattr(self, "_sheet_usage", None) is None:
+            totals: dict[str, float] = {}
+            for name, entry in self.pokemon.items():
+                s = dex.get_species(name)
+                if s is None:
+                    continue
+                base = dex.get_species(s.battle_only[0] if s.battle_only else s.base_species) \
+                    if (s.is_mega or s.battle_only) else s
+                totals[base.name] = totals.get(base.name, 0.0) + entry["usage"]
+            self._sheet_usage = dict(sorted(totals.items(), key=lambda kv: -kv[1]))
+        return self._sheet_usage
+
+    def combined_section(self, species: str, key: str, dex: Dex) -> dict:
+        """A section averaged over the species' variants, weighted by their usage."""
+        names = self.variants(species, dex)
+        total = sum(self.pokemon[n]["usage"] for n in names)
+        if not total:
+            return {}
+        merged: dict[str, float] = {}
+        for n in names:
+            w = self.pokemon[n]["usage"] / total
+            for k, v in self.pokemon[n].get(key, {}).items():
+                merged[k] = merged.get(k, 0.0) + v * w
+        return {k: round(v, 2) for k, v in sorted(merged.items(), key=lambda kv: -kv[1])}
+
     # ---- sets ----------------------------------------------------------
     def common_item(self, species: str, dex: Dex) -> str:
         for iid in self.section(species, "items"):
@@ -141,24 +193,40 @@ class UsageData:
 
     def popular_set(self, species: str, dex: Dex, taken_items: set[str] | None = None) -> PokemonSet | None:
         """
-        The most common set: top ability, top spread + nature, top four legal
-        moves, and the most popular item that doesn't break Item Clause.
+        The most common set for a team-sheet Pokemon: built from its most-used
+        variant (e.g. Charizard -> Charizard-Mega-Y with Charizardite Y), using
+        the top ability, spread and four legal moves, and the most popular item
+        that doesn't break Item Clause.
         """
         s = dex.get_species(species)
-        if s is None or self.entry(species) is None:
+        if s is None:
             return None
+        if s.is_mega or s.battle_only:  # asked for a battle form: build its team-sheet base
+            entry_name = self.name_of(s.name) or s.name
+            base = dex.get_species(s.battle_only[0] if s.battle_only else s.base_species)
+        else:
+            variants = self.variants(s.name, dex)
+            entry_name, base = (variants[0] if variants else None), s
+        if entry_name is None or self.entry(entry_name) is None or base is None:
+            return None
+        form = dex.get_species(entry_name)
         taken = {to_id(i) for i in (taken_items or set())}
 
-        ability = next((dex.abilities[to_id(a)]["name"] for a in self.section(species, "abilities")
-                        if to_id(a) in {to_id(x) for x in s.abilities}), s.abilities[0])
-        item = next((dex.items[to_id(i)]["name"] for i in self.section(species, "items")
-                     if to_id(i) in dex.items and to_id(i) not in taken and to_id(i) != "nothing"), "")
+        if form is not None and form.is_mega:
+            item = form.required_item or ""
+        else:
+            item = next((dex.items[to_id(i)]["name"] for i in self.section(entry_name, "items")
+                         if to_id(i) in dex.items and to_id(i) not in taken
+                         and not dex.mega_stone_species(i)), "")
+        legal_abilities = {to_id(a): a for a in base.abilities}
+        ability = next((legal_abilities[to_id(a)] for a in self.section(base.name, "abilities")
+                        if to_id(a) in legal_abilities), base.abilities[0])
         nature, sps = "Serious", None
-        for spread in self.section(species, "spreads"):
+        for spread in self.section(entry_name, "spreads"):
             nature, sps = parse_spread(spread)
             break
-        moves = [m for m in self.common_moves(species, dex) if dex.can_learn(s.id, m)][:4]
-        pset = PokemonSet(species=s.name, item=item, ability=ability, nature=nature, moves=moves)
+        moves = [m for m in self.common_moves(entry_name, dex) if dex.can_learn(base.id, m)][:4]
+        pset = PokemonSet(species=base.name, item=item, ability=ability, nature=nature, moves=moves)
         if sps:
             pset.sps = sps
         return pset

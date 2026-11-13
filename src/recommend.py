@@ -85,6 +85,13 @@ def team_needs(members: list[Member], dex: Dex, usage: UsageData | None, doubles
     return TeamNeeds(weak_types, unhit, missing)
 
 
+def _root(species) -> str:
+    """Team-sheet identity: Megas and battle-only formes count as their base Pokemon."""
+    if species.battle_only:
+        return to_id(species.battle_only[0])
+    return to_id(species.base_species) if species.is_mega else species.id
+
+
 def _candidate_profile(name: str, dex: Dex, usage: UsageData | None):
     """Battle form, ability, move ids and STAB-ish attacking types a candidate brings."""
     species = dex.get_species(name)
@@ -108,7 +115,6 @@ def _candidate_profile(name: str, dex: Dex, usage: UsageData | None):
 
 def recommend(
     members: list[Member],
-    team_species: list[str],
     dex: Dex,
     usage: UsageData | None,
     doubles: bool = True,
@@ -122,7 +128,9 @@ def recommend(
     total_w = sum(weights.values()) or 1.0
 
     needs = team_needs(members, dex, usage, doubles)
-    on_team = {to_id(s) for s in team_species}
+    # Usage stats key Megas by their Mega name, so look members up by battle form.
+    team_species = [m.form.name for m in members]
+    on_team = {_root(m.form) for m in members}
     mega_on_team = any(m.form.is_mega for m in members)
 
     # Candidate pool: the usage leaderboard if we have one, else every legal Pokemon.
@@ -130,7 +138,7 @@ def recommend(
         pool = [name for name, _ in usage.ranked(pool_size)]
     else:
         pool = [s.name for s in dex.selectable_species()]
-    pool = [p for p in pool if dex.get_species(p) and to_id(p) not in on_team]
+    pool = [p for p in pool if dex.get_species(p) and _root(dex.get_species(p)) not in on_team]
 
     max_usage = max((usage.usage(p) for p in pool), default=1.0) if usage else 1.0
     rows = []

@@ -259,7 +259,8 @@ def meta_speed(name: str, usage: UsageData, dex: Dex) -> dict | None:
 
 
 def speed_table(members: list[Member], dex: Dex, usage: UsageData | None, n: int = 20) -> pd.DataFrame:
-    rows = [{"pokemon": m.label, "speed": m.stats["spe"], "who": "Your team", "note": ""} for m in members]
+    rows = [{"pokemon": f"{m.label} (yours)", "speed": m.stats["spe"], "who": "Your team", "note": ""}
+            for m in members]
     if usage is not None:
         for name, _ in usage.ranked(n):
             info = meta_speed(name, usage, dex)
