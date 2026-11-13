@@ -14,12 +14,13 @@ import unittest
 from pathlib import Path
 
 from src.analysis import (build_members, coverage_vs_meta, defense_matrix, defense_summary,
-                          role_checklist, speed_table, threat_report)
+                          role_checklist, speed_table)
 from src.dex import load_dex, to_id
+from src.evaluate import evaluate, load_tournament_teams, split_by_date
 from src.legality import check_team, is_legal
 from src.paste import export_paste, parse_paste
 from src.matchup import (best_bring, build_archetypes, counter_picks, meta_matchups, opponent_members,
-                         pair_matrix, pair_score, team_score)
+                         pair_matrix, pair_score, team_score, threat_report)
 from src.presets import presets_for
 from src.recommend import recommend
 from src.roles import meta_roles, set_roles
@@ -291,11 +292,10 @@ class TestAnalysis(unittest.TestCase):
         self.assertEqual(len(cover), 5)
 
     def test_threats(self):
-        threats = threat_report(self.members, self.dex, self.usage)
+        threats = threat_report(self.members, self.usage, self.dex)
         sneasler = threats.set_index("pokemon").loc["Sneasler"]
-        # Mega Garchomp Z takes neutral from Fighting/Poison and Earth Power hits Poison super effectively
-        self.assertIn("Garchomp-Mega-Z", sneasler["answers"])
-        self.assertIn("Garganacl", sneasler["pressured"])
+        self.assertIn("Close Combat", sneasler["hardest hits"])       # damage-based, names the move
+        self.assertGreater(sneasler["2HKOs"], 0)
         self.assertGreater(len(threats), 5)
 
 
@@ -387,6 +387,29 @@ class TestPresetsRolesMatchups(unittest.TestCase):
         theirs = opponent_members(["Rillaboom", "Incineroar"], self.usage, self.dex)
         picks = counter_picks(theirs, self.usage, self.dex)
         self.assertFalse({"Rillaboom", "Incineroar"} & set(picks["pokemon"]))
+
+
+class TestEvaluation(unittest.TestCase):
+    def setUp(self):
+        self.dex = load_dex("regmc")
+        self.usage = sample_usage()
+        self.path = FIXTURES / "tournament_sample.json"
+
+    def test_load_and_split(self):
+        teams = load_tournament_teams("regmc", self.dex, self.path)
+        self.assertEqual(len(teams), 10)
+        self.assertEqual(teams[0]["sets"][2].item, "Garchompite Z")
+        train, test = split_by_date(teams)
+        self.assertTrue(train and test)
+        self.assertLess(max(t["date"] for t in train), min(t["date"] for t in test))  # forward-in-time split
+
+    def test_report(self):
+        report = evaluate("regmc", self.dex, self.usage, path=self.path)
+        self.assertEqual(report["queries"], report["test_teams"] * 6)
+        for name in ("tuned weights", "hand-set weights", "popularity only", "random"):
+            m = report["results"][name]
+            self.assertTrue(0 <= m["hit@1"] <= m["hit@5"] <= m["hit@10"] <= 1, (name, m))
+        self.assertAlmostEqual(sum(report["tuned_weights"].values()), 1.0, places=2)
 
 
 if __name__ == "__main__":

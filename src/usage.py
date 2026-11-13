@@ -94,6 +94,9 @@ class UsageData:
         self.info: dict = trimmed["info"]
         self.pokemon: dict = trimmed["pokemon"]
         self._by_id = {to_id(name): name for name in self.pokemon}
+        # {species id: {teammate id: pct}} so pair lookups are O(1)
+        self._mates = {to_id(name): {to_id(m): pct for m, pct in e["teammates"].items()}
+                       for name, e in self.pokemon.items()}
 
     # ---- basic lookups ------------------------------------------------
     def name_of(self, species: str) -> str | None:
@@ -112,14 +115,7 @@ class UsageData:
         return rows[:n] if n else rows
 
     def teammate_pct(self, species: str, teammate: str) -> float:
-        e = self.entry(species)
-        if not e:
-            return 0.0
-        target = to_id(teammate)
-        for name, pct in e["teammates"].items():
-            if to_id(name) == target:
-                return pct
-        return 0.0
+        return self._mates.get(to_id(species), {}).get(to_id(teammate), 0.0)
 
     def lift(self, species: str, teammate: str) -> float:
         """How much more often `teammate` appears with `species` than on teams overall."""

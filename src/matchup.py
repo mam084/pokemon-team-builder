@@ -10,13 +10,16 @@ team (respecting Species Clause and one Mega per team). Near-duplicate teams
 are dropped, and each team is named after what it sets up (Rain, Sun,
 Trick Room...). Every opposing member uses its most popular set.
 
-Matchups are scored one Pokemon pair at a time:
+Matchups are scored one Pokemon pair at a time, with real damage calcs
+(src/damage.py, both sides using their actual sets):
 
-    pair(a, b) = log2(best multiplier a hits b with)
-               - log2(best multiplier b hits a with)
-               + 0.5 if a outspeeds b (reversed under Trick Room)
+    hits(a -> b) = hits a needs to KO b with its best move (average roll)
+    pair(a, b)   = log2(hits(b -> a) / hits(a -> b))      clamped to +-3
+                 + 0.5 if a outspeeds b (reversed under Trick Room)
 
-so +1 means "a hits b one step harder than b hits a". From the pair matrix:
+Calcs use the meta team's weather when it sets one (a Sun team is scored in
+sun), no terrain, and no stat boosts. So +1 means "a needs half as many hits to KO b as b needs to KO a". From the
+pair matrix:
 
     team score    = (mean over their Pokemon of your best answer to it)
                   - (mean over your Pokemon of their best answer to it)
@@ -34,12 +37,11 @@ from itertools import combinations
 import pandas as pd
 
 from src.analysis import Member, build_members
+from src.damage import Field, calculate
 from src.dex import Dex, Species, to_id
-from src.type_chart import ability_defensive_multiplier
 from src.usage import UsageData
 
 SPEED_BONUS = 0.5
-IMMUNE_LOG = -3.0  # log2 value used for a 0x hit
 
 
 # --------------------------------------------------------------------------
@@ -51,6 +53,7 @@ class Archetype:
     members: list[str]          # usage-entry names (Megas by Mega name)
     popularity: float           # mean usage % of its members
     trick_room: bool = False
+    weather: str | None = None  # "sun" / "rain" / "sand" / "snow" if the team sets it
 
 
 def _root(species: Species) -> str:
@@ -70,7 +73,10 @@ SETTERS = [  # (label, abilities, moves) - first match names the archetype
 ]
 
 
-def _label(members: list[str], usage: UsageData, dex: Dex) -> tuple[str, bool]:
+WEATHER_OF = {"Rain": "rain", "Sun": "sun", "Sand": "sand", "Snow": "snow"}
+
+
+def _label(members: list[str], usage: UsageData, dex: Dex) -> tuple[str, bool, str | None]:
     tags = []
     trick_room = False
     for label, abilities, moves in SETTERS:
@@ -84,7 +90,8 @@ def _label(members: list[str], usage: UsageData, dex: Dex) -> tuple[str, bool]:
                 trick_room |= label == "Trick Room"
                 break
     style = " + ".join(dict.fromkeys(tags[:2])) or "Goodstuffs"
-    return f"{style} ({members[0]} + {members[1]})", trick_room
+    weather = next((WEATHER_OF[t] for t in tags if t in WEATHER_OF), None)
+    return f"{style} ({members[0]} + {members[1]})", trick_room, weather
 
 
 def build_archetypes(usage: UsageData, dex: Dex, team_size: int = 6, anchors: int = 40,
@@ -120,9 +127,9 @@ def build_archetypes(usage: UsageData, dex: Dex, team_size: int = 6, anchors: in
             continue
         if any(len(set(team) & set(a.members)) >= 5 for a in archetypes):
             continue  # near-duplicate of a team we already have
-        name, tr = _label(team, usage, dex)
+        name, tr, weather = _label(team, usage, dex)
         popularity = sum(usage.usage(m) for m in team) / len(team)
-        archetypes.append(Archetype(name, team, round(popularity, 1), tr))
+        archetypes.append(Archetype(name, team, round(popularity, 1), tr, weather))
         if len(archetypes) >= keep:
             break
     return archetypes
@@ -136,27 +143,55 @@ def opponent_members(archetype_members: list[str], usage: UsageData, dex: Dex) -
 # --------------------------------------------------------------------------
 # Pair scoring
 # --------------------------------------------------------------------------
-def _best_log_hit(attacker: Member, defender: Member) -> float:
-    best = None
-    for mv in attacker.damaging_moves:
-        mult = ability_defensive_multiplier(defender.types, mv["type"].lower(), defender.ability_id)
-        best = mult if best is None else max(best, mult)
-    if best is None:
-        return -1.0  # no attacks at all: treat like a resisted hit
-    return IMMUNE_LOG if best == 0 else math.log2(best)
+MAX_HITS = 8  # "can't realistically KO": a move doing under ~12% is treated like no attack
+_CALC_CACHE: dict[tuple, tuple[float, str]] = {}
 
 
-def pair_score(a: Member, b: Member, trick_room: bool = False) -> float:
-    score = _best_log_hit(a, b) - _best_log_hit(b, a)
+def _set_key(m: Member) -> tuple:
+    p = m.pset
+    if p is None:
+        return (m.label,)
+    return (p.species, p.item, p.ability, p.nature, tuple(sorted(p.sps.items())), tuple(p.moves))
+
+
+def best_attack(a: Member, b: Member, doubles: bool = True, weather: str | None = None) -> tuple[float, str]:
+    """(average % of b's HP, move name) for a's strongest move against b (no terrain or boosts)."""
+    key = (_set_key(a), _set_key(b), doubles, weather)
+    if key in _CALC_CACHE:
+        return _CALC_CACHE[key]
+    best = (0.0, "")
+    if a.battler is not None and b.battler is not None:
+        f = Field(doubles=doubles, weather=weather)
+        for mv in a.damaging_moves:
+            result = calculate(a.battler, b.battler, mv, f)
+            avg = 100 * sum(result.rolls) / len(result.rolls) / result.defender_hp if result.rolls else 0.0
+            if avg > best[0]:
+                best = (avg, mv["name"])
+    if len(_CALC_CACHE) > 200_000:
+        _CALC_CACHE.clear()
+    _CALC_CACHE[key] = best
+    return best
+
+
+def hits_to_ko(pct: float) -> int:
+    return MAX_HITS if pct <= 0 else min(MAX_HITS, math.ceil(100 / pct - 1e-9))
+
+
+def pair_score(a: Member, b: Member, trick_room: bool = False, doubles: bool = True,
+               weather: str | None = None) -> float:
+    a_hits = hits_to_ko(best_attack(a, b, doubles, weather)[0])
+    b_hits = hits_to_ko(best_attack(b, a, doubles, weather)[0])
+    score = max(-3.0, min(3.0, math.log2(b_hits / a_hits)))
     if a.stats["spe"] != b.stats["spe"]:
         faster = a.stats["spe"] > b.stats["spe"]
         score += SPEED_BONUS if faster != trick_room else -SPEED_BONUS
     return score
 
 
-def pair_matrix(yours: list[Member], theirs: list[Member], trick_room: bool = False) -> pd.DataFrame:
+def pair_matrix(yours: list[Member], theirs: list[Member], trick_room: bool = False,
+                doubles: bool = True, weather: str | None = None) -> pd.DataFrame:
     return pd.DataFrame(
-        [[pair_score(a, b, trick_room) for b in theirs] for a in yours],
+        [[pair_score(a, b, trick_room, doubles, weather) for b in theirs] for a in yours],
         index=[a.label for a in yours], columns=[b.label for b in theirs],
     )
 
@@ -199,11 +234,11 @@ def verdict(score: float) -> str:
 # Team vs meta
 # --------------------------------------------------------------------------
 def meta_matchups(yours: list[Member], archetypes: list[Archetype], usage: UsageData, dex: Dex,
-                  bring: int = 4) -> pd.DataFrame:
+                  bring: int = 4, doubles: bool = True) -> pd.DataFrame:
     rows = []
     for arch in archetypes:
         theirs = opponent_members(arch.members, usage, dex)
-        matrix = pair_matrix(yours, theirs, arch.trick_room)
+        matrix = pair_matrix(yours, theirs, arch.trick_room, doubles, arch.weather)
         picks, picked_score = best_bring(matrix, bring)
         worst = matrix.max(axis=0).idxmin() if not matrix.empty else ""
         rows.append({
@@ -216,7 +251,8 @@ def meta_matchups(yours: list[Member], archetypes: list[Archetype], usage: Usage
 
 
 def counter_picks(theirs: list[Member], usage: UsageData, dex: Dex, exclude: set[str] | None = None,
-                  trick_room: bool = False, pool: int = 60, top_n: int = 6) -> pd.DataFrame:
+                  trick_room: bool = False, pool: int = 60, top_n: int = 6, doubles: bool = True,
+                  weather: str | None = None) -> pd.DataFrame:
     """Meta Pokemon (popular sets) that match up best against a given team."""
     exclude_roots = {to_id(x) for x in (exclude or set())}
     their_roots = {_root(m.form) for m in theirs}
@@ -232,7 +268,7 @@ def counter_picks(theirs: list[Member], usage: UsageData, dex: Dex, exclude: set
         if not members:
             continue
         cand = members[0]
-        scores = [pair_score(cand, b, trick_room) for b in theirs]
+        scores = [pair_score(cand, b, trick_room, doubles, weather) for b in theirs]
         if not scores:
             continue
         beats = [b.label for b, s in zip(theirs, scores) if s >= 1]
@@ -245,3 +281,44 @@ def counter_picks(theirs: list[Member], usage: UsageData, dex: Dex, exclude: set
     if df.empty:
         return df
     return df.sort_values("avg matchup", ascending=False).head(top_n).reset_index(drop=True)
+
+
+# --------------------------------------------------------------------------
+# Individual threats
+# --------------------------------------------------------------------------
+def threat_report(members: list[Member], usage: UsageData, dex: Dex, n: int = 30,
+                  doubles: bool = True) -> pd.DataFrame:
+    """
+    Popular Pokemon (popular sets) ranked by how much trouble they cause this team,
+    using damage calcs in both directions:
+
+        pressured = your Pokemon it 2HKOs (best move does >= 50% on average)
+        answers   = your Pokemon that 2HKO it back while taking under 50%
+        threat    = usage % x (pressured + 1) / (answers + 1)
+    """
+    rows = []
+    for name, pct in usage.ranked(n):
+        opp = opponent_members([name], usage, dex)
+        if not opp:
+            continue
+        threat = opp[0]
+        pressured, answers, key_calcs = [], [], []
+        for m in members:
+            dealt, dealt_move = best_attack(threat, m, doubles)
+            taken, taken_move = best_attack(m, threat, doubles)
+            if dealt >= 50:
+                pressured.append(m.label)
+                key_calcs.append((dealt, f"{dealt_move} {dealt:.0f}% to {m.label}"))
+            if taken >= 50 and dealt < 50:
+                answers.append(f"{m.label} ({taken_move} {taken:.0f}%)")
+        key_calcs.sort(reverse=True)
+        rows.append({
+            "pokemon": threat.label, "usage %": pct,
+            "2HKOs": len(pressured), "hardest hits": "; ".join(c for _, c in key_calcs[:2]) or "—",
+            "answers": ", ".join(answers) or "none",
+            "threat score": round(pct * (len(pressured) + 1) / (len(answers) + 1), 1),
+        })
+    df = pd.DataFrame(rows)
+    if df.empty:
+        return df
+    return df.sort_values("threat score", ascending=False).reset_index(drop=True)

@@ -62,15 +62,29 @@ play on the ladder.
   respecting Species Clause and one Mega per team. Each team is named for what
   it sets up, e.g. *Rain + Tailwind (Archaludon + Pelipper)*, and every
   opponent uses its most popular set.
-- **Pair score** = log2(how hard you hit them) − log2(how hard they hit you),
-  ±0.5 for Speed (reversed under Trick Room). **Team score** = how well you
+- Every pairing is decided by **real damage calcs in both directions**, using
+  both sides' actual sets: **pair score** = log2(hits they need to KO you ÷
+  hits you need to KO them), ±0.5 for Speed (reversed under Trick Room).
+  Weather teams are scored in their weather. **Team score** = how well you
   answer their Pokémon minus how well they answer yours, so a mirror match
   scores exactly 0.
 - For each meta team you get a verdict, the best **bring 4** (or bring 3 in
-  Singles) out of 30 possible picks, a pairing heatmap, your best answer to each
-  of their Pokémon, and **counter picks** (meta Pokémon that beat that team).
-- There's also a usage-weighted overall score, and a **counters to the top 12**
-  table: your answers and the meta's best counters for each.
+  Singles), a pairing heatmap, your best answer to each of their Pokémon with
+  the key calc (e.g. *Draco Meteor 83%*), and **counter picks** (meta Pokémon
+  that beat that team).
+- **Biggest threats**: the 30 most-used Pokémon ranked by
+  `usage × (your Pokémon it 2HKOs + 1) ÷ (answers + 1)`, where an *answer*
+  2HKOs it back while taking under 50%. Each row shows its hardest hits and
+  the meta's best counters to it.
+
+**Damage calculator**
+- Level-50 Champions damage with **Showdown's exact formula and rounding**.
+  `tests/test_damage.py` checks 102 cases roll-for-roll against Showdown's own
+  engine (spread moves, weather, terrain, crits, screens, Helping Hand, stat
+  stages, Body Press, Foul Play, Psyshock, Weather Ball, -ate abilities, Mega
+  Sol, resist berries, Life Orb...).
+- Pick any of your Pokémon or a meta Pokémon's popular set on either side, and
+  see each move's damage range, % of HP and KO chance.
 
 **Find what's missing**
 - **Recommendations**: every candidate gets five scores from 0 to 1, and you can
@@ -87,11 +101,43 @@ play on the ladder.
   Each pick also gets a written reason, e.g. *"paired often with Garganacl (2.0x);
   resists Water, Grass, Fighting, Ground"*, and an **Add to team** button that
   adds its most popular set.
-- **Threats** ranks popular Pokémon by `usage × (members hit super effectively + 1) ÷ (answers + 1)`.
-  An *answer* is a member that takes neutral or less from every type the threat
-  usually attacks with, and that hits it super effectively back.
 - **Meta explorer**: the usage leaderboard and each Pokémon's moves, items,
   abilities, spreads, teammates, and checks & counters.
+
+## How accurate are the recommendations?
+
+The recommender is tested on teams real players brought to
+[Limitless](https://play.limitlesstcg.com) tournaments. Those teams are never
+used to build it. The test (`src/evaluate.py`): take a real six, **hide one
+member, give the other five to the recommender, and see where the hidden
+Pokémon ranks** among about 68 candidates. This is repeated
+for every member of every team.
+
+Tournaments are split by date. The five signal weights were tuned by grid
+search on 4,003 teams from the older tournaments. Every number
+below comes from 1,546 teams in the 36 newest
+tournaments (2026-11-07 to 2026-11-13), which the tuning
+never saw.
+
+| model | top 1 | top 5 | top 10 | MRR |
+|---|---|---|---|---|
+| tuned weights | 34.9% | 63.0% | 73.8% | 0.477 |
+| hand-set weights | 21.6% | 47.5% | 59.3% | 0.345 |
+| synergy only | 21.0% | 49.5% | 61.9% | 0.350 |
+| popularity only | 6.5% | 35.6% | 47.1% | 0.204 |
+| random | 1.5% | 7.3% | 14.7% | 0.071 |
+
+- The tuned weights find the missing Pokémon **first try 35% of the
+  time** and in the top 10 74% of the time. That's
+  38% better MRR than the
+  weights the recommender originally shipped with.
+- The tuning learned **synergy 0.57, meta 0.29,
+  defense 0.14**, with **offense and roles at 0**: real players pick partners
+  that are proven together and patch type weaknesses, more than ones that fill a checklist.
+  Those two signals still explain each pick in the app, and you can raise their weights there.
+- About 6% of hidden Pokémon are outside the candidate pool
+  (the usage top 80), which caps every model's scores.
+- `python scripts/evaluate.py` reproduces this. The monthly data refresh re-runs it on new tournaments.
 
 ## Data
 
@@ -99,8 +145,9 @@ play on the ladder.
 |---|---|---|
 | Legal Pokémon, Megas, movepools, items, abilities, type chart | [Pokémon Showdown](https://github.com/smogon/pokemon-showdown)'s `champions` mod, the same code that validates teams on the ladder | `scripts/export_dex.js` → `data/dex/<regulation>.json` |
 | Usage, sets, teammates, checks & counters | [Smogon monthly usage stats](https://www.smogon.com/stats/) (`chaos` JSON, 1630+ rating) | `scripts/fetch_usage.py` → `data/usage/<format>.json` |
+| Real tournament teams (for evaluation) | [Limitless](https://play.limitlesstcg.com) public API, Reg M-C tournaments with 16+ players | `scripts/fetch_tournaments.py` → `data/tournaments/<regulation>.json` |
 
-The **Refresh data** GitHub Action rebuilds both on the 3rd of every month,
+The **Refresh data** GitHub Action rebuilds all of these on the 3rd of every month,
 after Smogon publishes the previous month's stats. It also runs whenever the
 data scripts change, and you can start it by hand from the Actions tab. If
 anything changed, it commits the new data. So when a new regulation launches,
@@ -113,8 +160,11 @@ A few things to know about the data:
 - Teammate % is P(B on team | A on team), so it isn't symmetric. The recommender
   uses *lift* so that Pokémon that are just popular everywhere don't dominate the
   results.
-- The type analysis doesn't calculate damage. It models types and the abilities
-  that change type matchups, but not items, stat boosts or field effects.
+- The defensive heatmap is type-based (with the abilities that change type
+  matchups). Damage-based views are the Matchups tab and the Damage calc tab.
+- Tournament team lists from [Limitless](https://play.limitlesstcg.com) are used
+  only to *evaluate* the recommender, never to build it, so the evaluation is
+  an honest out-of-sample test.
 
 ## Run it
 
@@ -153,15 +203,17 @@ The tests check:
 - the Champions stat formula, including nature rounding, and the Stat Point limits
 - paste import and export round-trips, including Megas named directly in a paste
 - every legality rule
+- the damage calculator, roll-for-roll against Showdown's engine
 - chaos-file parsing (using a fixture in Smogon's real layout)
-- the analysis views, threat logic and recommender
-
-CI runs the tests and a check that the app starts.
+- the analysis views, matchups, threats, recommender and evaluation harness
+- the app itself, driven headlessly through adding, removing, presets and format
+  changes
 
 ## Project structure
 
 ```
-├── app.py                    Streamlit UI
+├── app.py                    page layout only
+├── ui/                       one module per tab, plus shared state and helpers
 ├── src/
 │   ├── formats.py            supported formats (regulation, singles/doubles, pick count)
 │   ├── dex.py                legal-data loader: species, Mega forms, items, learnsets
@@ -171,16 +223,21 @@ CI runs the tests and a check that the app starts.
 │   ├── legality.py           regulation checks
 │   ├── type_chart.py         type effectiveness plus abilities that change matchups
 │   ├── usage.py              Smogon chaos parsing, popular sets, team-sheet merging of Megas
-│   ├── analysis.py           type matchups, coverage, role checklist, speed tiers, threats
+│   ├── analysis.py           type matchups, coverage, role checklist, speed tiers
+│   ├── damage.py             damage calculator (Showdown-exact)
 │   ├── presets.py            common sets assembled from usage stats
 │   ├── roles.py              role tags for meta Pokémon and for your sets
-│   ├── matchup.py            meta-team reconstruction, pair scores, bring-N, counter picks
-│   └── recommend.py          explainable multi-signal recommender
+│   ├── matchup.py            meta teams, damage-based pair scores, bring-N, counters, threats
+│   ├── recommend.py          explainable multi-signal recommender
+│   └── evaluate.py           hide-one-member evaluation on real tournament teams
 ├── scripts/
 │   ├── export_dex.js         Showdown → data/dex
-│   └── fetch_usage.py        Smogon → data/usage
-├── data/dex, data/usage      generated data (committed so the app runs without setup)
-├── tests/                    unittest suite and chaos fixture
+│   ├── fetch_usage.py        Smogon → data/usage
+│   ├── fetch_tournaments.py  Limitless → data/tournaments
+│   ├── evaluate.py           runs the evaluation → data/evaluation
+│   └── make_damage_vectors.js  Showdown → damage test vectors
+├── data/                     generated data (committed so the app runs without setup)
+├── tests/                    unittest suite and fixtures
 └── .github/workflows/        tests and the monthly data refresh
 ```
 
@@ -193,6 +250,7 @@ CI runs the tests and a check that the app starts.
   Megas, an automated data pipeline, threat analysis, and a multi-signal
   explainable recommender
 - [x] Presets, role tags, and team-vs-meta matchups with bring-N and counter picks
-- [ ] Stage 5: learned embeddings (e.g. word2vec on tournament team lists) as an extra synergy signal, evaluated against held-out teams
-- [ ] Stage 6: a damage calculator for the matchups the threat view flags
+- [x] Damage calculator verified against Showdown; damage-based matchups and threats
+- [x] Evaluation on real tournament teams, with tuned weights and baselines
+- [ ] Stage 5: learned embeddings (e.g. word2vec on tournament team lists) as an extra synergy signal, measured with the same evaluation
 - [ ] Deploy to Streamlit Community Cloud

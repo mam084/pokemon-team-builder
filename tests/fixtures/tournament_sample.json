@@ -1,0 +1,827 @@
+{
+"source": "fixture",
+"format": "M-C",
+"tournaments": 5,
+"teams": [
+{
+"tournament": "t0",
+"date": "2026-10-10",
+"players": 32,
+"placing": 1,
+"wins": 5,
+"losses": 2,
+"team": [
+{
+"species": "Rillaboom",
+"item": "Miracle Seed",
+"ability": "Grassy Surge",
+"nature": "Adamant",
+"moves": [
+"Fake Out",
+"Grassy Glide",
+"Wood Hammer",
+"U-turn"
+]
+},
+{
+"species": "Incineroar",
+"item": "Sitrus Berry",
+"ability": "Intimidate",
+"nature": "Careful",
+"moves": [
+"Fake Out",
+"Flare Blitz",
+"Parting Shot",
+"Protect"
+]
+},
+{
+"species": "Garchomp",
+"item": "Garchompite Z",
+"ability": "Rough Skin",
+"nature": "Timid",
+"moves": [
+"Draco Meteor",
+"Earth Power",
+"Protect",
+"Flamethrower"
+]
+},
+{
+"species": "Sneasler",
+"item": "White Herb",
+"ability": "Unburden",
+"nature": "Jolly",
+"moves": [
+"Close Combat",
+"Dire Claw",
+"Protect",
+"Fake Out"
+]
+},
+{
+"species": "Farigiraf",
+"item": "Electric Seed",
+"ability": "Armor Tail",
+"nature": "Relaxed",
+"moves": [
+"Trick Room",
+"Psychic",
+"Protect",
+"Helping Hand"
+]
+},
+{
+"species": "Basculegion",
+"item": "Mystic Water",
+"ability": "Adaptability",
+"nature": "Adamant",
+"moves": [
+"Wave Crash",
+"Aqua Jet",
+"Protect",
+"Last Respects"
+]
+}
+]
+},
+{
+"tournament": "t0",
+"date": "2026-10-11",
+"players": 32,
+"placing": 2,
+"wins": 5,
+"losses": 2,
+"team": [
+{
+"species": "Rillaboom",
+"item": "Miracle Seed",
+"ability": "Grassy Surge",
+"nature": "Adamant",
+"moves": [
+"Fake Out",
+"Grassy Glide",
+"Wood Hammer",
+"U-turn"
+]
+},
+{
+"species": "Incineroar",
+"item": "Sitrus Berry",
+"ability": "Intimidate",
+"nature": "Careful",
+"moves": [
+"Fake Out",
+"Flare Blitz",
+"Parting Shot",
+"Protect"
+]
+},
+{
+"species": "Garchomp",
+"item": "Garchompite Z",
+"ability": "Rough Skin",
+"nature": "Timid",
+"moves": [
+"Draco Meteor",
+"Earth Power",
+"Protect",
+"Flamethrower"
+]
+},
+{
+"species": "Garganacl",
+"item": "Leftovers",
+"ability": "Purifying Salt",
+"nature": "Careful",
+"moves": [
+"Salt Cure",
+"Protect",
+"Wide Guard",
+"Recover"
+]
+},
+{
+"species": "Sinistcha",
+"item": "Mental Herb",
+"ability": "Hospitality",
+"nature": "Bold",
+"moves": [
+"Matcha Gotcha",
+"Rage Powder",
+"Trick Room",
+"Protect"
+]
+},
+{
+"species": "Gholdengo",
+"item": "Life Orb",
+"ability": "Good as Gold",
+"nature": "Modest",
+"moves": [
+"Make It Rain",
+"Shadow Ball",
+"Nasty Plot",
+"Protect"
+]
+}
+]
+},
+{
+"tournament": "t1",
+"date": "2026-10-12",
+"players": 32,
+"placing": 1,
+"wins": 5,
+"losses": 2,
+"team": [
+{
+"species": "Rillaboom",
+"item": "Miracle Seed",
+"ability": "Grassy Surge",
+"nature": "Adamant",
+"moves": [
+"Fake Out",
+"Grassy Glide",
+"Wood Hammer",
+"U-turn"
+]
+},
+{
+"species": "Incineroar",
+"item": "Sitrus Berry",
+"ability": "Intimidate",
+"nature": "Careful",
+"moves": [
+"Fake Out",
+"Flare Blitz",
+"Parting Shot",
+"Protect"
+]
+},
+{
+"species": "Garchomp",
+"item": "Garchompite Z",
+"ability": "Rough Skin",
+"nature": "Timid",
+"moves": [
+"Draco Meteor",
+"Earth Power",
+"Protect",
+"Flamethrower"
+]
+},
+{
+"species": "Sneasler",
+"item": "White Herb",
+"ability": "Unburden",
+"nature": "Jolly",
+"moves": [
+"Close Combat",
+"Dire Claw",
+"Protect",
+"Fake Out"
+]
+},
+{
+"species": "Farigiraf",
+"item": "Electric Seed",
+"ability": "Armor Tail",
+"nature": "Relaxed",
+"moves": [
+"Trick Room",
+"Psychic",
+"Protect",
+"Helping Hand"
+]
+},
+{
+"species": "Basculegion",
+"item": "Mystic Water",
+"ability": "Adaptability",
+"nature": "Adamant",
+"moves": [
+"Wave Crash",
+"Aqua Jet",
+"Protect",
+"Last Respects"
+]
+}
+]
+},
+{
+"tournament": "t1",
+"date": "2026-10-13",
+"players": 32,
+"placing": 2,
+"wins": 5,
+"losses": 2,
+"team": [
+{
+"species": "Rillaboom",
+"item": "Miracle Seed",
+"ability": "Grassy Surge",
+"nature": "Adamant",
+"moves": [
+"Fake Out",
+"Grassy Glide",
+"Wood Hammer",
+"U-turn"
+]
+},
+{
+"species": "Incineroar",
+"item": "Sitrus Berry",
+"ability": "Intimidate",
+"nature": "Careful",
+"moves": [
+"Fake Out",
+"Flare Blitz",
+"Parting Shot",
+"Protect"
+]
+},
+{
+"species": "Garchomp",
+"item": "Garchompite Z",
+"ability": "Rough Skin",
+"nature": "Timid",
+"moves": [
+"Draco Meteor",
+"Earth Power",
+"Protect",
+"Flamethrower"
+]
+},
+{
+"species": "Garganacl",
+"item": "Leftovers",
+"ability": "Purifying Salt",
+"nature": "Careful",
+"moves": [
+"Salt Cure",
+"Protect",
+"Wide Guard",
+"Recover"
+]
+},
+{
+"species": "Sinistcha",
+"item": "Mental Herb",
+"ability": "Hospitality",
+"nature": "Bold",
+"moves": [
+"Matcha Gotcha",
+"Rage Powder",
+"Trick Room",
+"Protect"
+]
+},
+{
+"species": "Gholdengo",
+"item": "Life Orb",
+"ability": "Good as Gold",
+"nature": "Modest",
+"moves": [
+"Make It Rain",
+"Shadow Ball",
+"Nasty Plot",
+"Protect"
+]
+}
+]
+},
+{
+"tournament": "t2",
+"date": "2026-10-14",
+"players": 32,
+"placing": 1,
+"wins": 5,
+"losses": 2,
+"team": [
+{
+"species": "Rillaboom",
+"item": "Miracle Seed",
+"ability": "Grassy Surge",
+"nature": "Adamant",
+"moves": [
+"Fake Out",
+"Grassy Glide",
+"Wood Hammer",
+"U-turn"
+]
+},
+{
+"species": "Incineroar",
+"item": "Sitrus Berry",
+"ability": "Intimidate",
+"nature": "Careful",
+"moves": [
+"Fake Out",
+"Flare Blitz",
+"Parting Shot",
+"Protect"
+]
+},
+{
+"species": "Garchomp",
+"item": "Garchompite Z",
+"ability": "Rough Skin",
+"nature": "Timid",
+"moves": [
+"Draco Meteor",
+"Earth Power",
+"Protect",
+"Flamethrower"
+]
+},
+{
+"species": "Sneasler",
+"item": "White Herb",
+"ability": "Unburden",
+"nature": "Jolly",
+"moves": [
+"Close Combat",
+"Dire Claw",
+"Protect",
+"Fake Out"
+]
+},
+{
+"species": "Farigiraf",
+"item": "Electric Seed",
+"ability": "Armor Tail",
+"nature": "Relaxed",
+"moves": [
+"Trick Room",
+"Psychic",
+"Protect",
+"Helping Hand"
+]
+},
+{
+"species": "Basculegion",
+"item": "Mystic Water",
+"ability": "Adaptability",
+"nature": "Adamant",
+"moves": [
+"Wave Crash",
+"Aqua Jet",
+"Protect",
+"Last Respects"
+]
+}
+]
+},
+{
+"tournament": "t2",
+"date": "2026-10-15",
+"players": 32,
+"placing": 2,
+"wins": 5,
+"losses": 2,
+"team": [
+{
+"species": "Rillaboom",
+"item": "Miracle Seed",
+"ability": "Grassy Surge",
+"nature": "Adamant",
+"moves": [
+"Fake Out",
+"Grassy Glide",
+"Wood Hammer",
+"U-turn"
+]
+},
+{
+"species": "Incineroar",
+"item": "Sitrus Berry",
+"ability": "Intimidate",
+"nature": "Careful",
+"moves": [
+"Fake Out",
+"Flare Blitz",
+"Parting Shot",
+"Protect"
+]
+},
+{
+"species": "Garchomp",
+"item": "Garchompite Z",
+"ability": "Rough Skin",
+"nature": "Timid",
+"moves": [
+"Draco Meteor",
+"Earth Power",
+"Protect",
+"Flamethrower"
+]
+},
+{
+"species": "Garganacl",
+"item": "Leftovers",
+"ability": "Purifying Salt",
+"nature": "Careful",
+"moves": [
+"Salt Cure",
+"Protect",
+"Wide Guard",
+"Recover"
+]
+},
+{
+"species": "Sinistcha",
+"item": "Mental Herb",
+"ability": "Hospitality",
+"nature": "Bold",
+"moves": [
+"Matcha Gotcha",
+"Rage Powder",
+"Trick Room",
+"Protect"
+]
+},
+{
+"species": "Gholdengo",
+"item": "Life Orb",
+"ability": "Good as Gold",
+"nature": "Modest",
+"moves": [
+"Make It Rain",
+"Shadow Ball",
+"Nasty Plot",
+"Protect"
+]
+}
+]
+},
+{
+"tournament": "t3",
+"date": "2026-10-16",
+"players": 32,
+"placing": 1,
+"wins": 5,
+"losses": 2,
+"team": [
+{
+"species": "Rillaboom",
+"item": "Miracle Seed",
+"ability": "Grassy Surge",
+"nature": "Adamant",
+"moves": [
+"Fake Out",
+"Grassy Glide",
+"Wood Hammer",
+"U-turn"
+]
+},
+{
+"species": "Incineroar",
+"item": "Sitrus Berry",
+"ability": "Intimidate",
+"nature": "Careful",
+"moves": [
+"Fake Out",
+"Flare Blitz",
+"Parting Shot",
+"Protect"
+]
+},
+{
+"species": "Garchomp",
+"item": "Garchompite Z",
+"ability": "Rough Skin",
+"nature": "Timid",
+"moves": [
+"Draco Meteor",
+"Earth Power",
+"Protect",
+"Flamethrower"
+]
+},
+{
+"species": "Sneasler",
+"item": "White Herb",
+"ability": "Unburden",
+"nature": "Jolly",
+"moves": [
+"Close Combat",
+"Dire Claw",
+"Protect",
+"Fake Out"
+]
+},
+{
+"species": "Farigiraf",
+"item": "Electric Seed",
+"ability": "Armor Tail",
+"nature": "Relaxed",
+"moves": [
+"Trick Room",
+"Psychic",
+"Protect",
+"Helping Hand"
+]
+},
+{
+"species": "Basculegion",
+"item": "Mystic Water",
+"ability": "Adaptability",
+"nature": "Adamant",
+"moves": [
+"Wave Crash",
+"Aqua Jet",
+"Protect",
+"Last Respects"
+]
+}
+]
+},
+{
+"tournament": "t3",
+"date": "2026-10-17",
+"players": 32,
+"placing": 2,
+"wins": 5,
+"losses": 2,
+"team": [
+{
+"species": "Rillaboom",
+"item": "Miracle Seed",
+"ability": "Grassy Surge",
+"nature": "Adamant",
+"moves": [
+"Fake Out",
+"Grassy Glide",
+"Wood Hammer",
+"U-turn"
+]
+},
+{
+"species": "Incineroar",
+"item": "Sitrus Berry",
+"ability": "Intimidate",
+"nature": "Careful",
+"moves": [
+"Fake Out",
+"Flare Blitz",
+"Parting Shot",
+"Protect"
+]
+},
+{
+"species": "Garchomp",
+"item": "Garchompite Z",
+"ability": "Rough Skin",
+"nature": "Timid",
+"moves": [
+"Draco Meteor",
+"Earth Power",
+"Protect",
+"Flamethrower"
+]
+},
+{
+"species": "Garganacl",
+"item": "Leftovers",
+"ability": "Purifying Salt",
+"nature": "Careful",
+"moves": [
+"Salt Cure",
+"Protect",
+"Wide Guard",
+"Recover"
+]
+},
+{
+"species": "Sinistcha",
+"item": "Mental Herb",
+"ability": "Hospitality",
+"nature": "Bold",
+"moves": [
+"Matcha Gotcha",
+"Rage Powder",
+"Trick Room",
+"Protect"
+]
+},
+{
+"species": "Gholdengo",
+"item": "Life Orb",
+"ability": "Good as Gold",
+"nature": "Modest",
+"moves": [
+"Make It Rain",
+"Shadow Ball",
+"Nasty Plot",
+"Protect"
+]
+}
+]
+},
+{
+"tournament": "t4",
+"date": "2026-10-18",
+"players": 32,
+"placing": 1,
+"wins": 5,
+"losses": 2,
+"team": [
+{
+"species": "Rillaboom",
+"item": "Miracle Seed",
+"ability": "Grassy Surge",
+"nature": "Adamant",
+"moves": [
+"Fake Out",
+"Grassy Glide",
+"Wood Hammer",
+"U-turn"
+]
+},
+{
+"species": "Incineroar",
+"item": "Sitrus Berry",
+"ability": "Intimidate",
+"nature": "Careful",
+"moves": [
+"Fake Out",
+"Flare Blitz",
+"Parting Shot",
+"Protect"
+]
+},
+{
+"species": "Garchomp",
+"item": "Garchompite Z",
+"ability": "Rough Skin",
+"nature": "Timid",
+"moves": [
+"Draco Meteor",
+"Earth Power",
+"Protect",
+"Flamethrower"
+]
+},
+{
+"species": "Sneasler",
+"item": "White Herb",
+"ability": "Unburden",
+"nature": "Jolly",
+"moves": [
+"Close Combat",
+"Dire Claw",
+"Protect",
+"Fake Out"
+]
+},
+{
+"species": "Farigiraf",
+"item": "Electric Seed",
+"ability": "Armor Tail",
+"nature": "Relaxed",
+"moves": [
+"Trick Room",
+"Psychic",
+"Protect",
+"Helping Hand"
+]
+},
+{
+"species": "Basculegion",
+"item": "Mystic Water",
+"ability": "Adaptability",
+"nature": "Adamant",
+"moves": [
+"Wave Crash",
+"Aqua Jet",
+"Protect",
+"Last Respects"
+]
+}
+]
+},
+{
+"tournament": "t4",
+"date": "2026-10-19",
+"players": 32,
+"placing": 2,
+"wins": 5,
+"losses": 2,
+"team": [
+{
+"species": "Rillaboom",
+"item": "Miracle Seed",
+"ability": "Grassy Surge",
+"nature": "Adamant",
+"moves": [
+"Fake Out",
+"Grassy Glide",
+"Wood Hammer",
+"U-turn"
+]
+},
+{
+"species": "Incineroar",
+"item": "Sitrus Berry",
+"ability": "Intimidate",
+"nature": "Careful",
+"moves": [
+"Fake Out",
+"Flare Blitz",
+"Parting Shot",
+"Protect"
+]
+},
+{
+"species": "Garchomp",
+"item": "Garchompite Z",
+"ability": "Rough Skin",
+"nature": "Timid",
+"moves": [
+"Draco Meteor",
+"Earth Power",
+"Protect",
+"Flamethrower"
+]
+},
+{
+"species": "Garganacl",
+"item": "Leftovers",
+"ability": "Purifying Salt",
+"nature": "Careful",
+"moves": [
+"Salt Cure",
+"Protect",
+"Wide Guard",
+"Recover"
+]
+},
+{
+"species": "Sinistcha",
+"item": "Mental Herb",
+"ability": "Hospitality",
+"nature": "Bold",
+"moves": [
+"Matcha Gotcha",
+"Rage Powder",
+"Trick Room",
+"Protect"
+]
+},
+{
+"species": "Gholdengo",
+"item": "Life Orb",
+"ability": "Good as Gold",
+"nature": "Modest",
+"moves": [
+"Make It Rain",
+"Shadow Ball",
+"Nasty Plot",
+"Protect"
+]
+}
+]
+}
+]
+}
