@@ -27,6 +27,11 @@ play on the ladder.
   and Stat Point limits. You also get a warning when more than one Pokémon holds
   a Mega Stone, since only one can Mega Evolve per battle.
 - Import and export Showdown pastes.
+- **Your team lives in the page link.** The address bar updates as you build,
+  so refreshing or bookmarking the page keeps your team, and the **Share**
+  link in the sidebar sends it to anyone. The team is stored as a compressed
+  Showdown paste in the URL (`src/share.py`), so nothing is saved on a server
+  and there are no accounts.
 
 **Presets and roles**
 - **Presets**: up to six common sets for each Pokémon, built from ladder stats.
@@ -220,6 +225,7 @@ The tests check:
 │   ├── stats.py              Champions stat formula and Stat Point rules
 │   ├── team.py               PokemonSet / team model
 │   ├── paste.py              Showdown paste import and export
+│   ├── share.py              team <-> compressed URL token for links
 │   ├── legality.py           regulation checks
 │   ├── type_chart.py         type effectiveness plus abilities that change matchups
 │   ├── usage.py              Smogon chaos parsing, popular sets, team-sheet merging of Megas
