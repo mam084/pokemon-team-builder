@@ -78,14 +78,15 @@ play on the ladder.
 
   | signal | meaning |
   |---|---|
-  | synergy | how much more often it appears next to your members than chance predicts. This is the mean log-lift from teammate stats, P(B\|A) / P(B) |
+  | synergy | how much more often it appears next to your members than chance predicts, averaged over the **whole team** (mean log2 lift from teammate stats, P(B\|A) / P(B)). Lift is shrunk toward 1 for rare Pokémon. No relationship scores 0.33 |
   | defense | how well it resists the types your team is weak to |
   | offense | how well it hits popular Pokémon your team can't hit super effectively (weighted by usage) |
   | roles | whether it brings a role your team is missing |
   | meta | its overall usage, as a prior |
 
-  Each pick also gets a written reason, e.g. *"5.0x more common than usual next to
-  Garganacl; resists Water, Grass, Ground"*.
+  Each pick also gets a written reason, e.g. *"paired often with Garganacl (2.0x);
+  resists Water, Grass, Fighting, Ground"*, and an **Add to team** button that
+  adds its most popular set.
 - **Threats** ranks popular Pokémon by `usage × (members hit super effectively + 1) ÷ (answers + 1)`.
   An *answer* is a member that takes neutral or less from every type the threat
   usually attacks with, and that hits it super effectively back.

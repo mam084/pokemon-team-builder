@@ -9,8 +9,12 @@ version scores every legal candidate on five explainable signals, each scaled
 to 0-1, and combines them with user-adjustable weights:
 
     synergy   how much more often the candidate appears next to the current
-              members than chance would predict (mean log-lift from Smogon
-              teammate stats)
+              members than chance would predict. This is a *whole-team*
+              score: the mean of log2(lift) over every current member, so a
+              candidate that fits two members beats one that fits only one.
+              Lift is shrunk toward 1 for rare Pokemon, and mapped to 0-1 so
+              that "no relationship" (lift 1) scores 0.33 and lift >= 4 with
+              everyone scores 1.
     defense   does it resist / ignore the types the team is weak to?
     offense   does it hit popular Pokemon the team can't hit super effectively?
     roles     does it commonly bring a missing job (Fake Out, speed control...)?
@@ -147,15 +151,17 @@ def recommend(
         cand_types = [t.lower() for t in form.types]
         reasons = []
 
-        # synergy: mean log-lift with each current member (log2(1+lift), capped)
+        # synergy: mean log2(lift) across the whole team, mapped so lift 1 -> 0.33, lift 4 -> 1
         synergy = 0.0
         if usage is not None and team_species:
-            lifts = [usage.lift(member, name) for member in team_species if usage.entry(member)]
-            if lifts:
-                synergy = min(1.0, sum(math.log2(1 + l) for l in lifts) / len(lifts) / 2)
-                best = max(team_species, key=lambda m: usage.lift(m, name))
-                if usage.lift(best, name) >= 1.5:
-                    reasons.append(f"{usage.lift(best, name):.1f}x more common than usual next to {best}")
+            pairs = {m: usage.pair_lift(m, name) for m in team_species if usage.entry(m)}
+            if pairs:
+                mean_log = sum(math.log2(lift) for lift, _ in pairs.values()) / len(pairs)
+                synergy = min(1.0, max(0.0, (mean_log + 1) / 3))
+                strong = sorted(((lift, m) for m, (lift, known) in pairs.items() if known and lift >= 1.5),
+                                reverse=True)
+                if strong:
+                    reasons.append("paired often with " + ", ".join(f"{m} ({lift:.1f}x)" for lift, m in strong[:3]))
 
         # defense: weighted share of the team's weak types it resists, minus ones it's also weak to
         defense = 0.0
@@ -209,7 +215,10 @@ def recommend(
     df = pd.DataFrame(rows)
     if df.empty:
         return df
-    return df.sort_values("score", ascending=False).head(top_n).reset_index(drop=True)
+    # Garchomp and Garchomp-Mega-Z are one team-sheet Pokemon: keep its best-scoring form.
+    df["root"] = [_root(dex.get_species(n)) for n in df["pokemon"]]
+    df = df.sort_values("score", ascending=False).drop_duplicates("root").drop(columns="root")
+    return df.head(top_n).reset_index(drop=True)
 
 
 __all__ = ["DEFAULT_WEIGHTS", "TeamNeeds", "team_needs", "recommend", "ALL_TYPES"]
