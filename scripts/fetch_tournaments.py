@@ -28,15 +28,20 @@ ROOT = Path(__file__).resolve().parent.parent
 OUT_DIR = ROOT / "data" / "tournaments"
 API = "https://play.limitlesstcg.com/api"
 
-# our regulation key -> Limitless VGC format id
-REGULATIONS = {"regmc": "M-C", "regmb": "M-B"}
+# our regulation key -> Limitless VGC format id (only the current regulation is
+# evaluated; add older ones here if needed)
+REGULATIONS = {"regmc": "M-C"}
+DELAY = 1.0  # seconds between requests; the API is free, so stay well under its rate limit
 
 
 def get(path: str, **params):
-    for attempt in range(3):
-        response = requests.get(f"{API}{path}", params=params, timeout=60)
+    for attempt in range(4):
+        time.sleep(DELAY)
+        response = requests.get(f"{API}{path}", params=params, timeout=30)
         if response.status_code == 429:
-            time.sleep(5 * (attempt + 1))
+            wait = float(response.headers.get("Retry-After") or 10 * (attempt + 1))
+            print(f"  rate limited, waiting {wait:.0f}s", flush=True)
+            time.sleep(wait)
             continue
         response.raise_for_status()
         return response.json()
@@ -47,8 +52,8 @@ def list_tournaments(fmt: str, min_players: int, max_tournaments: int) -> list[d
     found, page = [], 1
     while len(found) < max_tournaments:
         batch = get("/tournaments", game="VGC", format=fmt, limit=100, page=page)
-        if not batch:
-            break
+        if not batch or (found and batch[-1].get("id") == found[-1].get("id")):
+            break  # empty page, or the API ignored `page` and repeated itself
         found += [t for t in batch if t.get("format") == fmt and (t.get("players") or 0) >= min_players]
         page += 1
         if page > 50:
@@ -76,14 +81,16 @@ def clean_team(decklist) -> list[dict] | None:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--min-players", type=int, default=16)
-    parser.add_argument("--max-tournaments", type=int, default=250)
+    parser.add_argument("--max-tournaments", type=int, default=120)
     args = parser.parse_args()
     OUT_DIR.mkdir(parents=True, exist_ok=True)
 
     for reg, fmt in REGULATIONS.items():
         tournaments = list_tournaments(fmt, args.min_players, args.max_tournaments)
         teams = []
-        for t in tournaments:
+        for n, t in enumerate(tournaments, 1):
+            if n % 25 == 0:
+                print(f"  {reg}: {n}/{len(tournaments)} tournaments, {len(teams)} teams so far", flush=True)
             try:
                 standings = get(f"/tournaments/{t['id']}/standings")
             except requests.HTTPError as err:
@@ -103,7 +110,6 @@ def main() -> int:
                     "losses": record.get("losses"),
                     "team": team,
                 })
-            time.sleep(0.3)  # be polite to a free API
         teams.sort(key=lambda r: (r["date"], r["tournament"], r["placing"] or 9999))
         out = OUT_DIR / f"{reg}.json"
         out.write_text(json.dumps({

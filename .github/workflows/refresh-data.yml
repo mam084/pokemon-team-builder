@@ -58,6 +58,7 @@ jobs:
 
       - name: Fetch tournament team lists (Limitless)
         run: python scripts/fetch_tournaments.py
+        timeout-minutes: 30
         continue-on-error: true  # evaluation data only; never block a usage refresh
 
       - name: Commit changes

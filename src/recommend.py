@@ -96,8 +96,18 @@ def _root(species) -> str:
     return to_id(species.base_species) if species.is_mega else species.id
 
 
+_PROFILE_CACHE: dict[tuple, tuple] = {}
+
+
 def _candidate_profile(name: str, dex: Dex, usage: UsageData | None):
-    """Battle form, ability, move ids and STAB-ish attacking types a candidate brings."""
+    """Battle form, ability, move ids and STAB-ish attacking types a candidate brings (cached)."""
+    key = (name, id(dex), id(usage))
+    if key not in _PROFILE_CACHE:
+        _PROFILE_CACHE[key] = _build_profile(name, dex, usage)
+    return _PROFILE_CACHE[key]
+
+
+def _build_profile(name: str, dex: Dex, usage: UsageData | None):
     species = dex.get_species(name)
     if usage is not None and usage.entry(name):
         form, ability = meta_form(name, usage, dex)
@@ -123,9 +133,15 @@ def recommend(
     usage: UsageData | None,
     doubles: bool = True,
     weights: dict | None = None,
-    top_n: int = 12,
+    top_n: int | None = 12,
     pool_size: int = 80,
+    raw: bool = False,
 ) -> pd.DataFrame:
+    """
+    Rank candidates for the next slot. With raw=True, return every candidate
+    (unsorted, with a "root" column and the un-blended component scores) so
+    callers such as src/evaluate.py can re-rank under any weights cheaply.
+    """
     weights = {**DEFAULT_WEIGHTS, **(weights or {})}
     if usage is None:
         weights["synergy"] = weights["meta"] = 0.0
@@ -210,15 +226,18 @@ def recommend(
             "synergy": round(synergy, 2), "defense": round(defense, 2), "offense": round(offense, 2),
             "roles": round(roles, 2), "meta": round(meta, 2),
             "why": "; ".join(reasons) or "solid all-round pick", "note": note,
+            "second_mega": bool(mega_on_team and form.is_mega),
         })
 
     df = pd.DataFrame(rows)
     if df.empty:
         return df
-    # Garchomp and Garchomp-Mega-Z are one team-sheet Pokemon: keep its best-scoring form.
     df["root"] = [_root(dex.get_species(n)) for n in df["pokemon"]]
-    df = df.sort_values("score", ascending=False).drop_duplicates("root").drop(columns="root")
-    return df.head(top_n).reset_index(drop=True)
+    if raw:
+        return df
+    # Garchomp and Garchomp-Mega-Z are one team-sheet Pokemon: keep its best-scoring form.
+    df = df.sort_values("score", ascending=False).drop_duplicates("root").drop(columns=["root", "second_mega"])
+    return (df.head(top_n) if top_n else df).reset_index(drop=True)
 
 
 __all__ = ["DEFAULT_WEIGHTS", "TeamNeeds", "team_needs", "recommend", "ALL_TYPES"]

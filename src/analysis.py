@@ -10,8 +10,8 @@ Everything the app reports about a team:
 - roles:    a checklist of jobs a Champions team usually wants covered
             (Fake Out, speed control, redirection, Intimidate...)
 - speed:    real level-50 Speed stats next to the meta's common benchmarks
-- threats:  popular Pokemon that hit many members super effectively and that
-            the team has few answers to
+
+Team-vs-meta matchups and threats (with damage calcs) live in matchup.py.
 """
 
 from __future__ import annotations
@@ -38,6 +38,8 @@ class Member:
     ability_id: str
     stats: dict
     moves: list[dict]         # move records from the dex
+    pset: PokemonSet | None = None
+    battler: object = None    # src.damage.Battler, for damage calcs
 
     @property
     def damaging_moves(self) -> list[dict]:
@@ -45,6 +47,8 @@ class Member:
 
 
 def build_members(team: list[PokemonSet], dex: Dex) -> list[Member]:
+    from src.damage import Battler  # local import: damage imports nothing from here, but keep it light
+
     members = []
     for pset in team:
         form = pset.battle_form(dex)
@@ -58,6 +62,8 @@ def build_members(team: list[PokemonSet], dex: Dex) -> list[Member]:
             ability_id=to_id(pset.battle_ability(dex)),
             stats=pset.stats(dex),
             moves=[dex.moves[to_id(m)] for m in pset.moves if to_id(m) in dex.moves],
+            pset=pset,
+            battler=Battler.from_set(pset, dex),
         ))
     return members
 
@@ -269,57 +275,3 @@ def speed_table(members: list[Member], dex: Dex, usage: UsageData | None, n: int
             note = "often Choice Scarf (x1.5)" if info["scarf"] else ""
             rows.append({"pokemon": info["pokemon"], "speed": info["common"], "who": "Meta (most common spread)", "note": note})
     return pd.DataFrame(rows).sort_values("speed", ascending=False).reset_index(drop=True)
-
-
-# --------------------------------------------------------------------------
-# Threats
-# --------------------------------------------------------------------------
-def attacking_types(name: str, usage: UsageData, dex: Dex, form: Species, min_pct: float = 20.0) -> list[str]:
-    """Types a meta Pokemon actually attacks with: its common damaging moves, else its STABs."""
-    types = []
-    for move_id, pct in usage.section(name, "moves").items():
-        mv = dex.moves.get(to_id(move_id))
-        if mv and pct >= min_pct and mv["category"] != "Status" and (mv["basePower"] or 0) > 0:
-            t = mv["type"].lower()
-            if t not in types:
-                types.append(t)
-    return types or [t.lower() for t in form.types]
-
-
-def threat_report(members: list[Member], dex: Dex, usage: UsageData, n: int = 40) -> pd.DataFrame:
-    """
-    Rank popular Pokemon by how much trouble they cause this team.
-
-    threat = usage share x (members it hits super effectively + 1) / (answers + 1)
-
-    An *answer* is a member that takes neutral-or-less from every type the
-    threat attacks with AND hits it super effectively itself.
-    """
-    rows = []
-    for name, pct in usage.ranked(n):
-        form, ability = meta_form(name, usage, dex)
-        if form is None:
-            continue
-        atk_types = attacking_types(name, usage, dex, form)
-        threat_types = [t.lower() for t in form.types]
-        pressured, answers = [], []
-        for m in members:
-            taken = max(ability_defensive_multiplier(m.types, t, m.ability_id) for t in atk_types)
-            if taken >= 2:
-                pressured.append(m.label)
-            dealt = max(
-                (ability_defensive_multiplier(threat_types, mv["type"].lower(), ability) for mv in m.damaging_moves),
-                default=0,
-            )
-            if taken <= 1 and dealt >= 2:
-                answers.append(m.label)
-        score = pct * (len(pressured) + 1) / (len(answers) + 1)
-        rows.append({
-            "pokemon": form.name, "usage %": pct, "attacks with": ", ".join(t.title() for t in atk_types),
-            "hits SE": len(pressured), "pressured": ", ".join(pressured) or "—",
-            "answers": ", ".join(answers) or "none", "threat score": round(score, 1),
-        })
-    df = pd.DataFrame(rows)
-    if df.empty:
-        return df
-    return df.sort_values("threat score", ascending=False).reset_index(drop=True)

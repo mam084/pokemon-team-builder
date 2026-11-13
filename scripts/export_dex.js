@@ -125,6 +125,15 @@ function exportRegulation(regKey, formatId) {
 			target: m.target,
 			spread: SPREAD_TARGETS.has(m.target),
 			flags: KEPT_FLAGS.filter(f => m.flags[f]),
+			// fields the damage calculator needs
+			multihit: m.multihit || null,
+			offensiveStat: m.overrideOffensiveStat || null,      // Body Press: "def"
+			defensiveStat: m.overrideDefensiveStat || null,      // Psyshock: "def"
+			usesTargetAttack: m.overrideOffensivePokemon === 'target', // Foul Play
+			alwaysCrits: !!m.willCrit,
+			hasSecondary: !!(m.secondaries && m.secondaries.length) || !!m.secondary,
+			recoil: !!(m.recoil || m.hasCrashDamage),
+			variablePower: !!m.basePowerCallback,
 			desc: describe('moves', m.id),
 		};
 	}
