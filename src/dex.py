@@ -25,9 +25,17 @@ STAT_LABELS = {"hp": "HP", "atk": "Atk", "def": "Def", "spa": "SpA", "spd": "SpD
 SPRITE_URL = "https://play.pokemonshowdown.com/sprites/gen5/{}.png"
 
 
+_NON_ID = re.compile(r"[^a-z0-9]")
+
+
+@lru_cache(maxsize=65536)
+def _to_id(text: str) -> str:
+    return _NON_ID.sub("", text.lower())
+
+
 def to_id(text: str | None) -> str:
     """Showdown-style id: lowercase alphanumerics only."""
-    return re.sub(r"[^a-z0-9]", "", (text or "").lower())
+    return _to_id(text or "")
 
 
 @dataclass(frozen=True)

@@ -20,7 +20,7 @@ def recommendations_tab(team, members, dex, usage, fmt) -> None:
                "**Synergy** is judged against your whole team: the average of how much more often the "
                "candidate appears next to each of your Pokémon than chance predicts.")
     accuracy_note(fmt)
-    with st.expander("Adjust weights"):
+    with st.expander("Adjust weights (defaults were tuned on real tournament teams)"):
         cols = st.columns(5)
         help_text = {
             "synergy": "Average over your whole team of how much more often it appears next to each member "

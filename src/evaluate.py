@@ -18,6 +18,7 @@ split by date: weights are tuned on the older 70% and every number reported
 is measured on the newest 30% (a forward-in-time test).
 
 Baselines on the same test set:
+    hand-set    the weights the recommender used before this evaluation
     popularity  rank by Smogon usage alone
     synergy     teammate co-occurrence lift alone (closest to the old recommender)
     random      expected Hit@k = k / pool size
@@ -35,12 +36,14 @@ import pandas as pd
 
 from src.analysis import build_members
 from src.dex import Dex, to_id
-from src.recommend import DEFAULT_WEIGHTS, _root, recommend
+from src.recommend import _root, recommend
 from src.team import PokemonSet
 from src.usage import UsageData
 
 TOURNAMENT_DIR = Path(__file__).resolve().parent.parent / "data" / "tournaments"
-SIGNALS = list(DEFAULT_WEIGHTS)
+SIGNALS = ["synergy", "defense", "offense", "roles", "meta"]
+# The weights the recommender shipped with before this evaluation existed (chosen by hand).
+HAND_SET_WEIGHTS = {"synergy": 0.30, "defense": 0.25, "offense": 0.15, "roles": 0.15, "meta": 0.15}
 KS = (1, 5, 10)
 
 
@@ -52,6 +55,47 @@ class Query:
     hidden_name: str
     table: pd.DataFrame      # raw recommender output for the other five
 
+    def __post_init__(self):
+        # Pre-arrange the table for fast re-ranking: rows sorted by root, so a
+        # weighted score's per-Pokemon max is one np.maximum.reduceat call.
+        t = self.table
+        if t.empty:
+            self.components = np.zeros((0, len(SIGNALS)))
+            self.mega, self.starts, self.hidden_group = np.zeros(0, bool), np.zeros(0, int), None
+            return
+        t = t.sort_values("root", kind="stable")
+        self.components = t[SIGNALS].to_numpy(dtype=float)
+        self.mega = t["second_mega"].to_numpy(dtype=bool)
+        roots = t["root"].to_numpy()
+        self.starts = np.flatnonzero(np.r_[True, roots[1:] != roots[:-1]])
+        group_roots = roots[self.starts]
+        hits = np.flatnonzero(group_roots == self.hidden_root)
+        self.hidden_group = int(hits[0]) if len(hits) else None
+
+
+REGIONAL = {"Alolan": "Alola", "Galarian": "Galar", "Hisuian": "Hisui", "Paldean": "Paldea"}
+SPECIAL_NAMES = {
+    "Eternal Flower Floette": "Floette-Eternal",
+    "Floette": "Floette-Eternal",          # only the Eternal Flower forme is legal (and has a Mega)
+    "Paldean Tauros Aqua Breed": "Tauros-Paldea-Aqua",
+    "Paldean Tauros Blaze Breed": "Tauros-Paldea-Blaze",
+    "Paldean Tauros Combat Breed": "Tauros-Paldea-Combat",
+}
+
+
+def normalize_species(name: str, dex: Dex) -> str:
+    """Limitless display names ("Hisuian Arcanine", "Wash Rotom") -> Showdown names."""
+    if dex.get_species(name):
+        return name
+    if name in SPECIAL_NAMES:
+        return SPECIAL_NAMES[name]
+    first, _, rest = name.partition(" ")
+    if first in REGIONAL:
+        return f"{rest}-{REGIONAL[first]}"
+    if rest == "Rotom":  # Wash / Heat / Mow / Frost / Fan Rotom
+        return f"Rotom-{first}"
+    return name
+
 
 def load_tournament_teams(regulation: str, dex: Dex, path: Path | None = None) -> list[dict]:
     """Tournament teams as {date, tournament, placing, sets: [PokemonSet x6]}; unknown species are skipped."""
@@ -62,7 +106,7 @@ def load_tournament_teams(regulation: str, dex: Dex, path: Path | None = None) -
     for row in json.loads(path.read_text())["teams"]:
         sets = []
         for mon in row["team"]:
-            species = dex.get_species(mon["species"])
+            species = dex.get_species(normalize_species(mon["species"], dex))
             if species is None:
                 break
             base = species
@@ -92,17 +136,15 @@ def build_queries(teams: list[dict], dex: Dex, usage: UsageData, doubles: bool =
 
 
 def rank_of(query: Query, weights: dict) -> int | None:
-    """1-based rank of the hidden Pokemon under these weights (None if not a candidate)."""
-    t = query.table
-    if t.empty:
+    """1-based rank of the hidden Pokemon under these weights (None if not a candidate).
+    Ties count against it (a tie with 3 others ranks it below them), so results are never optimistic."""
+    if query.hidden_group is None:
         return None
-    total = sum(weights.values()) or 1.0
-    score = sum(weights[s] * t[s] for s in SIGNALS) / total
-    score = np.where(t["second_mega"], score * 0.8, score)
-    best = pd.Series(score, index=t.index).groupby(t["root"]).max().sort_values(ascending=False)
-    if query.hidden_root not in best.index:
-        return None
-    return int(best.index.get_loc(query.hidden_root)) + 1
+    w = np.array([weights[s] for s in SIGNALS], dtype=float)
+    score = query.components @ w / (w.sum() or 1.0)
+    score = np.where(query.mega, score * 0.8, score)
+    best = np.maximum.reduceat(score, query.starts)
+    return int((best >= best[query.hidden_group]).sum())
 
 
 def metrics(queries: list[Query], weights: dict) -> dict:
@@ -121,7 +163,7 @@ def split_by_date(teams: list[dict], test_share: float = 0.3) -> tuple[list[dict
     return [t for t in teams if t["tournament"] not in test_ids], [t for t in teams if t["tournament"] in test_ids]
 
 
-def weight_grid(levels=(0.0, 0.5, 1.0)):
+def weight_grid(levels=(0.0, 0.25, 0.5, 0.75, 1.0)):
     for combo in itertools.product(levels, repeat=len(SIGNALS)):
         if any(combo):
             yield dict(zip(SIGNALS, combo))
@@ -151,7 +193,7 @@ def evaluate(regulation: str, dex: Dex, usage: UsageData, doubles: bool = True,
     tuned, train_metrics = tune(train_q)
     models = {
         "tuned weights": tuned,
-        "default weights": DEFAULT_WEIGHTS,
+        "hand-set weights": HAND_SET_WEIGHTS,
         "synergy only": {s: float(s == "synergy") for s in SIGNALS},
         "popularity only": {s: float(s == "meta") for s in SIGNALS},
     }

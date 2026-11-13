@@ -406,7 +406,7 @@ class TestEvaluation(unittest.TestCase):
     def test_report(self):
         report = evaluate("regmc", self.dex, self.usage, path=self.path)
         self.assertEqual(report["queries"], report["test_teams"] * 6)
-        for name in ("tuned weights", "default weights", "popularity only", "random"):
+        for name in ("tuned weights", "hand-set weights", "popularity only", "random"):
             m = report["results"][name]
             self.assertTrue(0 <= m["hit@1"] <= m["hit@5"] <= m["hit@10"] <= 1, (name, m))
         self.assertAlmostEqual(sum(report["tuned_weights"].values()), 1.0, places=2)

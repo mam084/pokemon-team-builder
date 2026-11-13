@@ -61,6 +61,11 @@ jobs:
         timeout-minutes: 30
         continue-on-error: true  # evaluation data only; never block a usage refresh
 
+      - name: Re-run the recommender evaluation on the new data
+        run: python scripts/evaluate.py
+        timeout-minutes: 45
+        continue-on-error: true
+
       - name: Commit changes
         run: |
           git config user.name "github-actions[bot]"

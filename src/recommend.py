@@ -37,7 +37,11 @@ from src.dex import Dex, to_id
 from src.type_chart import ALL_TYPES, ability_defensive_multiplier
 from src.usage import UsageData
 
-DEFAULT_WEIGHTS = {"synergy": 0.30, "defense": 0.25, "offense": 0.15, "roles": 0.15, "meta": 0.15}
+# Tuned on 4,003 real tournament teams and validated on 1,546 newer ones
+# (src/evaluate.py, results in data/evaluation/regmc.json). Offense and roles got
+# zero weight: they didn't help predict what players actually bring, so they
+# only shape the "why" text unless you raise them in the app.
+DEFAULT_WEIGHTS = {"synergy": 0.57, "defense": 0.14, "offense": 0.0, "roles": 0.0, "meta": 0.29}
 
 
 @dataclass
