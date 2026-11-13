@@ -125,6 +125,9 @@ streamlit run app.py          # data for every supported format is included
 ```
 
 Click **Example team** in the sidebar to load a Garganacl team for Reg M-C.
+The app has light and dark themes. It follows your device setting by default,
+and you can switch in the top-right menu under Settings. Charts change colors
+to match.
 
 To rebuild the data yourself:
 

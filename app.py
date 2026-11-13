@@ -31,18 +31,40 @@ from src.stats import format_sps
 from src.team import PokemonSet, default_set
 from src.usage import UsageData, load_usage
 
-st.set_page_config(page_title="Champions Team Builder", page_icon="🏆", layout="wide")
+st.set_page_config(page_title="Champions Team Builder", layout="wide")
 
 NONE = "—"
 SLOTS = 6
 
 # Palette (dataviz reference instance): diverging blue <-> red with a gray
 # midpoint for matchups, series blue for "your team", muted gray for context.
-BLUE, RED, GRAY_MID, MUTED, INK = "#2a78d6", "#e34948", "#f0efec", "#898781", "#52514e"
-MATCHUP_SCALE = [  # value = log2(multiplier), clipped to [-2, 2]; immunity drawn at -2.5
-    [0.0, "#104281"], [0.11, "#256abf"], [0.33, "#86b6ef"], [0.56, GRAY_MID],
-    [0.78, "#f2a3a2"], [1.0, "#b8282a"],
-]
+MUTED = "#898781"
+PALETTES = {
+    # Dataviz reference palette, stepped separately for each surface: on light the
+    # strongest effect is the darkest cell, on dark it is the brightest.
+    "light": {"blue": "#2a78d6", "context": "#c3c2b7", "mid": "#f0efec",
+              "resist": ("#104281", "#256abf", "#86b6ef"), "weak": ("#f2a3a2", "#b8282a")},
+    "dark": {"blue": "#3987e5", "context": "#52514e", "mid": "#383835",
+             # brightest steps that still hold white cell labels at >= 4:1
+             "resist": ("#2a78d6", "#1c5cab", "#104281"), "weak": ("#7a2223", "#d03b3b")},
+}
+
+
+def palette() -> dict:
+    """Chart colors for the theme the viewer is using (Settings menu: Light / Dark / System)."""
+    theme = getattr(getattr(st, "context", None), "theme", None)
+    mode = getattr(theme, "type", None) or "light"
+    return PALETTES["dark" if mode == "dark" else "light"]
+
+
+def matchup_scale() -> list:
+    """log2(multiplier) clipped to [-2, 2], immunity drawn at -2.5."""
+    p = palette()
+    strong, mid_r, mild_r = p["resist"]
+    mild_w, strong_w = p["weak"]
+    return [[0.0, strong], [0.11, mid_r], [0.33, mild_r], [0.56, p["mid"]], [0.78, mild_w], [1.0, strong_w]]
+
+
 TYPE_COLORS = {
     "Normal": "#9fa19f", "Fire": "#e62829", "Water": "#2980ef", "Electric": "#fac000",
     "Grass": "#3fa129", "Ice": "#3dcef3", "Fighting": "#ff8000", "Poison": "#9141cb",
@@ -238,7 +260,7 @@ def ranked_options(all_names: list[str], popular: dict, dex_lookup) -> list[str]
 # ==========================================================================
 def sidebar() -> tuple[str, Dex, UsageData | None]:
     with st.sidebar:
-        st.header("🏆 Champions Team Builder")
+        st.header("Champions Team Builder")
         fmt_id = st.selectbox(
             "Format", list(FORMATS), index=list(FORMATS).index(DEFAULT_FORMAT),
             format_func=lambda f: FORMATS[f].label,
@@ -282,6 +304,7 @@ def sidebar() -> tuple[str, Dex, UsageData | None]:
         if st.button("Clear team", width="stretch", type="secondary"):
             load_team([])
             st.rerun()
+        st.caption("Light or dark mode: open the ⋮ menu (top right), then Settings.")
         st.caption(f"Legality data: Pokémon Showdown ({dex.format_name}), exported {dex.generated_at}.")
     return fmt_id, dex, usage
 
@@ -305,7 +328,7 @@ def slot_editor(slot: int, dex: Dex, usage: UsageData | None) -> None:
         format_func=lambda n: f"{n}  ·  {sheet_usage[n]:.1f}%" if n in sheet_usage else n,
     )
     if current == NONE:
-        top[0].markdown("<div style='font-size:3rem;text-align:center;opacity:.3'>＋</div>", unsafe_allow_html=True)
+        top[0].markdown("<div style='font-size:3rem;text-align:center;opacity:.3'>+</div>", unsafe_allow_html=True)
         st.caption("Pick a Pokémon - sorted by usage, with its usage share shown.")
         return
 
@@ -437,7 +460,7 @@ def matchup_heatmap(matrix: pd.DataFrame) -> go.Figure:
     text = matrix.map(fmt_mult).values
     fig = go.Figure(go.Heatmap(
         z=z, x=list(matrix.columns), y=list(matrix.index), text=text, texttemplate="%{text}",
-        zmin=-2.5, zmax=2, colorscale=MATCHUP_SCALE, showscale=False, xgap=2, ygap=2,
+        zmin=-2.5, zmax=2, colorscale=matchup_scale(), showscale=False, xgap=2, ygap=2,
         customdata=matrix.values,
         hovertemplate="%{y} → %{x}: %{customdata}× damage<extra></extra>",
     ))
@@ -448,7 +471,8 @@ def matchup_heatmap(matrix: pd.DataFrame) -> go.Figure:
 
 def speed_chart(df: pd.DataFrame, trick_room: bool) -> go.Figure:
     df = df.sort_values("speed", ascending=trick_room).reset_index(drop=True)
-    colors = [BLUE if w == "Your team" else "#c3c2b7" for w in df["who"]]
+    p = palette()
+    colors = [p["blue"] if w == "Your team" else p["context"] for w in df["who"]]
     fig = go.Figure(go.Bar(
         x=df["speed"], y=df["pokemon"], orientation="h", marker_color=colors,
         text=df["speed"], textposition="outside", cliponaxis=False,
@@ -549,7 +573,7 @@ def recommendations_tab(team, members, dex, usage, fmt) -> None:
         st.markdown("**Add a suggestion**")
         cols = st.columns(5)
         for i, name in enumerate(recs["pokemon"].head(5)):
-            cols[i].button(f"＋ {name}", key=f"rec_add_{name}", width="stretch",
+            cols[i].button(f"+ {name}", key=f"rec_add_{name}", width="stretch",
                            on_click=add_to_team, args=(name, dex, usage))
 
 
@@ -562,12 +586,20 @@ def archetypes_for(fmt_id: str):
     return build_archetypes(usage, load_dex(fmt.regulation), team_size=6)
 
 
+def pair_scale() -> list:
+    """Diverging red (their side wins) -> neutral -> blue (yours wins)."""
+    scale = matchup_scale()
+    weak_strong, weak_soft, mid = scale[5][1], scale[4][1], scale[3][1]
+    light_r, strong = scale[2][1], scale[0][1]
+    return [[0, weak_strong], [0.33, weak_soft], [0.5, mid], [0.67, light_r], [1, strong]]
+
+
 def pair_heatmap(matrix: pd.DataFrame) -> go.Figure:
     z = matrix.clip(-3, 3).values
     fig = go.Figure(go.Heatmap(
         z=z, x=list(matrix.columns), y=list(matrix.index), text=matrix.round(1).values,
         texttemplate="%{text:+.1f}", zmin=-3, zmax=3, xgap=2, ygap=2, showscale=False,
-        colorscale=[[0, "#b8282a"], [0.33, "#f2a3a2"], [0.5, GRAY_MID], [0.67, "#86b6ef"], [1, "#104281"]],
+        colorscale=pair_scale(),
         hovertemplate="%{y} vs %{x}: %{z:+.1f}<extra></extra>",
     ))
     fig.update_layout(height=80 + 46 * len(matrix.index), margin=dict(l=10, r=10, t=10, b=10),
@@ -711,7 +743,7 @@ def bar_section(title: str, data: dict, dex: Dex, kind: str, n: int = 8) -> None
         entry = {"items": dex.items, "moves": dex.moves, "abilities": dex.abilities}.get(kind, {}).get(to_id(key))
         names.append(entry["name"] if entry else key)
     values = list(data.values())[:n]
-    fig = go.Figure(go.Bar(x=values, y=names, orientation="h", marker_color=BLUE,
+    fig = go.Figure(go.Bar(x=values, y=names, orientation="h", marker_color=palette()["blue"],
                            text=[f"{v:.0f}%" for v in values], textposition="outside", cliponaxis=False,
                            hovertemplate="%{y}: %{x:.1f}%<extra></extra>"))
     fig.update_layout(title=dict(text=title, font=dict(size=14)), height=60 + 26 * len(values),
@@ -744,7 +776,7 @@ def meta_tab(dex: Dex, usage: UsageData | None, team_size: int) -> None:
                              unsafe_allow_html=True)
             st.markdown("**Usually plays:** " + role_text(meta_roles(name, usage, dex, st.session_state.get("doubles", True)), 6, True))
             if team_size < SLOTS:
-                head[1].button(f"＋ Add {name} with its popular set", on_click=add_to_team,
+                head[1].button(f"Add {name} with its popular set", on_click=add_to_team,
                                args=(name, dex, usage))
         presets = [p for p in presets_for(name, usage, dex) if p.source == name] or presets_for(name, usage, dex)
         if presets:
@@ -759,7 +791,7 @@ def meta_tab(dex: Dex, usage: UsageData | None, team_size: int) -> None:
                         with st.expander("Showdown paste"):
                             st.code(export_paste([preset.pset]), language=None, wrap_lines=True)
                         if team_size < SLOTS:
-                            st.button("＋ Add to team", key=f"meta_preset_{name}_{i}", width="stretch",
+                            st.button("Add to team", key=f"meta_preset_{name}_{i}", width="stretch",
                                       on_click=add_set_to_team, args=(preset.pset,))
         c1, c2 = st.columns(2)
         with c1:
@@ -798,18 +830,18 @@ def main() -> None:
     warnings = [i for i in issues if i.level == "warning"]
     if team:
         if errors:
-            label = f"❌ {len(errors)} legality problem(s)"
+            label = f"{len(errors)} legality problem(s)"
         elif len(team) == SLOTS:
-            label = "✅ Legal for " + fmt.label
+            label = "Legal for " + fmt.label
         else:
-            label = f"🛠️ {len(team)}/6 - no rule violations so far"
+            label = f"{len(team)}/6 Pokémon - no rule violations so far"
         with st.expander(label + (f" · {len(warnings)} note(s)" if warnings else ""), expanded=bool(errors)):
             for i in errors:
                 st.error(i.message)
             for i in warnings:
                 st.warning(i.message)
 
-    tabs = st.tabs(["🧩 Team", "🛡️ Analysis", "⚔️ Matchups", "✨ Recommendations", "⚠️ Threats", "📊 Meta"])
+    tabs = st.tabs(["Team", "Analysis", "Matchups", "Recommendations", "Threats", "Meta"])
     with tabs[0]:
         team_tab(dex, usage)
     with tabs[1]:

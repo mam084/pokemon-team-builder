@@ -1,4 +1,16 @@
+# Both themes are defined, so the app follows the viewer's system setting and
+# the Settings menu (top-right) can switch between Light and Dark.
 [theme]
-primaryColor = "#2a78d6"
-base = "light"
 font = "sans serif"
+
+[theme.light]
+primaryColor = "#2a78d6"
+backgroundColor = "#fcfcfb"
+secondaryBackgroundColor = "#f3f2ee"
+textColor = "#0b0b0b"
+
+[theme.dark]
+primaryColor = "#3987e5"
+backgroundColor = "#1a1a19"
+secondaryBackgroundColor = "#252523"
+textColor = "#f0efec"
