@@ -31,6 +31,7 @@ from ui.recommendations_tab import recommendations_tab  # noqa: E402
 from ui.sidebar import sidebar  # noqa: E402
 from ui.state import current_team  # noqa: E402
 from ui.team_tab import team_strip, team_tab  # noqa: E402
+from ui.url_state import restore_from_url, sync_url  # noqa: E402
 
 
 def legality_banner(team, dex, fmt) -> None:
@@ -53,6 +54,7 @@ def legality_banner(team, dex, fmt) -> None:
 
 
 def main() -> None:
+    restore_from_url()  # a team in the link loads before any widget renders
     fmt_id, dex, usage = sidebar()
     fmt = FORMATS[fmt_id]
     st.session_state["doubles"] = fmt.is_doubles
@@ -76,6 +78,9 @@ def main() -> None:
         recommendations_tab(team, members, dex, usage, fmt)
     with tabs[5]:
         meta_tab(dex, usage, len(team))
+
+    # Keep the address bar in step with the team (read again: tab buttons may have changed it).
+    sync_url(current_team(), fmt_id)
 
 
 main()

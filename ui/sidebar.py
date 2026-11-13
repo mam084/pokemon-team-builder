@@ -9,6 +9,7 @@ from src.formats import DEFAULT_FORMAT, FORMATS
 from src.paste import export_paste, parse_paste
 from src.usage import UsageData, load_usage
 from ui.state import current_team, load_team
+from ui.url_state import share_link
 
 SAMPLE_TEAM = """Garganacl @ Leftovers
 Ability: Purifying Salt
@@ -69,10 +70,9 @@ Modest Nature
 def sidebar() -> tuple[str, Dex, UsageData | None]:
     with st.sidebar:
         st.header("Champions Team Builder")
-        fmt_id = st.selectbox(
-            "Format", list(FORMATS), index=list(FORMATS).index(DEFAULT_FORMAT),
-            format_func=lambda f: FORMATS[f].label,
-        )
+        if st.session_state.get("format") not in FORMATS:
+            st.session_state["format"] = DEFAULT_FORMAT
+        fmt_id = st.selectbox("Format", list(FORMATS), key="format", format_func=lambda f: FORMATS[f].label)
         fmt = FORMATS[fmt_id]
         dex = load_dex(fmt.regulation)
         usage = load_usage(fmt_id)
@@ -100,6 +100,9 @@ def sidebar() -> tuple[str, Dex, UsageData | None]:
             team, _ = parse_paste(SAMPLE_TEAM, dex)
             load_team(team)
             st.rerun()
+        notice = st.session_state.pop("url_notice", None)
+        if notice:
+            st.success(notice)
         for w in st.session_state.pop("import_warnings", []):
             st.warning(w)
 
@@ -109,6 +112,12 @@ def sidebar() -> tuple[str, Dex, UsageData | None]:
             with st.expander("Export paste"):
                 st.code(text, language=None)
             st.download_button("Download .txt", text, file_name="champions-team.txt", width="stretch")
+
+            st.divider()
+            st.subheader("Share")
+            st.caption("This page's address always holds your current team, so a refresh or a bookmark "
+                       "keeps it. Copy the link below to send it to someone.")
+            st.code(share_link(team, fmt_id), language=None, wrap_lines=True)
         if st.button("Clear team", width="stretch", type="secondary"):
             load_team([])
             st.rerun()
