@@ -1,7 +1,8 @@
 name: Refresh data
 
-# Rebuilds the legal-Pokemon dex from Pokemon Showdown's Champions mod and
-# pulls the newest Smogon usage stats, then commits whatever changed.
+# Rebuilds the legal-Pokemon dex from Pokemon Showdown's Champions mod, pulls
+# the newest Smogon usage stats and tournament team lists (Limitless), then
+# commits whatever changed.
 #
 # - monthly, a few days after Smogon publishes the previous month's stats
 # - on demand (Actions tab -> Refresh data -> Run workflow)
@@ -54,6 +55,10 @@ jobs:
         run: |
           pip install -r requirements.txt
           python scripts/fetch_usage.py
+
+      - name: Fetch tournament team lists (Limitless)
+        run: python scripts/fetch_tournaments.py
+        continue-on-error: true  # evaluation data only; never block a usage refresh
 
       - name: Commit changes
         run: |
