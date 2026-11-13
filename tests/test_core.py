@@ -18,7 +18,11 @@ from src.analysis import (build_members, coverage_vs_meta, defense_matrix, defen
 from src.dex import load_dex, to_id
 from src.legality import check_team, is_legal
 from src.paste import export_paste, parse_paste
+from src.matchup import (best_bring, build_archetypes, counter_picks, meta_matchups, opponent_members,
+                         pair_matrix, pair_score, team_score)
+from src.presets import presets_for
 from src.recommend import recommend
+from src.roles import meta_roles, set_roles
 from src.stats import calc_stat, calc_stats, parse_spread, sp_problems
 from src.team import PokemonSet
 from src.type_chart import (ALL_TYPES, ability_defensive_multiplier, defensive_multiplier,
@@ -313,6 +317,67 @@ class TestRecommender(unittest.TestCase):
     def test_works_without_usage(self):
         recs = recommend([], self.dex, None, doubles=False, top_n=5)
         self.assertEqual(len(recs), 5)
+
+
+class TestPresetsRolesMatchups(unittest.TestCase):
+    def setUp(self):
+        self.dex = load_dex("regmc")
+        self.usage = sample_usage()
+        team, _ = parse_paste(GARGANACL_TEAM, self.dex)
+        self.members = build_members(team, self.dex)
+
+    def test_presets(self):
+        presets = presets_for("Garchomp", self.usage, self.dex)
+        items = [p.pset.item for p in presets]
+        self.assertIn("Choice Scarf", items)
+        scarf = presets[items.index("Choice Scarf")].pset
+        self.assertFalse(any(self.dex.get_move(m)["category"] == "Status" for m in scarf.moves))
+        self.assertEqual(scarf.nature, "Jolly")
+        self.assertTrue(all(self.dex.can_learn("Garchomp", m) for p in presets for m in p.pset.moves))
+        self.assertEqual(presets_for("Garganacl", None, self.dex), [])
+
+    def test_meta_roles(self):
+        labels = [t.label for t in meta_roles("Rillaboom", self.usage, self.dex)]
+        self.assertIn("Fake Out support", labels)
+        self.assertIn("Terrain setter", labels)
+        self.assertIn("Trick Room setter", [t.label for t in meta_roles("Farigiraf", self.usage, self.dex)])
+        singles = [t.label for t in meta_roles("Rillaboom", self.usage, self.dex, doubles=False)]
+        self.assertNotIn("Fake Out support", singles)
+
+    def test_set_roles(self):
+        team, _ = parse_paste(GARGANACL_TEAM, self.dex)
+        self.assertIn("Redirector", [t.label for t in set_roles(team[3], self.dex)])
+        self.assertIn("Intimidate", [t.label for t in set_roles(team[4], self.dex)])
+
+    def test_pair_scores(self):
+        by_label = {m.label: m for m in self.members}
+        gholdengo, incin = by_label["Gholdengo"], by_label["Incineroar"]
+        # Incineroar hits Gholdengo super effectively and takes neutral back -> Incineroar wins
+        self.assertGreater(pair_score(incin, gholdengo), 0)
+        self.assertAlmostEqual(pair_score(incin, gholdengo, trick_room=False),
+                               -pair_score(gholdengo, incin, trick_room=False))
+
+    def test_mirror_is_even_and_bring(self):
+        matrix = pair_matrix(self.members, self.members)
+        self.assertAlmostEqual(team_score(matrix), 0.0)
+        picks, _ = best_bring(matrix, 4)
+        self.assertEqual(len(picks), 4)
+
+    def test_archetypes(self):
+        archetypes = build_archetypes(self.usage, self.dex, keep=5)
+        self.assertTrue(archetypes)
+        for arch in archetypes:
+            roots = [to_id(self.dex.get_species(m).base_species) for m in arch.members]
+            self.assertEqual(len(roots), len(set(roots)))            # Species Clause
+            self.assertLessEqual(sum(self.dex.get_species(m).is_mega for m in arch.members), 1)
+        table = meta_matchups(self.members, archetypes, self.usage, self.dex, bring=4)
+        self.assertEqual(len(table), len(archetypes))
+        self.assertTrue(all(len(b.split(", ")) == 4 for b in table["bring 4"]))
+
+    def test_counter_picks_exclude_their_team(self):
+        theirs = opponent_members(["Rillaboom", "Incineroar"], self.usage, self.dex)
+        picks = counter_picks(theirs, self.usage, self.dex)
+        self.assertFalse({"Rillaboom", "Incineroar"} & set(picks["pokemon"]))
 
 
 if __name__ == "__main__":

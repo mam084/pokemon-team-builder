@@ -28,6 +28,20 @@ play on the ladder.
   a Mega Stone, since only one can Mega Evolve per battle.
 - Import and export Showdown pastes.
 
+**Presets and roles**
+- **Presets**: up to six common sets for each Pokémon, built from ladder stats.
+  Each popular item (and each Mega) starts its own preset. The item shapes the
+  rest of the set: Choice items drop status moves and Protect, and Choice Scarf
+  picks a max-Speed spread. Apply a preset from the editor, or add one to the
+  team straight from the Meta tab. Champions has no IVs; a "spread" is the
+  nature plus Stat Points.
+- **Roles**: what a Pokémon usually does (Fake Out support, Trick Room or
+  Tailwind setter, Rain/Sun/Sand setter, redirector, Intimidate, Choice Scarf
+  attacker, priority or spread attacker, bulky...). For meta Pokémon a role
+  counts when at least 30% of sets run it, and the share is shown. For your own
+  sets, roles come from your moves, item and ability. Roles appear in the team
+  strip, the editor, recommendations and the meta views.
+
 **Analyze it**
 - **Defensive heatmap** shows how much damage each type does to each member.
   It uses the Mega forms and accounts for abilities that change type matchups
@@ -40,6 +54,23 @@ play on the ladder.
   spreads. There's also a Trick Room view.
 - **Offensive coverage** shows what your moves hit super effectively, by type and
   against the 30 most-used Pokémon in their usual battle form.
+
+**Matchups vs the meta**
+- Smogon stats don't record whole teams, so the app **rebuilds about 10 common
+  meta teams** from teammate data. It starts from a popular Pokémon and keeps
+  adding whoever is most often paired with everyone already on the team,
+  respecting Species Clause and one Mega per team. Each team is named for what
+  it sets up, e.g. *Rain + Tailwind (Archaludon + Pelipper)*, and every
+  opponent uses its most popular set.
+- **Pair score** = log2(how hard you hit them) − log2(how hard they hit you),
+  ±0.5 for Speed (reversed under Trick Room). **Team score** = how well you
+  answer their Pokémon minus how well they answer yours, so a mirror match
+  scores exactly 0.
+- For each meta team you get a verdict, the best **bring 4** (or bring 3 in
+  Singles) out of 30 possible picks, a pairing heatmap, your best answer to each
+  of their Pokémon, and **counter picks** (meta Pokémon that beat that team).
+- There's also a usage-weighted overall score, and a **counters to the top 12**
+  table: your answers and the meta's best counters for each.
 
 **Find what's missing**
 - **Recommendations**: every candidate gets five scores from 0 to 1, and you can
@@ -136,7 +167,10 @@ CI runs the tests and a check that the app starts.
 │   ├── legality.py           regulation checks
 │   ├── type_chart.py         type effectiveness plus abilities that change matchups
 │   ├── usage.py              Smogon chaos parsing, popular sets, team-sheet merging of Megas
-│   ├── analysis.py           matchups, coverage, roles, speed tiers, threats
+│   ├── analysis.py           type matchups, coverage, role checklist, speed tiers, threats
+│   ├── presets.py            common sets assembled from usage stats
+│   ├── roles.py              role tags for meta Pokémon and for your sets
+│   ├── matchup.py            meta-team reconstruction, pair scores, bring-N, counter picks
 │   └── recommend.py          explainable multi-signal recommender
 ├── scripts/
 │   ├── export_dex.js         Showdown → data/dex
@@ -154,6 +188,7 @@ CI runs the tests and a check that the app starts.
 - [x] **Stage 4: Champions rebuild**: regulation-accurate legality, Stat Points,
   Megas, an automated data pipeline, threat analysis, and a multi-signal
   explainable recommender
+- [x] Presets, role tags, and team-vs-meta matchups with bring-N and counter picks
 - [ ] Stage 5: learned embeddings (e.g. word2vec on tournament team lists) as an extra synergy signal, evaluated against held-out teams
 - [ ] Stage 6: a damage calculator for the matchups the threat view flags
 - [ ] Deploy to Streamlit Community Cloud

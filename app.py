@@ -21,8 +21,13 @@ from src.analysis import (build_members, coverage_vs_meta, defense_matrix, defen
 from src.dex import STAT_LABELS, STATS, Dex, load_dex, to_id
 from src.formats import DEFAULT_FORMAT, FORMATS
 from src.legality import check_team
+from src.matchup import (best_bring, build_archetypes, counter_picks, meta_matchups, opponent_members,
+                         pair_matrix, pair_score, team_score, verdict)
+from src.presets import presets_for
+from src.roles import meta_roles, role_text, set_roles, species_roles
 from src.paste import export_paste, parse_paste
 from src.recommend import DEFAULT_WEIGHTS, recommend
+from src.stats import format_sps
 from src.team import PokemonSet, default_set
 from src.usage import UsageData, load_usage
 
@@ -165,6 +170,21 @@ def starting_set(species: str, dex: Dex, usage: UsageData | None, slot: int) -> 
 def on_species_change(slot: int, dex: Dex, usage: UsageData | None) -> None:
     species = st.session_state[k(slot, "species")]
     write_slot(slot, None if species == NONE else starting_set(species, dex, usage, slot))
+
+
+def apply_preset(slot: int, pset: PokemonSet) -> None:
+    taken = {p.item for j, p in enumerate(read_slot(x) for x in range(SLOTS)) if p and j != slot}
+    if pset.item and pset.item in taken:
+        st.session_state["import_warnings"] = [
+            f"{pset.item} is already on your team - Item Clause allows one of each item."]
+    write_slot(slot, pset)
+
+
+def add_set_to_team(pset: PokemonSet) -> None:
+    for slot in range(SLOTS):
+        if st.session_state.get(k(slot, "species"), NONE) == NONE:
+            write_slot(slot, pset)
+            return
 
 
 def add_to_team(species: str, dex: Dex, usage: UsageData | None) -> bool:
@@ -319,6 +339,26 @@ def slot_editor(slot: int, dex: Dex, usage: UsageData | None) -> None:
                     unsafe_allow_html=True)
     else:
         st.markdown(type_badges(form.types), unsafe_allow_html=True)
+    doubles = ss.get("doubles", True)
+    role_line = f"**This set:** {role_text(set_roles(pset, dex, doubles), 5)}"
+    if usage and usage.variants(base.name, dex):
+        role_line += f"  \n**Usually plays:** {role_text(species_roles(base.name, usage, dex, doubles), 5, True)}"
+    st.caption(role_line)
+
+    # presets
+    presets = presets_for(base.name, usage, dex)
+    if presets:
+        if ss.get(k(slot, "preset"), 0) not in range(len(presets)):
+            ss[k(slot, "preset")] = 0
+        pc = st.columns([5, 1])
+        choice = pc[0].selectbox(
+            "Preset (common sets from ladder stats)", range(len(presets)), key=k(slot, "preset"),
+            format_func=lambda i: f"{presets[i].name}  ·  ~{presets[i].weight:.0f}% of sets  —  "
+                                  f"{', '.join(presets[i].pset.moves)}",
+        )
+        pc[1].markdown("<div style='height:1.75rem'></div>", unsafe_allow_html=True)
+        pc[1].button("Apply", key=k(slot, "apply_preset"), width="stretch",
+                     on_click=apply_preset, args=(slot, presets[choice].pset))
 
     # moves
     move_pct = usage.combined_section(base.name, "moves", dex) if usage else {}
@@ -361,15 +401,7 @@ def slot_editor(slot: int, dex: Dex, usage: UsageData | None) -> None:
         sc[i].metric(f"{STAT_LABELS[stat]} stat", stats[stat], help=f"Base {form.base_stats[stat]}",
                      label_visibility="collapsed")
 
-    b = st.columns([1, 1, 4])
-    if usage and usage.variants(base.name, dex) and b[0].button("Popular set", key=k(slot, "pop"),
-                                                       help="Replace with the most-used set"):
-        taken = {p.item for j, p in enumerate(read_slot(x) for x in range(SLOTS)) if p and j != slot}
-        write_slot(slot, usage.popular_set(base.name, dex, taken))
-        st.rerun()
-    if b[1].button("Remove", key=k(slot, "rm")):
-        write_slot(slot, None)
-        st.rerun()
+    st.button("Remove", key=k(slot, "rm"), on_click=write_slot, args=(slot, None))
 
 
 def team_strip(team: list[PokemonSet], dex: Dex) -> None:
@@ -381,6 +413,7 @@ def team_strip(team: list[PokemonSet], dex: Dex) -> None:
                 st.image(sprite(form, dex), width=72)
                 st.markdown(f"**{team[i].nickname or team[i].species}**<br>{type_badges(form.types)}",
                             unsafe_allow_html=True)
+                st.caption(role_text(set_roles(team[i], dex, st.session_state.get("doubles", True)), 2))
             else:
                 st.markdown("<div style='height:72px;opacity:.25;font-size:2.5rem'>○</div>", unsafe_allow_html=True)
 
@@ -500,6 +533,9 @@ def recommendations_tab(team, members, dex, usage, fmt) -> None:
     if recs.empty:
         st.info("No candidates.")
         return
+    if usage:
+        recs.insert(2, "usually plays", [role_text(meta_roles(n, usage, dex, fmt.is_doubles), 2)
+                                          for n in recs["pokemon"]])
     st.dataframe(
         recs.drop(columns=["form"]), hide_index=True, width="stretch",
         column_config={
@@ -513,9 +549,130 @@ def recommendations_tab(team, members, dex, usage, fmt) -> None:
         st.markdown("**Add a suggestion**")
         cols = st.columns(5)
         for i, name in enumerate(recs["pokemon"].head(5)):
-            if cols[i].button(f"＋ {name}", key=f"rec_add_{name}", width="stretch"):
-                add_to_team(name, dex, usage)
-                st.rerun()
+            cols[i].button(f"＋ {name}", key=f"rec_add_{name}", width="stretch",
+                           on_click=add_to_team, args=(name, dex, usage))
+
+
+@st.cache_resource(show_spinner=False)
+def archetypes_for(fmt_id: str):
+    fmt = FORMATS[fmt_id]
+    usage = load_usage(fmt_id)
+    if usage is None:
+        return []
+    return build_archetypes(usage, load_dex(fmt.regulation), team_size=6)
+
+
+def pair_heatmap(matrix: pd.DataFrame) -> go.Figure:
+    z = matrix.clip(-3, 3).values
+    fig = go.Figure(go.Heatmap(
+        z=z, x=list(matrix.columns), y=list(matrix.index), text=matrix.round(1).values,
+        texttemplate="%{text:+.1f}", zmin=-3, zmax=3, xgap=2, ygap=2, showscale=False,
+        colorscale=[[0, "#b8282a"], [0.33, "#f2a3a2"], [0.5, GRAY_MID], [0.67, "#86b6ef"], [1, "#104281"]],
+        hovertemplate="%{y} vs %{x}: %{z:+.1f}<extra></extra>",
+    ))
+    fig.update_layout(height=80 + 46 * len(matrix.index), margin=dict(l=10, r=10, t=10, b=10),
+                      xaxis=dict(side="top"), yaxis=dict(autorange="reversed"))
+    return fig
+
+
+def matchups_tab(fmt_id, team, members, dex, usage, fmt) -> None:
+    if usage is None:
+        st.info("Matchups need usage stats for this format.")
+        return
+    archetypes = archetypes_for(fmt_id)
+    st.caption(
+        "Common meta teams are rebuilt from Smogon teammate data: start from a popular Pokémon and keep adding "
+        "whoever is most often paired with the whole team so far. Each opponent uses its most popular set. "
+        "A pair scores **+1 per type-effectiveness step you hit harder than you get hit, ±0.5 for Speed** "
+        "(reversed under Trick Room). Team score = how well you answer them minus how well they answer you, "
+        "so 0 is even."
+    )
+    if not members:
+        st.info("Add Pokémon on the **Team** tab to see how you match up. The meta teams are listed below.")
+    else:
+        table = meta_matchups(members, archetypes, usage, dex, bring=fmt.pick)
+        weights = table["popularity"]
+        overall = float((table["score"] * weights).sum() / weights.sum()) if len(table) else 0.0
+        c = st.columns(4)
+        c[0].metric("Overall vs meta", f"{overall:+.2f} · {verdict(overall)}",
+                    help="Usage-weighted average of the team scores below")
+        c[1].metric("Favorable", int((table["score"] >= 0.25).sum()))
+        c[2].metric("Even", int(((table["score"] > -0.25) & (table["score"] < 0.25)).sum()))
+        c[3].metric("Unfavorable", int((table["score"] <= -0.25).sum()))
+        st.dataframe(
+            table, hide_index=True, width="stretch",
+            column_config={
+                "popularity": st.column_config.NumberColumn("avg usage %", format="%.1f"),
+                "score": st.column_config.NumberColumn("score", format="%+.2f"),
+                "with bring": st.column_config.NumberColumn(f"score with bring {fmt.pick}", format="%+.2f"),
+            },
+        )
+
+    st.subheader("Matchup detail")
+    names = [a.name for a in archetypes]
+    if not names:
+        st.info("Not enough usage data to build meta teams.")
+        return
+    pick = st.selectbox("Meta team", names)
+    arch = archetypes[names.index(pick)]
+    theirs = opponent_members(arch.members, usage, dex)
+    cols = st.columns(len(theirs))
+    for i, opp in enumerate(theirs):
+        with cols[i]:
+            st.image(sprite(opp.form, dex), width=64)
+            st.markdown(f"**{opp.label}**<br>{type_badges(opp.form.types)}", unsafe_allow_html=True)
+            st.caption(role_text(meta_roles(arch.members[i], usage, dex, fmt.is_doubles), 2))
+    if arch.trick_room:
+        st.caption("This team sets Trick Room, so slower Pokémon get the Speed bonus.")
+
+    if members:
+        matrix = pair_matrix(members, theirs, arch.trick_room)
+        score = team_score(matrix)
+        picks, picked = best_bring(matrix, fmt.pick)
+        left, right = st.columns([3, 2])
+        with left:
+            st.markdown(f"**Your team vs {pick}: {score:+.2f} ({verdict(score)})**")
+            st.plotly_chart(pair_heatmap(matrix), width="stretch")
+            st.caption("Blue = your Pokémon (row) wins that pairing, red = theirs (column) does.")
+        with right:
+            st.markdown(f"**Suggested bring {fmt.pick}:** {', '.join(picks)} ({picked:+.2f})")
+            answers = []
+            for opp in theirs:
+                col = matrix[opp.label]
+                best = col.idxmax()
+                answers.append({"their Pokémon": opp.label, "your best answer": best if col.max() >= 0.5 else "—",
+                                "pairing": round(float(col.max()), 1)})
+            st.dataframe(pd.DataFrame(answers), hide_index=True, width="stretch",
+                         column_config={"pairing": st.column_config.NumberColumn(format="%+.1f")})
+
+    st.markdown(f"**Counter picks for {pick}** — meta Pokémon (popular sets) with the best average pairing "
+                "against this team" + (", not counting your current team." if team else "."))
+    counters = counter_picks(theirs, usage, dex, exclude={p.species for p in team},
+                             trick_room=arch.trick_room)
+    if not counters.empty:
+        counters.insert(1, "usually plays", [role_text(meta_roles(n, usage, dex, fmt.is_doubles), 2)
+                                             for n in counters["pokemon"]])
+        st.dataframe(counters, hide_index=True, width="stretch",
+                     column_config={"avg matchup": st.column_config.NumberColumn(format="%+.2f")})
+
+    st.subheader("Counters to the meta's top Pokémon")
+    st.caption("For each of the 12 most-used Pokémon: who on your team wins the pairing, and which meta "
+               "Pokémon beat it most convincingly.")
+    rows = []
+    for name, pct in usage.ranked(12):
+        opp = opponent_members([name], usage, dex)
+        if not opp:
+            continue
+        mine = sorted(((pair_score(m, opp[0]), m.label) for m in members), reverse=True)
+        yours = ", ".join(f"{lbl} ({sc:+.1f})" for sc, lbl in mine if sc >= 1) or "—"
+        meta_c = counter_picks(opp, usage, dex, pool=50, top_n=3)
+        rows.append({
+            "Pokémon": name, "usage %": pct,
+            "usually plays": role_text(meta_roles(name, usage, dex, fmt.is_doubles), 2),
+            "your answers": yours,
+            "meta counters": ", ".join(meta_c["pokemon"]) if not meta_c.empty else "—",
+        })
+    st.dataframe(pd.DataFrame(rows), hide_index=True, width="stretch")
 
 
 def threats_tab(members, dex, usage) -> None:
@@ -585,9 +742,25 @@ def meta_tab(dex: Dex, usage: UsageData | None, team_size: int) -> None:
             head[0].image(sprite(species, dex), width=80)
             head[1].markdown(f"### {name}\n{type_badges(species.types)} · {usage.usage(name):.1f}% usage",
                              unsafe_allow_html=True)
-            if team_size < SLOTS and head[1].button(f"＋ Add {name} with its popular set"):
-                add_to_team(name, dex, usage)
-                st.rerun()
+            st.markdown("**Usually plays:** " + role_text(meta_roles(name, usage, dex, st.session_state.get("doubles", True)), 6, True))
+            if team_size < SLOTS:
+                head[1].button(f"＋ Add {name} with its popular set", on_click=add_to_team,
+                               args=(name, dex, usage))
+        presets = [p for p in presets_for(name, usage, dex) if p.source == name] or presets_for(name, usage, dex)
+        if presets:
+            st.markdown("**Presets** (assembled from the most common items, moves and spreads)")
+            pcols = st.columns(min(3, len(presets)))
+            for i, preset in enumerate(presets[:3]):
+                with pcols[i]:
+                    with st.container(border=True):
+                        st.markdown(f"**{preset.name}** · ~{preset.weight:.0f}% of sets")
+                        st.caption(f"{preset.pset.ability} · {format_sps(preset.pset.sps) or 'no Stat Points'}")
+                        st.markdown("\n".join(f"- {m}" for m in preset.pset.moves))
+                        with st.expander("Showdown paste"):
+                            st.code(export_paste([preset.pset]), language=None, wrap_lines=True)
+                        if team_size < SLOTS:
+                            st.button("＋ Add to team", key=f"meta_preset_{name}_{i}", width="stretch",
+                                      on_click=add_set_to_team, args=(preset.pset,))
         c1, c2 = st.columns(2)
         with c1:
             bar_section("Moves", usage.section(name, "moves"), dex, "moves", 10)
@@ -613,6 +786,7 @@ def meta_tab(dex: Dex, usage: UsageData | None, team_size: int) -> None:
 def main() -> None:
     fmt_id, dex, usage = sidebar()
     fmt = FORMATS[fmt_id]
+    st.session_state["doubles"] = fmt.is_doubles
     team = current_team()
     members = build_members(team, dex)
 
@@ -635,16 +809,18 @@ def main() -> None:
             for i in warnings:
                 st.warning(i.message)
 
-    tabs = st.tabs(["🧩 Team", "🛡️ Analysis", "✨ Recommendations", "⚠️ Threats", "📊 Meta"])
+    tabs = st.tabs(["🧩 Team", "🛡️ Analysis", "⚔️ Matchups", "✨ Recommendations", "⚠️ Threats", "📊 Meta"])
     with tabs[0]:
         team_tab(dex, usage)
     with tabs[1]:
         analysis_tab(team, members, dex, usage, fmt)
     with tabs[2]:
-        recommendations_tab(team, members, dex, usage, fmt)
+        matchups_tab(fmt_id, team, members, dex, usage, fmt)
     with tabs[3]:
-        threats_tab(members, dex, usage)
+        recommendations_tab(team, members, dex, usage, fmt)
     with tabs[4]:
+        threats_tab(members, dex, usage)
+    with tabs[5]:
         meta_tab(dex, usage, len(team))
 
 
