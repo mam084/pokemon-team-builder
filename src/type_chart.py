@@ -85,3 +85,35 @@ def team_weaknesses(team_types: list[list[str]]) -> dict:
             for member_types in team_types
         ]
     return result
+
+# Abilities that change how much damage a type does to the holder. Values
+# multiply the type-chart result (0 = immunity). Only abilities that act on a
+# whole attacking type are modeled; conditional ones (Multiscale, Fluffy on
+# contact, ...) are out of scope for a type chart.
+ABILITY_DEFENSE = {
+    "levitate": {"ground": 0.0},
+    "eartheater": {"ground": 0.0},
+    "flashfire": {"fire": 0.0},
+    "wellbakedbody": {"fire": 0.0},
+    "waterabsorb": {"water": 0.0},
+    "stormdrain": {"water": 0.0},
+    "dryskin": {"water": 0.0, "fire": 1.25},
+    "voltabsorb": {"electric": 0.0},
+    "lightningrod": {"electric": 0.0},
+    "motordrive": {"electric": 0.0},
+    "sapsipper": {"grass": 0.0},
+    "thickfat": {"fire": 0.5, "ice": 0.5},
+    "heatproof": {"fire": 0.5},
+    "waterbubble": {"fire": 0.5},
+    "purifyingsalt": {"ghost": 0.5},
+}
+
+
+def ability_defensive_multiplier(
+    defending_types: list[str], attacking_type: str, ability_id: str | None = None
+) -> float:
+    """Type-chart multiplier adjusted for the defender's ability."""
+    multiplier = defensive_multiplier(defending_types, attacking_type)
+    if ability_id:
+        multiplier *= ABILITY_DEFENSE.get(ability_id, {}).get(attacking_type, 1.0)
+    return multiplier

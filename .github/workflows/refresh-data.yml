@@ -1,0 +1,68 @@
+name: Refresh data
+
+# Rebuilds the legal-Pokemon dex from Pokemon Showdown's Champions mod and
+# pulls the newest Smogon usage stats, then commits whatever changed.
+#
+# - monthly, a few days after Smogon publishes the previous month's stats
+# - on demand (Actions tab -> Refresh data -> Run workflow)
+# - whenever the data scripts themselves change, so the data always matches them
+
+on:
+  schedule:
+    - cron: "17 9 3 * *"
+  workflow_dispatch:
+  push:
+    paths:
+      - "scripts/**"
+      - "src/formats.py"
+      - "src/usage.py"
+      - ".github/workflows/refresh-data.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: refresh-data-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Build Pokemon Showdown
+        run: |
+          git clone --depth 1 https://github.com/smogon/pokemon-showdown.git ../pokemon-showdown
+          cd ../pokemon-showdown
+          npm ci
+          node build
+
+      - name: Export legal dex
+        run: node scripts/export_dex.js --ps ../pokemon-showdown --out data/dex
+
+      - name: Fetch Smogon usage stats
+        run: |
+          pip install -r requirements.txt
+          python scripts/fetch_usage.py
+
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/
+          if git diff --cached --quiet; then
+            echo "Data already up to date."
+          else
+            git commit -m "Refresh Champions dex and usage data"
+            git push origin HEAD:${{ github.ref_name }}
+          fi
