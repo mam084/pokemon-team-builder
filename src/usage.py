@@ -30,6 +30,7 @@ usage, which is why the recommender also looks at *lift* (P(B | A) / P(B)).
 from __future__ import annotations
 
 import json
+import math
 from functools import lru_cache
 from pathlib import Path
 
@@ -124,6 +125,36 @@ class UsageData:
         """How much more often `teammate` appears with `species` than on teams overall."""
         base = self.usage(teammate)
         return self.teammate_pct(species, teammate) / base if base else 0.0
+
+    def pair_lift(self, a: str, b: str, shrink: float = 200.0) -> tuple[float, bool]:
+        """
+        Lift of the pair (a, b), shrunk toward 1 when either Pokemon is rare.
+
+        Lift is symmetric in theory (P(a and b) / (P(a) P(b))), so whichever
+        direction Smogon kept in its top-30 teammate list is used. If neither
+        list has the pair, the true value is below the smallest listed one;
+        that bound is returned with known=False.
+
+        Shrinkage: log2(lift) is scaled by n / (n + shrink), where n is the
+        smaller raw team count, so a Pokemon seen on a handful of teams can't
+        post an extreme lift by luck.
+        """
+        ea, eb = self.entry(a), self.entry(b)
+        if not ea or not eb:
+            return 1.0, False
+        known = True
+        if self.teammate_pct(a, b):
+            raw = self.teammate_pct(a, b) / eb["usage"]
+        elif self.teammate_pct(b, a):
+            raw = self.teammate_pct(b, a) / ea["usage"]
+        else:
+            known = False
+            floor = min(ea["teammates"].values(), default=0.0)
+            raw = min(1.0, floor / eb["usage"]) if eb["usage"] else 1.0
+        raw = max(raw, 0.25)
+        n = min(ea.get("raw_count", 0), eb.get("raw_count", 0))
+        weight = n / (n + shrink) if n else 0.0
+        return 2 ** (math.log2(raw) * weight), known
 
     def section(self, species: str, key: str) -> dict:
         e = self.entry(species)

@@ -245,6 +245,15 @@ class TestUsage(unittest.TestCase):
         self.assertAlmostEqual(self.usage.teammate_pct("Garganacl", "Rillaboom"), 60.0)
         self.assertAlmostEqual(self.usage.lift("Garganacl", "Sinistcha"), 5.0)
 
+    def test_pair_lift(self):
+        lift, known = self.usage.pair_lift("Garganacl", "Sinistcha")
+        self.assertTrue(known)
+        self.assertGreater(lift, 1.5)                        # 5x raw, shrunk a little
+        self.assertLess(lift, 5.0)
+        lift, known = self.usage.pair_lift("Sneasler", "Politoed")  # in neither top list
+        self.assertFalse(known)
+        self.assertLessEqual(lift, 1.0)
+
     def test_popular_set_respects_item_clause(self):
         pset = self.usage.popular_set("Garganacl", self.dex, taken_items={"Leftovers"})
         self.assertEqual(pset.item, "Sitrus Berry")

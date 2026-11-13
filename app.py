@@ -130,9 +130,9 @@ Modest Nature
 
 
 # ==========================================================================
-# State: the team lives in session_state["team"] as a list of dicts (or None
-# for an empty slot). Widgets use keys "s{slot}_{field}"; `write_slot` pushes a
-# set into those keys and `read_slot` pulls the widgets back into a set.
+# State: the widgets *are* the team. Each slot's fields live in session_state
+# under "s{slot}_{field}"; `write_slot` pushes a set into those keys (only from
+# callbacks or before the widgets render) and `read_slot` reads a set back out.
 # ==========================================================================
 def k(slot: int, field: str) -> str:
     return f"s{slot}_{field}"
@@ -247,7 +247,7 @@ def fmt_mult(x: float) -> str:
     return {0: "0", 0.25: "¼", 0.5: "½", 1: "", 2: "2×", 4: "4×"}.get(x, f"{x:g}×")
 
 
-def ranked_options(all_names: list[str], popular: dict, dex_lookup) -> list[str]:
+def ranked_options(all_names: list[str], popular: dict) -> list[str]:
     """Popular choices first (in usage order), then everything else alphabetically."""
     lookup = {to_id(n): n for n in all_names}
     first = [lookup[to_id(p)] for p in popular if to_id(p) in lookup]
@@ -316,7 +316,7 @@ def slot_editor(slot: int, dex: Dex, usage: UsageData | None) -> None:
     ss = st.session_state
     species_names = [s.name for s in dex.selectable_species()]
     sheet_usage = usage.team_sheet_usage(dex) if usage else {}
-    species_opts = [NONE] + ranked_options(species_names, sheet_usage, None)
+    species_opts = [NONE] + ranked_options(species_names, sheet_usage)
     if ss.get(k(slot, "species"), NONE) not in species_opts:
         ss[k(slot, "species")] = NONE
 
@@ -341,7 +341,7 @@ def slot_editor(slot: int, dex: Dex, usage: UsageData | None) -> None:
     # item / ability / nature
     c = st.columns(3)
     item_pct = usage.combined_section(base.name, "items", dex) if usage else {}
-    items = [NONE] + ranked_options(dex.legal_items(base.name), item_pct, None)
+    items = [NONE] + ranked_options(dex.legal_items(base.name), item_pct)
     if ss.get(k(slot, "item"), NONE) not in items:
         ss[k(slot, "item")] = NONE
     c[0].selectbox("Item", items, key=k(slot, "item"),
@@ -385,7 +385,7 @@ def slot_editor(slot: int, dex: Dex, usage: UsageData | None) -> None:
 
     # moves
     move_pct = usage.combined_section(base.name, "moves", dex) if usage else {}
-    move_opts = [NONE] + ranked_options(dex.learnable_moves(base.name), move_pct, None)
+    move_opts = [NONE] + ranked_options(dex.learnable_moves(base.name), move_pct)
 
     def move_label(n: str) -> str:
         if n == NONE:
@@ -428,17 +428,25 @@ def slot_editor(slot: int, dex: Dex, usage: UsageData | None) -> None:
 
 
 def team_strip(team: list[PokemonSet], dex: Dex) -> None:
-    cols = st.columns(SLOTS)
-    for i in range(SLOTS):
-        with cols[i]:
-            if i < len(team):
-                form = team[i].battle_form(dex)
-                st.image(sprite(form, dex), width=72)
-                st.markdown(f"**{team[i].nickname or team[i].species}**<br>{type_badges(form.types)}",
-                            unsafe_allow_html=True)
-                st.caption(role_text(set_roles(team[i], dex, st.session_state.get("doubles", True)), 2))
-            else:
-                st.markdown("<div style='height:72px;opacity:.25;font-size:2.5rem'>○</div>", unsafe_allow_html=True)
+    """One wrapping row of team cards: six across on desktop, two or three per line on a phone."""
+    if not team:
+        st.caption("No Pokémon yet. Pick some on the Team tab, add a suggestion from Recommendations, "
+                   "or load the example team from the sidebar.")
+        return
+    doubles = st.session_state.get("doubles", True)
+    cards = []
+    for pset in team:
+        form = pset.battle_form(dex)
+        roles = role_text(set_roles(pset, dex, doubles), 2)
+        cards.append(
+            "<div style='flex:1 1 140px;max-width:220px;min-width:120px'>"
+            f"<img src='{sprite(form, dex)}' width='56' height='56' style='image-rendering:pixelated' alt=''>"
+            f"<div style='font-weight:600'>{pset.nickname or pset.species}</div>"
+            f"<div>{type_badges(form.types)}</div>"
+            f"<div style='font-size:0.8rem;opacity:0.7;margin-top:2px'>{roles}</div></div>"
+        )
+    st.markdown(f"<div style='display:flex;flex-wrap:wrap;gap:12px 16px'>{''.join(cards)}</div>",
+                unsafe_allow_html=True)
 
 
 def team_tab(dex: Dex, usage: UsageData | None) -> None:
@@ -538,13 +546,15 @@ def analysis_tab(team, members, dex, usage, fmt) -> None:
 # ==========================================================================
 def recommendations_tab(team, members, dex, usage, fmt) -> None:
     if len(team) >= SLOTS:
-        st.info("Your team is full - remove a member to get suggestions for that slot.")
+        st.info("Your team is full - remove a member (Team tab) to add one of these.")
     st.caption("Every legal Pokémon is scored on five signals (0–1 each) and ranked by the weighted blend. "
-               "The **why** column shows what drove each pick.")
+               "**Synergy** is judged against your whole team: the average of how much more often the "
+               "candidate appears next to each of your Pokémon than chance predicts.")
     with st.expander("Adjust weights"):
         cols = st.columns(5)
         help_text = {
-            "synergy": "Appears with your current members more often than chance (Smogon teammate lift).",
+            "synergy": "Average over your whole team of how much more often it appears next to each member "
+                       "than chance (Smogon teammate lift). 0.33 = no relationship.",
             "defense": "Resists the types your team is weak to.",
             "offense": "Hits popular Pokémon your team can't hit super effectively.",
             "roles": "Commonly brings a role you're missing (Fake Out, speed control…).",
@@ -560,21 +570,43 @@ def recommendations_tab(team, members, dex, usage, fmt) -> None:
     if usage:
         recs.insert(2, "usually plays", [role_text(meta_roles(n, usage, dex, fmt.is_doubles), 2)
                                           for n in recs["pokemon"]])
-    st.dataframe(
-        recs.drop(columns=["form"]), hide_index=True, width="stretch",
-        column_config={
-            "score": st.column_config.ProgressColumn("score", min_value=0, max_value=100, format="%.0f"),
-            **{c: st.column_config.NumberColumn(c, format="%.2f", width="small")
-               for c in ["synergy", "defense", "offense", "roles", "meta"]},
-            "why": st.column_config.TextColumn(width="large"),
-        },
-    )
-    if len(team) < SLOTS:
-        st.markdown("**Add a suggestion**")
-        cols = st.columns(5)
-        for i, name in enumerate(recs["pokemon"].head(5)):
-            cols[i].button(f"+ {name}", key=f"rec_add_{name}", width="stretch",
-                           on_click=add_to_team, args=(name, dex, usage))
+    full = len(team) >= SLOTS
+    top = recs.head(10)
+    for i, row in top.iterrows():
+        if i % 2 == 0:  # a new row per pair keeps 1, 2, 3... in order when columns stack on a phone
+            cols = st.columns(2)
+        with cols[i % 2]:
+            with st.container(border=True):
+                form = dex.get_species(row["form"])
+                head = st.columns([1, 4])
+                if form is not None:
+                    head[0].image(sprite(form, dex), width=56)
+                head[1].markdown(
+                    f"**{i + 1}. {row['pokemon']}** · score {row['score']:.0f}<br>"
+                    f"{type_badges(row['types'].split('/'))}",
+                    unsafe_allow_html=True,
+                )
+                if usage:
+                    st.caption(f"Usually plays: {row['usually plays']}")
+                st.markdown(row["why"][0].upper() + row["why"][1:])
+                if row["note"]:
+                    st.caption(f"Note: {row['note']}")
+                st.button(
+                    "Team is full" if full else f"Add {row['pokemon']} to team",
+                    key=f"rec_add_{row['pokemon']}", width="stretch", disabled=full,
+                    on_click=add_to_team, args=(row["pokemon"], dex, usage),
+                    help="Adds its most popular set to the first empty slot",
+                )
+    with st.expander("Score breakdown (all signals)"):
+        st.dataframe(
+            recs.drop(columns=["form"]), hide_index=True, width="stretch",
+            column_config={
+                "score": st.column_config.ProgressColumn("score", min_value=0, max_value=100, format="%.0f"),
+                **{c: st.column_config.NumberColumn(c, format="%.2f", width="small")
+                   for c in ["synergy", "defense", "offense", "roles", "meta"]},
+                "why": st.column_config.TextColumn(width="large"),
+            },
+        )
 
 
 @st.cache_resource(show_spinner=False)
@@ -822,7 +854,7 @@ def main() -> None:
     team = current_team()
     members = build_members(team, dex)
 
-    st.title("Pokémon Champions Team Builder")
+    st.header("Pokémon Champions Team Builder")
     team_strip(team, dex)
 
     issues = check_team(team, dex) if team else []
