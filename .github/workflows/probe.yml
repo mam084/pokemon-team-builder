@@ -1,0 +1,18 @@
+name: probe
+on:
+  push:
+    branches: [probe-limitless]
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          B=https://play.limitlesstcg.com/api
+          curl -s "$B/games" | python3 -c "import json,sys; g=json.load(sys.stdin); [print(json.dumps(x)[:3000]) for x in g if x.get('id')=='VGC' or 'hamp' in json.dumps(x)]"
+          echo ----
+          curl -s "$B/tournaments?game=VGC&limit=15" | python3 -m json.tool | head -150
+          echo ----
+          ID=$(curl -s "$B/tournaments?game=VGC&limit=50" | python3 -c "import json,sys; t=json.load(sys.stdin); t=[x for x in t if x.get('players',0)>=32]; print(t[0]['id'])")
+          echo "TID $ID"
+          curl -s "$B/tournaments/$ID/standings" | python3 -c "import json,sys; s=json.load(sys.stdin); print(type(s), len(s)); print(json.dumps(s[:2], indent=1)[:4000])"
+          curl -s "$B/tournaments/$ID" | head -c 1500
