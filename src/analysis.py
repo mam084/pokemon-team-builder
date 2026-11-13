@@ -220,10 +220,10 @@ def role_checklist(members: list[Member], doubles: bool) -> pd.DataFrame:
         who = providers(role, members)
         if role.key == "protect":
             ok = len(who) >= max(1, len(members) - 2)
-            status = "✅" if ok else ("⚠️" if who else "❌")
+            status = "Yes" if ok else ("Partly" if who else "Missing")
         else:
-            status = "✅" if who else ("❌" if role.essential else "➖")
-        rows.append({"": status, "role": role.label, "covered by": ", ".join(who) or "—", "why it matters": role.why})
+            status = "Yes" if who else ("Missing" if role.essential else "Optional")
+        rows.append({"status": status, "role": role.label, "covered by": ", ".join(who) or "—", "why it matters": role.why})
     return pd.DataFrame(rows)
 
 
