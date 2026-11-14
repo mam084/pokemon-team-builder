@@ -16,6 +16,10 @@ meaningfully worse (more than MAX_OVERALL_LOSS). Each replacement uses its
 popular set, with an item that keeps Item Clause; a team may hold two Mega
 Stones (scored with whichever Mega Evolves best in each matchup).
 
+With same_role, a replacement must do the same broad job (Support / Attacker /
+Hybrid, from roles.job) and keep any team-defining role - weather, terrain or
+Trick Room - that only the outgoing member provides.
+
 Speed: pair scores are cached by set, and per-meta-team score rows are cached
 per member, so ~6 x 80 candidate swaps x ~10 meta teams evaluate in seconds.
 """
@@ -31,6 +35,7 @@ from src.analysis import Member, build_members, mega_variants
 from src.dex import Dex, to_id
 from src.matchup import Archetype, _set_key, best_attack, opponent_members, pair_score
 from src.recommend import _root
+from src.roles import job, plan_roles, set_roles
 from src.team import MAX_MEGAS, PokemonSet
 from src.usage import UsageData
 
@@ -98,7 +103,8 @@ def _answer(members: list[Member], threat: Member, doubles: bool) -> tuple[float
 
 
 def suggest_swaps(team: list[PokemonSet], dex: Dex, usage: UsageData, engine: SwapEngine,
-                  focus: str | None = None, pool: list[str] | None = None, top_n: int = 8) -> pd.DataFrame:
+                  focus: str | None = None, pool: list[str] | None = None, top_n: int = 8,
+                  same_role: bool = False) -> pd.DataFrame:
     members = build_members(team, dex)
     if len(members) < 2:
         return pd.DataFrame()
@@ -120,6 +126,11 @@ def suggest_swaps(team: list[PokemonSet], dex: Dex, usage: UsageData, engine: Sw
         rest_members = members[:i] + members[i + 1:]
         taken = {p.item for p in rest if p.item}
         rest_megas = sum(p.is_mega(dex) for p in rest)
+        out_tags = set_roles(out_set, dex, engine.doubles)
+        out_job = job(out_tags)
+        # a plan role only this member provides (the team's only snow setter, say) must be kept
+        must_keep = plan_roles(out_tags) - set().union(*[plan_roles(set_roles(p, dex, engine.doubles))
+                                                          for p in rest])
         seen_roots = set()
         for name in candidates:
             root = _root(dex.get_species(name))
@@ -128,6 +139,10 @@ def suggest_swaps(team: list[PokemonSet], dex: Dex, usage: UsageData, engine: Sw
             seen_roots.add(root)
             pset = usage.popular_set(name, dex, taken_items=taken, allow_mega=rest_megas < MAX_MEGAS)
             if pset is None:
+                continue
+            in_tags = set_roles(pset, dex, engine.doubles)
+            in_job = job(in_tags)
+            if same_role and (in_job != out_job or not must_keep <= plan_roles(in_tags)):
                 continue
             new_member = build_members([pset], dex)
             if not new_member:
@@ -150,6 +165,10 @@ def suggest_swaps(team: list[PokemonSet], dex: Dex, usage: UsageData, engine: Sw
             rows.append({
                 "swap out": out_set.nickname or out_set.species,
                 "swap in": pset.species,
+                "out job": out_job,
+                "in job": in_job,
+                "shared roles": ", ".join(t.label for t in in_tags
+                                          if t.label in {o.label for o in out_tags})[:80],
                 "slot": i,
                 "overall": round(overall, 2),
                 "overall change": round(overall - base_overall, 2),

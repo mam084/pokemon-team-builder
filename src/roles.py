@@ -167,3 +167,28 @@ def role_text(tags: list[RoleTag], n: int = 3, show_pct: bool = False) -> str:
         return "—"
     return " · ".join(f"{t.label} ({t.strength:.0f}%)" if show_pct and t.strength < 100 else t.label
                       for t in tags[:n])
+
+
+# ---- broad jobs, for like-for-like swaps ----------------------------------------------------
+
+SUPPORT_LABELS = {"Tailwind setter", "Trick Room setter", "Speed control", "Fake Out support", "Redirector",
+                  "Intimidate", "Wide Guard", "Helping Hand support", "Screens", "Disruptor", "Healer", "Bulky"}
+ATTACK_LABELS = {"Setup sweeper", "Choice Scarf attacker", "Choice-locked attacker", "Spread attacker",
+                 "Priority attacker", "Physical attacker", "Special attacker"}
+# Roles a team is built around: losing the only one breaks the plan, so a swap must keep it.
+PLAN_LABELS = {"Rain setter", "Sun setter", "Sand setter", "Snow setter", "Terrain setter", "Trick Room setter"}
+
+
+def job(tags: list[RoleTag]) -> str:
+    """'Support', 'Attacker' or 'Hybrid', by which kind of role the set has more of."""
+    labels = {t.label for t in tags}
+    support, attack = len(labels & SUPPORT_LABELS), len(labels & ATTACK_LABELS)
+    if support > attack:
+        return "Support"
+    if attack > support:
+        return "Attacker"
+    return "Hybrid"
+
+
+def plan_roles(tags: list[RoleTag]) -> set[str]:
+    return {t.label for t in tags} & PLAN_LABELS
