@@ -13,8 +13,8 @@ scored with the same damage-based engine as the Matchups tab:
 Swaps are ranked by the focus improvement first (if any), then by the overall
 change, and a swap is only offered if it doesn't make the overall matchup
 meaningfully worse (more than MAX_OVERALL_LOSS). Each replacement uses its
-popular set, with an item that keeps Item Clause and a non-Mega set if the
-rest of the team already has its Mega.
+popular set, with an item that keeps Item Clause; a team may hold two Mega
+Stones (scored with whichever Mega Evolves best in each matchup).
 
 Speed: pair scores are cached by set, and per-meta-team score rows are cached
 per member, so ~6 x 80 candidate swaps x ~10 meta teams evaluate in seconds.
@@ -27,11 +27,11 @@ from dataclasses import dataclass
 import numpy as np
 import pandas as pd
 
-from src.analysis import Member, build_members
+from src.analysis import Member, build_members, mega_variants
 from src.dex import Dex, to_id
 from src.matchup import Archetype, _set_key, best_attack, opponent_members, pair_score
 from src.recommend import _root
-from src.team import PokemonSet
+from src.team import MAX_MEGAS, PokemonSet
 from src.usage import UsageData
 
 MAX_OVERALL_LOSS = 0.05
@@ -64,17 +64,26 @@ class SwapEngine:
             ]
         return self._rows[key]
 
-    def overall(self, members: list[Member]) -> float:
-        if not members or not self.fields:
+    def overall(self, team: list[PokemonSet] | list[Member]) -> float:
+        """Usage-weighted score vs the meta teams. Given PokemonSets, a team with two Mega
+        Stones is scored with whichever Mega Evolves best against each meta team."""
+        if not team or not self.fields:
             return 0.0
-        all_rows = [self.rows(m) for m in members]
+        if isinstance(team[0], Member):
+            versions = [team]
+        else:
+            versions = [members for _, members in mega_variants(team, self.dex)]
+        version_rows = [[self.rows(m) for m in members] for members in versions]
         total = weights = 0.0
         for i, f in enumerate(self.fields):
             if not f.theirs:
                 continue
-            matrix = np.vstack([r[i] for r in all_rows])
-            score = matrix.max(axis=0).mean() - (-matrix).max(axis=1).mean()
-            total += score * f.weight
+            best = None
+            for all_rows in version_rows:
+                matrix = np.vstack([r[i] for r in all_rows])
+                score = matrix.max(axis=0).mean() - (-matrix).max(axis=1).mean()
+                best = score if best is None else max(best, score)
+            total += best * f.weight
             weights += f.weight
         return total / weights if weights else 0.0
 
@@ -93,7 +102,7 @@ def suggest_swaps(team: list[PokemonSet], dex: Dex, usage: UsageData, engine: Sw
     members = build_members(team, dex)
     if len(members) < 2:
         return pd.DataFrame()
-    base_overall = engine.overall(members)
+    base_overall = engine.overall(team)
     threat = None
     if focus:
         opp = opponent_members([focus], usage, dex)
@@ -110,21 +119,21 @@ def suggest_swaps(team: list[PokemonSet], dex: Dex, usage: UsageData, engine: Sw
         rest = team[:i] + team[i + 1:]
         rest_members = members[:i] + members[i + 1:]
         taken = {p.item for p in rest if p.item}
-        rest_has_mega = any(p.is_mega(dex) for p in rest)
+        rest_megas = sum(p.is_mega(dex) for p in rest)
         seen_roots = set()
         for name in candidates:
             root = _root(dex.get_species(name))
             if root in seen_roots:
                 continue
             seen_roots.add(root)
-            pset = usage.popular_set(name, dex, taken_items=taken, allow_mega=not rest_has_mega)
+            pset = usage.popular_set(name, dex, taken_items=taken, allow_mega=rest_megas < MAX_MEGAS)
             if pset is None:
                 continue
             new_member = build_members([pset], dex)
             if not new_member:
                 continue
             new_members = rest_members[:i] + new_member + rest_members[i:]
-            overall = engine.overall(new_members)
+            overall = engine.overall(rest[:i] + [pset] + rest[i:])
             if overall < base_overall - MAX_OVERALL_LOSS:
                 continue
             focus_gain, key_calc = 0.0, ""

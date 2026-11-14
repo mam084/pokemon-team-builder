@@ -34,18 +34,20 @@ import pandas as pd
 
 from src.analysis import ROLES, Member, defense_matrix, meta_form, provides_role
 from src.dex import Dex, to_id
-from src.plan import plan_score, profile_from, team_plans
+from src.team import MAX_MEGAS
+from src.plan import plan_score, plan_users, profile_from, team_plans
 from src.type_chart import ALL_TYPES, ability_defensive_multiplier
 from src.usage import UsageData
 
-# Tuned on 4,003 real tournament teams and validated on 1,546 newer ones
+# Tuned on 4,003 real tournament teams and validated on 1,546 newer ones (5-signal grid, then a
+# line search for plan)
 # (src/evaluate.py, results in data/evaluation/regmc.json). Offense and roles got
 # zero weight: they didn't help predict what players actually bring, so they
 # only shape the "why" text unless you raise them in the app.
-DEFAULT_WEIGHTS = {"synergy": 0.57, "defense": 0.14, "offense": 0.0, "roles": 0.0, "meta": 0.29, "plan": 0.0}
-# The plan signal (weather / Trick Room / Tailwind / terrain fit, src/plan.py) was tested the same
-# way and did NOT improve predictions of tournament teams (test MRR 0.479 at weight 0, 0.444 at
-# 0.3): tournament players mostly bring proven meta Pokemon. So it stays at 0 in the data-tuned
+DEFAULT_WEIGHTS = {"synergy": 0.54, "defense": 0.14, "offense": 0.0, "roles": 0.0, "meta": 0.27, "plan": 0.05}
+# The plan signal (weather / Trick Room / Tailwind / terrain fit, src/plan.py) only helps a
+# little at a small weight and hurts beyond it (MRR falls from ~0.48 to 0.44 at 0.3):
+# tournament players mostly bring proven meta Pokemon. So it gets the small tuned weight in
 # "popular" mode, and drives the exploration modes, whose weights are a design choice rather
 # than fitted: synergy (lift is already popularity-adjusted), defense to stop type stacking,
 # and plan to build around the core's mechanics.
@@ -66,7 +68,32 @@ class TeamNeeds:
     missing_roles: list[str]
 
 
-def team_needs(members: list[Member], dex: Dex, usage: UsageData | None, doubles: bool, meta_n: int = 25) -> TeamNeeds:
+_PREVALENCE: dict[tuple, dict[str, float]] = {}
+
+
+def attack_prevalence(usage: UsageData, dex: Dex, n: int = 60) -> dict[str, float]:
+    """
+    How much the meta attacks with each type (mean 1.0): usage-weighted share of the
+    top Pokemon's sets running damaging moves of that type. Fire > 1 means a Fire
+    weakness gets hit more often than an average weakness would.
+    """
+    key = (id(usage), id(dex), n)
+    if key not in _PREVALENCE:
+        totals = {t: 0.0 for t in ALL_TYPES}
+        for name, pct in usage.ranked(n):
+            for move_id, move_pct in usage.section(name, "moves").items():
+                mv = dex.moves.get(to_id(move_id))
+                if mv and mv["category"] != "Status" and (mv["basePower"] or 0) > 0:
+                    totals[mv["type"].lower()] += pct * move_pct / 100
+        mean = sum(totals.values()) / len(totals) or 1.0
+        _PREVALENCE[key] = {t: v / mean for t, v in totals.items()}
+    return _PREVALENCE[key]
+
+
+def team_needs(members: list[Member], dex: Dex, usage: UsageData | None, doubles: bool, meta_n: int = 25,
+               weight_by_meta: bool = False) -> TeamNeeds:
+    """With weight_by_meta, each weakness counts in proportion to how often the meta
+    attacks with that type (a Fire weakness matters more than a Bug weakness)."""
     weak_types: dict[str, float] = {}
     if members:
         matrix = defense_matrix(members)
@@ -76,6 +103,9 @@ def team_needs(members: list[Member], dex: Dex, usage: UsageData | None, doubles
             need = max(0.0, weak - covered)
             if need > 0:
                 weak_types[atk_type.lower()] = float(need)
+    if weak_types and weight_by_meta and usage is not None:
+        prevalence = attack_prevalence(usage, dex)
+        weak_types = {t: v * prevalence.get(t, 1.0) for t, v in weak_types.items()}
     if weak_types:
         top = max(weak_types.values())
         weak_types = {t: v / top for t, v in weak_types.items()}
@@ -176,12 +206,25 @@ def recommend(
         pool_size = 10_000
     total_w = sum(weights.values()) or 1.0
 
-    needs = team_needs(members, dex, usage, doubles)
+    explore = mode != "popular"
+    needs = team_needs(members, dex, usage, doubles, weight_by_meta=explore)
     # Usage stats key Megas by their Mega name, so look members up by battle form.
     team_species = [m.form.name for m in members]
     on_team = {_root(m.form) for m in members}
-    mega_on_team = any(m.form.is_mega for m in members)
+    megas_on_team = sum(1 for m in members if m.form.is_mega)
     plans = team_plans(members, dex)
+
+    # Once a plan has its core (2+ members already playing into it), stop piling on more of
+    # the same and patch the core's weak spots instead - an Ice team needs a Fire answer.
+    glue = None
+    if explore and plans:
+        cores = [(plan_users(members, p, dex), p) for p in plans if not p.needed]
+        users, plan_core = max(cores, key=lambda x: x[0]) if cores else (0, None)
+        if users >= 2:
+            glue = plan_core
+            weights["plan"] *= 0.4
+            weights["defense"] *= 1.8
+            total_w = sum(weights.values()) or 1.0
 
     # Candidate pool: the usage leaderboard if we have one, else every legal Pokemon.
     if usage is not None:
@@ -214,16 +257,21 @@ def recommend(
         if needs.weak_types:
             gain = 0.0
             covered = []
-            for t, w in needs.weak_types.items():
+            for t, w in sorted(needs.weak_types.items(), key=lambda kv: -kv[1]):
                 mult = ability_defensive_multiplier(cand_types, t, ability)
                 if mult < 1:
                     gain += w
-                    covered.append(t.title())
+                    by_ability = mult == 0 and ability_defensive_multiplier(cand_types, t) > 0
+                    label = t.title()
+                    if by_ability and dex.abilities.get(ability):
+                        label += f" (immune: {dex.abilities[ability]['name']})"
+                    covered.append(label)
                 elif mult > 1:
                     gain -= w * 0.75
             defense = max(0.0, gain / sum(needs.weak_types.values()))
             if covered:
-                reasons.append("resists " + ", ".join(covered[:4]))
+                verb = f"covers your {glue.label} core's weak spots:" if glue else "resists"
+                reasons.append(f"{verb} " + ", ".join(covered[:4]))
 
         # offense: share of (usage-weighted) unhit meta Pokemon it hits super effectively
         offense = 0.0
@@ -255,26 +303,34 @@ def recommend(
         if mode == "hidden":
             score *= 1 - 0.6 * meta
         note = ""
-        if mega_on_team and form.is_mega:
-            note = "second Mega - only one can Mega Evolve per battle"
+        extra_mega = form.is_mega and megas_on_team >= MAX_MEGAS
+        if extra_mega:
+            note = f"Mega Stone #{megas_on_team + 1} - more than two leaves you short on options"
             score *= 0.8
+        elif form.is_mega and megas_on_team:
+            note = "second Mega Stone - you choose which one Mega Evolves at team preview"
         rows.append({
             "pokemon": name, "form": form.name, "types": "/".join(form.types), "score": round(score * 100, 1),
             "synergy": round(synergy, 2), "defense": round(defense, 2), "offense": round(offense, 2),
             "roles": round(roles, 2), "meta": round(meta, 2), "plan": round(plan, 2),
             "why": "; ".join(reasons) or "solid all-round pick", "note": note,
-            "second_mega": bool(mega_on_team and form.is_mega),
+            "extra_mega": bool(extra_mega),
         })
 
     df = pd.DataFrame(rows)
     if df.empty:
         return df
+    df.attrs["glue"] = glue.label if glue else None
+    df.attrs["weak_types"] = sorted(needs.weak_types, key=lambda t: -needs.weak_types[t])[:4]
     df["root"] = [_root(dex.get_species(n)) for n in df["pokemon"]]
     if raw:
         return df
     # Garchomp and Garchomp-Mega-Z are one team-sheet Pokemon: keep its best-scoring form.
-    df = df.sort_values("score", ascending=False).drop_duplicates("root").drop(columns=["root", "second_mega"])
-    return (df.head(top_n) if top_n else df).reset_index(drop=True)
+    attrs = dict(df.attrs)
+    df = df.sort_values("score", ascending=False).drop_duplicates("root").drop(columns=["root", "extra_mega"])
+    df = (df.head(top_n) if top_n else df).reset_index(drop=True)
+    df.attrs.update(attrs)
+    return df
 
 
 __all__ = ["DEFAULT_WEIGHTS", "EXPLORE_WEIGHTS", "MODES", "TeamNeeds", "team_needs", "recommend", "ALL_TYPES"]

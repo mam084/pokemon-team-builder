@@ -123,6 +123,10 @@ def recommendations_tab(team, members, dex, usage, fmt) -> None:
     if recs.empty:
         st.info("No candidates.")
         return
+    if recs.attrs.get("glue"):
+        weak = ", ".join(t.title() for t in recs.attrs.get("weak_types", []))
+        st.info(f"Your **{recs.attrs['glue']}** core is in place, so picks now favor covering its weak spots "
+                f"({weak}) over adding more of the same.")
     if usage:
         recs.insert(2, "usually plays", [role_text(meta_roles(n, usage, dex, fmt.is_doubles), 2)
                                           for n in recs["pokemon"]])

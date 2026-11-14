@@ -46,12 +46,18 @@ class Member:
         return [m for m in self.moves if m["category"] != "Status" and (m["basePower"] or 0) > 0]
 
 
-def build_members(team: list[PokemonSet], dex: Dex) -> list[Member]:
+def build_members(team: list[PokemonSet], dex: Dex, evolve: int | None | str = "all") -> list[Member]:
+    """
+    Team members as they battle. `evolve` picks who Mega Evolves: "all" (every
+    Mega Stone holder - fine for per-Pokemon views), an index into `team` (only
+    that one; other stone holders fight in their base forme), or None (nobody).
+    """
     from src.damage import Battler  # local import: damage imports nothing from here, but keep it light
 
     members = []
-    for pset in team:
-        form = pset.battle_form(dex)
+    for i, pset in enumerate(team):
+        mega = evolve == "all" or evolve == i
+        form = pset.battle_form(dex, mega)
         if form is None:
             continue
         label = form.name if form.is_mega else (pset.nickname or form.name)
@@ -59,13 +65,26 @@ def build_members(team: list[PokemonSet], dex: Dex) -> list[Member]:
             label=label,
             form=form,
             types=[t.lower() for t in form.types],
-            ability_id=to_id(pset.battle_ability(dex)),
-            stats=pset.stats(dex),
+            ability_id=to_id(pset.battle_ability(dex, mega)),
+            stats=pset.stats(dex, mega),
             moves=[dex.moves[to_id(m)] for m in pset.moves if to_id(m) in dex.moves],
             pset=pset,
-            battler=Battler.from_set(pset, dex),
+            battler=Battler.from_set(pset, dex, mega=mega),
         ))
     return members
+
+
+def mega_variants(team: list[PokemonSet], dex: Dex) -> list[tuple[str | None, list[Member]]]:
+    """
+    One version of the team per choice of which Mega Stone holder Mega Evolves
+    (only one can per battle): [(who evolves, members), ...]. A team with zero or
+    one stone has a single version.
+    """
+    stones = [i for i, p in enumerate(team) if p.is_mega(dex)]
+    if len(stones) <= 1:
+        who = team[stones[0]].battle_form(dex).name if stones else None
+        return [(who, build_members(team, dex))]
+    return [(team[i].battle_form(dex).name, build_members(team, dex, evolve=i)) for i in stones]
 
 
 # --------------------------------------------------------------------------

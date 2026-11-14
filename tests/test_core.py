@@ -13,7 +13,7 @@ import json
 import unittest
 from pathlib import Path
 
-from src.analysis import (build_members, coverage_vs_meta, defense_matrix, defense_summary,
+from src.analysis import (build_members, mega_variants, coverage_vs_meta, defense_matrix, defense_summary,
                           role_checklist, speed_table)
 from src.dex import load_dex, to_id
 from src.evaluate import evaluate, load_tournament_teams, split_by_date
@@ -228,10 +228,11 @@ class TestPasteAndLegality(unittest.TestCase):
         self.assertIn("Stat Points", messages)
         self.assertIn("can't learn Spore", messages)
 
-    def test_two_megas_warns(self):
-        team = [PokemonSet("Garchomp", item="Garchompite Z"), PokemonSet("Charizard", item="Charizardite Y")]
-        warnings = [i.message for i in check_team(team, self.dex) if i.level == "warning"]
-        self.assertTrue(any("only one Pokemon can Mega Evolve" in w for w in warnings))
+    def test_mega_count(self):
+        two = [PokemonSet("Garchomp", item="Garchompite Z"), PokemonSet("Charizard", item="Charizardite Y")]
+        self.assertFalse(any("Mega Stones" in i.message for i in check_team(two, self.dex)))  # normal
+        three = two + [PokemonSet("Froslass", item="Froslassite")]
+        self.assertTrue(any("only one can Mega Evolve" in i.message for i in check_team(three, self.dex)))
 
 
 class TestUsage(unittest.TestCase):
@@ -415,6 +416,37 @@ class TestEvaluation(unittest.TestCase):
         self.assertAlmostEqual(sum(report["tuned_weights"].values()), 1.0, places=2)
 
 
+class TestTwoMegas(unittest.TestCase):
+    def setUp(self):
+        self.dex = load_dex("regmc")
+
+    def test_variants_evolve_one_at_a_time(self):
+        team = [PokemonSet("Garchomp", item="Garchompite Z", moves=["Earth Power"]),
+                PokemonSet("Charizard", item="Charizardite Y", moves=["Heat Wave"]),
+                PokemonSet("Incineroar", item="Sitrus Berry", moves=["Fake Out"])]
+        variants = mega_variants(team, self.dex)
+        self.assertEqual([who for who, _ in variants], ["Garchomp-Mega-Z", "Charizard-Mega-Y"])
+        for who, members in variants:
+            self.assertEqual([m.form.name for m in members if m.form.is_mega], [who])
+        base_zard = variants[0][1][1]
+        self.assertEqual(base_zard.form.name, "Charizard")
+        self.assertEqual(base_zard.ability_id, "blaze")          # its own ability, not Drought
+
+    def test_one_mega_has_one_variant(self):
+        team = [PokemonSet("Garchomp", item="Garchompite Z"), PokemonSet("Incineroar")]
+        self.assertEqual(len(mega_variants(team, self.dex)), 1)
+
+    def test_bring_picks_which_mega(self):
+        usage = sample_usage()
+        team = [PokemonSet("Garchomp", item="Garchompite Z", moves=["Earth Power", "Draco Meteor"]),
+                PokemonSet("Charizard", item="Charizardite Y", moves=["Heat Wave", "Solar Beam"]),
+                PokemonSet("Incineroar", moves=["Fake Out", "Flare Blitz"]),
+                PokemonSet("Rillaboom", moves=["Wood Hammer"]), PokemonSet("Gholdengo", moves=["Make It Rain"])]
+        archetypes = build_archetypes(usage, self.dex, keep=2)
+        table = meta_matchups(mega_variants(team, self.dex), archetypes, usage, self.dex)
+        self.assertTrue(set(table["mega evolve"]) <= {"Garchomp-Mega-Z", "Charizard-Mega-Y"})
+
+
 class TestPlanBuilderSwaps(unittest.TestCase):
     """Uses the shipped Reg M-C usage data (skips if it's missing)."""
 
@@ -444,6 +476,13 @@ class TestPlanBuilderSwaps(unittest.TestCase):
         self.assertLess(plan_score(prof, team_plans(many, self.dex), many, self.dex)[0],
                         plan_score(prof, team_plans(few, self.dex), few, self.dex)[0])
 
+    def test_core_then_cover(self):
+        core = [self.usage.popular_set(n, self.dex) for n in ("Froslass-Mega", "Glaceon", "Beartic")]
+        recs = recommend(build_members(core, self.dex), self.dex, self.usage, top_n=8, mode="neutral")
+        self.assertEqual(recs.attrs["glue"], "Snow")
+        self.assertIn("fire", recs.attrs["weak_types"])
+        self.assertTrue(any("covers your Snow core" in w for w in recs["why"]))
+
     def test_needed_setter(self):
         swimmer = build_members([PokemonSet("Basculegion", ability="Swift Swim", moves=["Wave Crash"])], self.dex)
         plans = team_plans(swimmer, self.dex)
@@ -466,7 +505,7 @@ class TestPlanBuilderSwaps(unittest.TestCase):
             self.assertEqual(len(t.sets), 6)
             self.assertEqual(t.sets[0].species, "Garganacl")
             self.assertFalse([i for i in check_team(t.sets, self.dex) if i.level == "error"])
-            self.assertLessEqual(sum(p.is_mega(self.dex) for p in t.sets), 1)
+            self.assertLessEqual(sum(p.is_mega(self.dex) for p in t.sets), 2)
 
     def test_swaps(self):
         team, _ = parse_paste(GARGANACL_TEAM, self.dex)

@@ -13,6 +13,9 @@ from src.dex import STATS, Dex, Species
 from src.stats import calc_stats
 
 TEAM_SIZE = 6
+# Only one Pokemon can Mega Evolve per battle, but a team may carry several Mega Stones and
+# choose at team preview. 81% of Reg M-C tournament teams (5,549 lists) carry two.
+MAX_MEGAS = 2
 
 
 def empty_sps() -> dict:
@@ -29,15 +32,16 @@ class PokemonSet:
     moves: list[str] = field(default_factory=list)
     nickname: str = ""
 
-    def battle_form(self, dex: Dex) -> Species | None:
-        return dex.battle_form(self.species, self.item)
+    def battle_form(self, dex: Dex, mega: bool = True) -> Species | None:
+        """The forme it fights in; mega=False gives the forme before (or without) Mega Evolving."""
+        return dex.battle_form(self.species, self.item) if mega else dex.get_species(self.species)
 
-    def battle_ability(self, dex: Dex) -> str:
+    def battle_ability(self, dex: Dex, mega: bool = True) -> str:
         """A Mega's ability replaces whatever the base forme had."""
-        form = self.battle_form(dex)
+        form = self.battle_form(dex, mega)
         if form is not None and form.is_mega:
             return form.abilities[0]
-        return self.ability
+        return self.ability or (form.abilities[0] if form is not None else "")
 
     def stats(self, dex: Dex, mega: bool = True) -> dict:
         form = self.battle_form(dex) if mega else dex.get_species(self.species)

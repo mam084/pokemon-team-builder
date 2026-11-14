@@ -8,8 +8,9 @@ import streamlit as st
 
 from src.dex import load_dex
 from src.formats import FORMATS
-from src.matchup import (best_attack, best_bring, build_archetypes, counter_picks, meta_matchups,
-                         opponent_members, pair_matrix, team_score, threat_report, verdict)
+from src.analysis import mega_variants
+from src.matchup import (best_attack, best_variant, build_archetypes, counter_picks, meta_matchups,
+                         opponent_members, team_score, threat_report, verdict)
 from src.recommend import MODES
 from src.roles import meta_roles, role_text
 from src.swaps import SwapEngine, mode_pool, suggest_swaps
@@ -64,12 +65,15 @@ def matchups_tab(fmt_id, team, members, dex, usage, fmt) -> None:
     if not members:
         st.info("Add Pokémon on the **Team** tab to see how you match up. The meta teams are listed below.")
     else:
-        table = meta_matchups(members, archetypes, usage, dex, bring=fmt.pick, doubles=doubles)
+        variants = mega_variants(team, dex)
+        table = meta_matchups(variants, archetypes, usage, dex, bring=fmt.pick, doubles=doubles)
+        if len(variants) < 2:
+            table = table.drop(columns=["mega evolve"])
         weights = table["popularity"]
         overall = float((table["score"] * weights).sum() / weights.sum()) if len(table) else 0.0
         c = st.columns(4)
-        c[0].metric("Overall vs meta", f"{overall:+.2f} · {verdict(overall)}",
-                    help="Usage-weighted average of the team scores below")
+        c[0].metric("Overall vs meta", f"{overall:+.2f}", help="Usage-weighted average of the team scores below")
+        c[0].caption(verdict(overall))
         c[1].metric("Favorable", int((table["score"] >= 0.25).sum()))
         c[2].metric("Even", int(((table["score"] > -0.25) & (table["score"] < 0.25)).sum()))
         c[3].metric("Unfavorable", int((table["score"] <= -0.25).sum()))
@@ -105,9 +109,14 @@ def matchups_tab(fmt_id, team, members, dex, usage, fmt) -> None:
         st.caption(" ".join(notes))
 
     if members:
-        matrix = pair_matrix(members, theirs, arch.trick_room, doubles, arch.weather)
+        variants = mega_variants(team, dex)
+        who, matrix, picks, picked = best_variant(variants, theirs, arch.trick_room, doubles, arch.weather,
+                                                  fmt.pick)
+        members_now = next(ms for w, ms in variants if w == who)
         score = team_score(matrix)
-        picks, picked = best_bring(matrix, fmt.pick)
+        if len(variants) > 1:
+            st.caption(f"You carry {len(variants)} Mega Stones; against this team, **Mega Evolve {who}** "
+                       "(the other plays in its base forme).")
         left, right = st.columns([3, 2])
         with left:
             st.markdown(f"**Your team vs {pick}: {score:+.2f} ({verdict(score)})**")
@@ -119,7 +128,7 @@ def matchups_tab(fmt_id, team, members, dex, usage, fmt) -> None:
             for opp in theirs:
                 col = matrix[opp.label]
                 best = col.idxmax()
-                mine = next(m for m in members if m.label == best)
+                mine = next(m for m in members_now if m.label == best)
                 pct, move = best_attack(mine, opp, doubles, arch.weather)
                 answers.append({
                     "their Pokémon": opp.label,
