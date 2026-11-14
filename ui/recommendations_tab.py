@@ -8,32 +8,118 @@ from pathlib import Path
 import pandas as pd
 import streamlit as st
 
-from src.recommend import DEFAULT_WEIGHTS, recommend
-from src.roles import meta_roles, role_text
+from src.builder import build_teams
+from src.dex import to_id
+from src.matchup import verdict
+from src.recommend import DEFAULT_WEIGHTS, EXPLORE_WEIGHTS, MODES, recommend
+from src.roles import meta_roles, role_text, set_roles
 from ui.common import SLOTS, sprite, type_badges
-from ui.state import add_to_team
+from ui.matchups_tab import archetypes_for
+from ui.state import add_to_team, load_team
+
+HELP = {
+    "synergy": "Average over your whole team of how much more often it appears next to each member "
+               "than chance (Smogon teammate lift). Already adjusted for popularity. 0.33 = no relationship.",
+    "defense": "Resists the types your team is weak to (and doesn't share its weaknesses).",
+    "offense": "Hits popular Pokémon your team can't hit super effectively.",
+    "roles": "Commonly brings a role you're missing (Fake Out, speed control…).",
+    "meta": "Overall usage - proven Pokémon tend to be good.",
+    "plan": "Plays into your team's weather, Trick Room, Tailwind or terrain (with diminishing returns).",
+}
+MODE_HELP = {
+    "popular": "Data-tuned on real tournament teams. Leans on proven meta Pokémon.",
+    "neutral": "Popularity counts for nothing and every Pokémon with ladder data is considered. "
+               "Leans on synergy, type fit and your team's game plan (weather, Trick Room...).",
+    "hidden": "Like Neutral, and the most-used Pokémon are marked down, to surface less common picks.",
+}
+
+
+def mode_picker() -> str:
+    """Shared by recommendations, the team builder and swap suggestions."""
+    if st.session_state.get("rec_mode") not in MODES:
+        st.session_state["rec_mode"] = "popular"
+    mode = st.radio("Recommendation style", list(MODES), format_func=MODES.get, key="rec_mode",
+                    horizontal=True)
+    st.caption(MODE_HELP[mode])
+    return mode
+
+
+def weights_for(mode: str) -> dict:
+    defaults = DEFAULT_WEIGHTS if mode == "popular" else EXPLORE_WEIGHTS
+    title = ("Adjust weights (defaults tuned on real tournament teams)" if mode == "popular"
+             else "Adjust weights (exploration defaults)")
+    with st.expander(title):
+        cols = st.columns(3)
+        weights = {
+            key: cols[i % 3].slider(key.title(), 0.0, 1.0, float(defaults[key]), 0.05, help=HELP[key],
+                                    key=f"w_{mode}_{key}", disabled=(key == "meta" and mode != "popular"))
+            for i, key in enumerate(DEFAULT_WEIGHTS)
+        }
+    return weights
+
+
+def team_builder_section(team, dex, usage, fmt, mode, weights) -> None:
+    with st.expander("Build a whole team around one Pokémon", expanded=not team):
+        if usage is None:
+            st.info("Needs usage stats for this format.")
+            return
+        sheet = usage.team_sheet_usage(dex)
+        names = list(sheet)
+        default = team[0].species if team and team[0].species in names else names[0]
+        core_name = st.selectbox("Build around", names, index=names.index(default), key="build_core",
+                                 format_func=lambda n: f"{n}  ·  {sheet[n]:.1f}%")
+        mine = next((p for p in team if to_id(p.species) == to_id(core_name)), None)
+        use_mine = st.checkbox(f"Use my {core_name} set", value=mine is not None, disabled=mine is None,
+                               key="build_use_mine")
+        st.caption("Builds three different teams. Each one is filled one Pokémon at a time with the top "
+                   "recommendation (in the style picked above), then rated against the meta teams on the "
+                   "Matchups tab. Loading a team replaces your current one.")
+        if st.button(f"Build teams around {core_name}", type="primary", width="stretch"):
+            core = mine if (use_mine and mine) else core_name
+            with st.spinner("Building teams…"):
+                st.session_state["built_teams"] = build_teams(
+                    core, dex, usage, doubles=fmt.is_doubles, mode=mode, weights=weights,
+                    archetypes=archetypes_for(fmt.id))
+            st.session_state["built_for"] = (core_name, mode)
+        built = st.session_state.get("built_teams") or []
+        if built:
+            core_label, built_mode = st.session_state.get("built_for", ("", ""))
+            st.markdown(f"**Teams around {core_label}** ({MODES.get(built_mode, built_mode)} style)")
+        for n, t in enumerate(built):
+            with st.container(border=True):
+                score = t.meta_score or 0.0
+                st.markdown(f"**Team {n + 1}** · vs meta {score:+.2f} ({verdict(score)})")
+                cards = []
+                for p in t.sets:
+                    form = p.battle_form(dex)
+                    cards.append(f"<b>{p.species}</b> @ {p.item or 'no item'}<br>{type_badges(form.types)}"
+                                 f"<br><span style='font-size:.8rem;opacity:.7'>"
+                                 f"{role_text(set_roles(p, dex, fmt.is_doubles), 2)}</span>")
+                st.markdown("<div style='display:flex;flex-wrap:wrap;gap:10px 18px'>" +
+                            "".join(f"<div style='min-width:130px'>{c}</div>" for c in cards) + "</div>",
+                            unsafe_allow_html=True)
+                with st.expander("Why each Pokémon"):
+                    for r in t.reasons:
+                        st.markdown(f"- {r}")
+                st.button("Load this team", key=f"load_built_{n}", width="stretch",
+                          on_click=load_team, args=(t.sets,))
 
 def recommendations_tab(team, members, dex, usage, fmt) -> None:
+    mode = mode_picker()
+    weights = weights_for(mode)
+    team_builder_section(team, dex, usage, fmt, mode, weights)
+
+    st.subheader("Next Pokémon for your team")
     if len(team) >= SLOTS:
-        st.info("Your team is full - remove a member (Team tab) to add one of these.")
-    st.caption("Every legal Pokémon is scored on five signals (0–1 each) and ranked by the weighted blend. "
+        st.info("Your team is full - remove a member (Team tab) to add one of these, or see "
+                "**Suggested swaps** on the Matchups tab.")
+    st.caption("Every candidate is scored on six signals (0–1 each) and ranked by the weighted blend. "
                "**Synergy** is judged against your whole team: the average of how much more often the "
                "candidate appears next to each of your Pokémon than chance predicts.")
-    accuracy_note(fmt)
-    with st.expander("Adjust weights (defaults were tuned on real tournament teams)"):
-        cols = st.columns(5)
-        help_text = {
-            "synergy": "Average over your whole team of how much more often it appears next to each member "
-                       "than chance (Smogon teammate lift). 0.33 = no relationship.",
-            "defense": "Resists the types your team is weak to.",
-            "offense": "Hits popular Pokémon your team can't hit super effectively.",
-            "roles": "Commonly brings a role you're missing (Fake Out, speed control…).",
-            "meta": "Overall usage - proven Pokémon tend to be good.",
-        }
-        weights = {key: cols[i].slider(key.title(), 0.0, 1.0, DEFAULT_WEIGHTS[key], 0.05, help=help_text[key])
-                   for i, key in enumerate(DEFAULT_WEIGHTS)}
+    if mode == "popular":
+        accuracy_note(fmt)
     recs = recommend(members, dex, usage, doubles=fmt.is_doubles,
-                     weights=weights, top_n=15)
+                     weights=weights, top_n=15, mode=mode)
     if recs.empty:
         st.info("No candidates.")
         return
@@ -73,7 +159,7 @@ def recommendations_tab(team, members, dex, usage, fmt) -> None:
             column_config={
                 "score": st.column_config.ProgressColumn("score", min_value=0, max_value=100, format="%.0f"),
                 **{c: st.column_config.NumberColumn(c, format="%.2f", width="small")
-                   for c in ["synergy", "defense", "offense", "roles", "meta"]},
+                   for c in ["synergy", "defense", "offense", "roles", "meta", "plan"]},
                 "why": st.column_config.TextColumn(width="large"),
             },
         )

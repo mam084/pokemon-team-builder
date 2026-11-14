@@ -218,12 +218,15 @@ class UsageData:
             if pct >= min_pct and to_id(m) in dex.moves
         ]
 
-    def popular_set(self, species: str, dex: Dex, taken_items: set[str] | None = None) -> PokemonSet | None:
+    def popular_set(self, species: str, dex: Dex, taken_items: set[str] | None = None,
+                    allow_mega: bool = True) -> PokemonSet | None:
         """
         The most common set for a team-sheet Pokemon: built from its most-used
         variant (e.g. Charizard -> Charizard-Mega-Y with Charizardite Y), using
         the top ability, spread and four legal moves, and the most popular item
-        that doesn't break Item Clause.
+        that doesn't break Item Clause. With allow_mega=False (the team already
+        has its Mega) the non-Mega variant is used, or the Mega's moves and
+        spread with an ordinary item if no non-Mega data exists.
         """
         s = dex.get_species(species)
         if s is None:
@@ -238,9 +241,16 @@ class UsageData:
             return None
         form = dex.get_species(entry_name)
         taken = {to_id(i) for i in (taken_items or set())}
+        if not allow_mega and form is not None and form.is_mega:
+            plain = [v for v in self.variants(base.name, dex) if not dex.get_species(v).is_mega]
+            if plain:
+                entry_name, form = plain[0], dex.get_species(plain[0])
 
-        if form is not None and form.is_mega:
+        if form is not None and form.is_mega and allow_mega:
             item = form.required_item or ""
+        elif form is not None and form.is_mega:
+            fallback = ["sitrusberry", "leftovers", "focussash", "lifeorb", "expertbelt", "mentalherb", "covertcloak"]
+            item = next((dex.items[i]["name"] for i in fallback if i in dex.items and i not in taken), "")
         else:
             item = next((dex.items[to_id(i)]["name"] for i in self.section(entry_name, "items")
                          if to_id(i) in dex.items and to_id(i) not in taken

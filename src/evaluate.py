@@ -41,9 +41,9 @@ from src.team import PokemonSet
 from src.usage import UsageData
 
 TOURNAMENT_DIR = Path(__file__).resolve().parent.parent / "data" / "tournaments"
-SIGNALS = ["synergy", "defense", "offense", "roles", "meta"]
+SIGNALS = ["synergy", "defense", "offense", "roles", "meta", "plan"]
 # The weights the recommender shipped with before this evaluation existed (chosen by hand).
-HAND_SET_WEIGHTS = {"synergy": 0.30, "defense": 0.25, "offense": 0.15, "roles": 0.15, "meta": 0.15}
+HAND_SET_WEIGHTS = {"synergy": 0.30, "defense": 0.25, "offense": 0.15, "roles": 0.15, "meta": 0.15, "plan": 0.0}
 KS = (1, 5, 10)
 
 
@@ -163,18 +163,30 @@ def split_by_date(teams: list[dict], test_share: float = 0.3) -> tuple[list[dict
     return [t for t in teams if t["tournament"] not in test_ids], [t for t in teams if t["tournament"] in test_ids]
 
 
+GRID_SIGNALS = ["synergy", "defense", "offense", "roles", "meta"]
+PLAN_STEPS = (0.05, 0.1, 0.15, 0.2, 0.3)
+
+
 def weight_grid(levels=(0.0, 0.25, 0.5, 0.75, 1.0)):
-    for combo in itertools.product(levels, repeat=len(SIGNALS)):
+    """Full grid over the five original signals (plan fixed at 0)."""
+    for combo in itertools.product(levels, repeat=len(GRID_SIGNALS)):
         if any(combo):
-            yield dict(zip(SIGNALS, combo))
+            yield {**dict(zip(GRID_SIGNALS, combo)), "plan": 0.0}
 
 
 def tune(queries: list[Query]) -> tuple[dict, dict]:
-    """Best weights by MRR on the given (training) queries."""
+    """Best weights by MRR on the given (training) queries: a grid over the five
+    original signals, then a line search adding the plan signal on top."""
     best_w, best_m = None, None
     for w in weight_grid():
         m = metrics(queries, w)
         if best_m is None or m["mrr"] > best_m["mrr"]:
+            best_w, best_m = w, m
+    scale = sum(best_w.values())
+    for step in PLAN_STEPS:
+        w = {**best_w, "plan": step * scale}
+        m = metrics(queries, w)
+        if m["mrr"] > best_m["mrr"]:
             best_w, best_m = w, m
     total = sum(best_w.values())
     return {k: round(v / total, 3) for k, v in best_w.items()}, best_m

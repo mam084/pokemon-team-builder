@@ -91,6 +91,28 @@ play on the ladder.
 - Pick any of your Pokémon or a meta Pokémon's popular set on either side, and
   see each move's damage range, % of HP and KO chance.
 
+**Build around a Pokémon, and fix what's weak**
+- **Build a whole team around one Pokémon**: pick a core (or use your own set
+  for it) and get three different complete teams. Each is filled one Pokémon at
+  a time with the top recommendation, using popular sets that keep Item Clause
+  and one Mega, then rated against the meta teams.
+- **Suggested swaps** (Matchups tab): "Garchomp → Emboar: Close Combat 116% to
+  Incineroar, takes 22%". Pick a threat to fix, or ask for the best overall
+  improvement. Every member × candidate swap is scored with the damage-based
+  matchup engine, and a swap is only offered if it doesn't make the overall
+  matchup worse. One tap applies it.
+- **Recommendation style**, shared by recommendations, the builder and swaps:
+  - *Popular picks*: the data-tuned defaults, which lean on proven meta Pokémon.
+  - *Neutral*: popularity counts for nothing and every Pokémon with ladder data
+    is considered.
+  - *Hidden gems*: like Neutral, but the most-used Pokémon are marked down.
+- **Game-plan synergy** (`src/plan.py`): the recommender knows what weather,
+  Trick Room, Tailwind and terrain do. A Mega Froslass (Snow Warning) team gets
+  Beartic (Slush Rush), Glaceon and Rotom-Frost (Blizzard never misses in snow)
+  instead of the meta's usual partners. A Swift Swim team with no rain setter
+  gets rain setters. The plan signal has diminishing returns, so you don't end
+  up with five Ice types sharing five weaknesses.
+
 **Find what's missing**
 - **Recommendations**: every candidate gets five scores from 0 to 1, and you can
   change how much each one counts:
@@ -136,6 +158,13 @@ never saw.
   time** and in the top 10 74% of the time. That's
   38% better MRR than the
   weights the recommender originally shipped with.
+- The **game-plan signal was tested the same way and did not help** (test MRR
+  0.479 at weight 0, falling to 0.444 at 0.3): tournament players mostly bring
+  proven meta Pokémon rather than building around weather. So it gets no weight
+  in *Popular picks* mode and drives the *Neutral* / *Hidden gems* modes, whose
+  weights are a design choice rather than fitted. In Neutral mode on 400
+  held-out teams the recommender still ranks the real missing Pokémon in its
+  top 10 48% of the time among ~260 candidates (random: 4%).
 - The tuning learned **synergy 0.57, meta 0.29,
   defense 0.14**, with **offense and roles at 0**: real players pick partners
   that are proven together and patch type weaknesses, more than ones that fill a checklist.
@@ -234,7 +263,10 @@ The tests check:
 │   ├── presets.py            common sets assembled from usage stats
 │   ├── roles.py              role tags for meta Pokémon and for your sets
 │   ├── matchup.py            meta teams, damage-based pair scores, bring-N, counters, threats
-│   ├── recommend.py          explainable multi-signal recommender
+│   ├── recommend.py          explainable multi-signal recommender with popularity modes
+│   ├── plan.py               weather / Trick Room / Tailwind / terrain synergy
+│   ├── builder.py            build three full teams around one Pokémon
+│   ├── swaps.py              swap suggestions to fix threats without hurting the meta matchup
 │   └── evaluate.py           hide-one-member evaluation on real tournament teams
 ├── scripts/
 │   ├── export_dex.js         Showdown → data/dex
