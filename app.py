@@ -62,7 +62,7 @@ def main() -> None:
     title_row(fmt.label + (f", ladder data from {month}" if month else ""))
     legality(team, dex, fmt)
 
-    tabs = st.tabs(["Team", "Analysis", "Matchups", "Damage calc", "Recommendations", "Meta"])
+    tabs = st.tabs(["Team", "Analysis", "Matchups", "Damage calc", "Recommendations", "Meta"], key="main_tabs", on_change="rerun")
     with tabs[0]:
         team_tab(dex, usage)
     with tabs[1]:

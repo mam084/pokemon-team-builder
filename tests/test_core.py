@@ -502,6 +502,15 @@ class TestPlanBuilderSwaps(unittest.TestCase):
         recs = recommend(build_members(team, self.dex), self.dex, self.usage, top_n=None)
         self.assertNotIn("Arcanine", set(recs["pokemon"]))
 
+    def test_roles_need_the_moves(self):
+        sps = {"hp": 2, "atk": 0, "def": 0, "spa": 32, "spd": 0, "spe": 32}
+        whimsicott = PokemonSet("Whimsicott", ability="Prankster", sps=sps,
+                                moves=["Tailwind", "Moonblast", "Encore", "Protect"])
+        self.assertNotIn("Special attacker", [t.label for t in set_roles(whimsicott, self.dex)])
+        snarler = PokemonSet("Incineroar", ability="Blaze", moves=["Snarl", "Protect"])
+        checklist = role_checklist(build_members([snarler], self.dex), True).set_index("role")
+        self.assertEqual(checklist.loc["Intimidate / Attack drops", "covered by"], "—")
+
     def test_conditional_items_need_support(self):
         garg = self.usage.popular_set("Garganacl", self.dex)
         corv = self.usage.popular_set("Corviknight", self.dex, team=[garg])
