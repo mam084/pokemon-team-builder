@@ -146,17 +146,17 @@ Pokémon ranks** among about 68 candidates. This is repeated
 for every member of every team.
 
 Tournaments are split by date. The five signal weights were tuned by grid
-search on 4,003 teams from the older tournaments. Every number
-below comes from 1,546 teams in the 36 newest
+search on 3,841 teams from the older tournaments. Every number
+below comes from 1,523 teams in the 36 newest
 tournaments (2026-11-07 to 2026-11-13), which the tuning
 never saw.
 
 | model | top 1 | top 5 | top 10 | MRR |
 |---|---|---|---|---|
-| tuned weights | 38.2% | 66.2% | 75.2% | 0.511 |
-| hand-set weights | 24.0% | 52.0% | 63.8% | 0.372 |
-| synergy only | 23.0% | 52.1% | 63.1% | 0.368 |
-| popularity only | 6.5% | 36.4% | 49.8% | 0.208 |
+| tuned weights | 37.7% | 65.9% | 75.0% | 0.507 |
+| hand-set weights | 23.8% | 51.6% | 63.4% | 0.370 |
+| synergy only | 22.6% | 51.7% | 62.8% | 0.365 |
+| popularity only | 6.5% | 36.4% | 49.9% | 0.208 |
 | random | 1.5% | 7.3% | 14.7% | 0.071 |
 
 - The tuned weights find the missing Pokémon **first try 38% of the
@@ -165,7 +165,7 @@ never saw.
   weights the recommender originally shipped with.
 - **Two Mega Stones are normal**: 81% of these tournament teams carry two (you
   choose which Mega Evolves at team preview). Removing the old "second Mega"
-  penalty raised test MRR from 0.477 to 0.511. The matchup engine now scores a
+  penalty raised test MRR from 0.475 to 0.507 on the same data. The matchup engine now scores a
   two-Mega team with whichever Mega Evolves best against each opponent, and says
   which one.
 - The **game-plan signal** only helps a little: the tuning gives it a small
