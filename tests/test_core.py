@@ -519,6 +519,20 @@ class TestPlanBuilderSwaps(unittest.TestCase):
             new_team = team[:row["slot"]] + [row["_set"]] + team[row["slot"] + 1:]
             self.assertFalse([i for i in check_team(new_team, self.dex) if i.level == "error"], row["swap in"])
 
+    def test_swaps_same_role(self):
+        team, _ = parse_paste(GARGANACL_TEAM, self.dex)
+        engine = SwapEngine(build_archetypes(self.usage, self.dex, keep=4), self.usage, self.dex)
+        swaps = suggest_swaps(team, self.dex, self.usage, engine, same_role=True)
+        for _, row in swaps.iterrows():
+            self.assertEqual(row["out job"], row["in job"], row["swap in"])
+
+    def test_job(self):
+        from src.roles import RoleTag, job, plan_roles
+        tags = [RoleTag("Tailwind setter", 100), RoleTag("Disruptor", 100), RoleTag("Special attacker", 100)]
+        self.assertEqual(job(tags), "Support")
+        self.assertEqual(job([RoleTag("Setup sweeper", 100)]), "Attacker")
+        self.assertEqual(plan_roles([RoleTag("Snow setter", 100), RoleTag("Screens", 100)]), {"Snow setter"})
+
 
 if __name__ == "__main__":
     unittest.main()

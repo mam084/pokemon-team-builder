@@ -96,34 +96,43 @@ def slot_editor(slot: int, dex: Dex, usage: UsageData | None) -> None:
         pct = f"  ·  {move_pct[to_id(n)]:.0f}%" if to_id(n) in move_pct else ""
         return f"{n}  ({mv['type']} {mv['category'][:4]}{bp}){pct}"
 
-    mc = st.columns(4)
-    for i in range(4):
-        if ss.get(k(slot, f"move{i}"), NONE) not in move_opts:
-            ss[k(slot, f"move{i}")] = NONE
-        mc[i].selectbox(f"Move {i + 1}", move_opts, key=k(slot, f"move{i}"), format_func=move_label)
+    left, right = st.columns(2, gap="medium")
+    with left.container(border=True, key=f"moves_box{slot}"):
+        st.markdown("<div class='box-title'>Moves</div>", unsafe_allow_html=True)
+        for i in range(4):
+            if ss.get(k(slot, f"move{i}"), NONE) not in move_opts:
+                ss[k(slot, f"move{i}")] = NONE
+            st.selectbox(f"Move {i + 1}", move_opts, key=k(slot, f"move{i}"), format_func=move_label,
+                         label_visibility="collapsed")
 
-    # stat points + final stats
+    # stat points + final stats, one row per stat
     spent = sum(int(ss.get(k(slot, f"sp_{s}"), 0)) for s in STATS)
-    remaining = dex.rules["statPointTotal"] - spent
-    st.markdown(
-        f"**Stat Points** — {spent}/{dex.rules['statPointTotal']} used"
-        + (f" · :red[{-remaining} over]" if remaining < 0 else f" · {remaining} left")
-    )
-    if form.is_mega:
-        st.caption(f"Stats below are {form.name}'s, after Mega Evolving.")
-    sc = st.columns(6)
+    total = dex.rules["statPointTotal"]
+    remaining = total - spent
+    left_txt = f":red[{-remaining} over]" if remaining < 0 else f"{remaining} left"
     nature = dex.get_nature(ss.get(k(slot, "nature")))
     stats = pset.stats(dex)
-    for i, stat in enumerate(STATS):
-        arrow = ""
-        if nature and nature["plus"] == stat:
-            arrow = " ▲"
-        elif nature and nature["minus"] == stat:
-            arrow = " ▼"
-        sc[i].number_input(f"{STAT_LABELS[stat]}{arrow}", min_value=0, max_value=dex.rules["statPointMax"],
-                           step=1, key=k(slot, f"sp_{stat}"))
-        sc[i].metric(f"{STAT_LABELS[stat]} stat", stats[stat], help=f"Base {form.base_stats[stat]}",
-                     label_visibility="collapsed")
+    with right.container(border=True, key=f"stats_box{slot}"):
+        st.markdown(f"<div class='box-title'>Stat points <span class='box-sub'>{spent}/{total} used</span></div>",
+                    unsafe_allow_html=True)
+        if remaining:
+            st.caption(left_txt)
+        head = st.columns([1.3, 3, 1.4], vertical_alignment="bottom")
+        head[0].caption("Stat")
+        head[1].caption("Points")
+        head[2].caption("Final" + (" (Mega)" if form.is_mega else ""))
+        for stat in STATS:
+            arrow = ""
+            if nature and nature["plus"] == stat:
+                arrow = " <span class='nat-up'>▲</span>"
+            elif nature and nature["minus"] == stat:
+                arrow = " <span class='nat-down'>▼</span>"
+            row = st.columns([1.3, 3, 1.4], vertical_alignment="center")
+            row[0].markdown(f"<div class='stat-name'>{STAT_LABELS[stat]}{arrow}</div>", unsafe_allow_html=True)
+            row[1].number_input(STAT_LABELS[stat], min_value=0, max_value=dex.rules["statPointMax"], step=1,
+                                key=k(slot, f"sp_{stat}"), label_visibility="collapsed")
+            row[2].markdown(f"<div class='stat-final' title='Base {form.base_stats[stat]}'>{stats[stat]}</div>",
+                            unsafe_allow_html=True)
 
     st.button("Remove", key=k(slot, "rm"), on_click=write_slot, args=(slot, None))
 

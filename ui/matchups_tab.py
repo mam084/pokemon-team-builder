@@ -213,9 +213,16 @@ def swaps_section(team, dex, usage, fmt, threats: pd.DataFrame) -> None:
                          format_func=lambda o: o if o == options[0] else
                          (f"{o} (threat #{threat_names.index(o) + 1})" if o in threat_names else o))
     focus_name = None if focus == options[0] else focus
+    same_role = st.toggle("Same role only", value=True, key="swap_same_role",
+                          help="Swap a support for a support and an attacker for an attacker, and keep the "
+                               "team's weather, terrain or Trick Room setter.")
     with st.spinner("Trying swaps…"):
         swaps = suggest_swaps(team, dex, usage, swap_engine_for(fmt.id), focus=focus_name,
-                              pool=mode_pool(usage, mode), top_n=8)
+                              pool=mode_pool(usage, mode), top_n=8, same_role=same_role)
+    if swaps.empty and same_role:
+        st.info("No same-role swap helps here. Turn off **Same role only** to see swaps that change a "
+                "member's job.")
+        return
     if swaps.empty:
         st.success("No single swap improves this without hurting the overall matchup. Your team already "
                    "handles it about as well as one change can." if focus_name else
@@ -228,10 +235,16 @@ def swaps_section(team, dex, usage, fmt, threats: pd.DataFrame) -> None:
             cols = st.columns([5, 2])
             gain = f" · vs {focus_name} {row['vs threat']:+.1f}" if focus_name else ""
             cols[0].markdown(
-                f"**{row['swap out']} → {row['swap in']}** · overall {row['overall']:+.2f} "
+                f"**{row['swap out']} → {row['swap in']}** · {row['out job']}"
+                + (f" → {row['in job']}" if row['in job'] != row['out job'] else "")
+                + f" · overall {row['overall']:+.2f} "
                 f"({row['overall change']:+.2f}){gain}"
             )
-            detail = row["set"] + (f"  \n{row['key calc']}" if row["key calc"] else "")
+            detail = row["set"]
+            if row["shared roles"]:
+                detail += f"  \nShared roles: {row['shared roles']}"
+            if row["key calc"]:
+                detail += f"  \n{row['key calc']}"
             cols[0].caption(detail)
             cols[1].button("Apply swap", key=f"swap_{i}_{row['swap in']}", width="stretch",
                            on_click=write_slot, args=(int(row["slot"]), row["_set"]))

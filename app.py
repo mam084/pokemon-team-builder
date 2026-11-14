@@ -39,7 +39,7 @@ def legality(team, dex, fmt) -> None:
     issues = check_team(team, dex) if team else []
     errors = [i for i in issues if i.level == "error"]
     warnings = [i for i in issues if i.level == "warning"]
-    team_stage(team, dex, status_html(len(errors), len(warnings), len(team), fmt.label))
+    team_stage(dex, status_html(len(errors), len(warnings), len(team), fmt.label))
     if errors or warnings:
         label = "Rule problems to fix" if errors else "Notes on your team"
         with st.expander(label, expanded=bool(errors)):
