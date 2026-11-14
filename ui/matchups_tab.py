@@ -199,7 +199,7 @@ def swaps_section(team, dex, usage, fmt, threats: pd.DataFrame) -> None:
     if len(team) < 2:
         st.info("Swaps need at least two Pokémon on your team.")
         return
-    mode = st.session_state.get("rec_mode", "popular")
+    mode = st.session_state.get("rec_mode", "neutral")
     st.caption("Replace one member with a Pokémon that fixes a problem without hurting the overall matchup.")
     how_it_works(
         f"Candidates follow the **{MODES[mode]}** style chosen on the Recommendations tab. Each swap is scored "

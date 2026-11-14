@@ -64,7 +64,7 @@ def starting_set(species: str, dex: Dex, usage: UsageData | None, slot: int) -> 
     """Popular set when usage data exists (respecting Item Clause), else a blank set."""
     taken = {p.item for i, p in enumerate(read_slot(j) for j in range(SLOTS)) if p and i != slot and p.item}
     if usage is not None and st.session_state.get("autofill", True):
-        pset = usage.popular_set(species, dex, taken_items=taken)
+        pset = usage.popular_set(species, dex, taken_items=taken, team=[p for j in range(SLOTS) if j != slot and (p := read_slot(j)) is not None])
         if pset is not None:
             return pset
     return default_set(dex, species)

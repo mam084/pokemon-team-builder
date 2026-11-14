@@ -145,7 +145,7 @@ def suggest_swaps(team: list[PokemonSet], dex: Dex, usage: UsageData, engine: Sw
             if root in seen_roots:
                 continue
             seen_roots.add(root)
-            pset = usage.popular_set(name, dex, taken_items=taken, allow_mega=rest_megas < MAX_MEGAS)
+            pset = usage.popular_set(name, dex, taken_items=taken, allow_mega=rest_megas < MAX_MEGAS, team=rest)
             if pset is None:
                 continue
             in_tags = set_roles(pset, dex, engine.doubles)

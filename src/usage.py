@@ -150,6 +150,11 @@ class UsageData:
         raw = max(raw, 0.25)
         n = min(ea.get("raw_count", 0), eb.get("raw_count", 0))
         weight = n / (n + shrink) if n else 0.0
+        # Teammate stats are weighted toward the rating cutoff, where a Pokemon on 0.05% of
+        # teams is one or two players. Shrink by that usage too, not only all-ratings counts.
+        share = min(ea["usage"], eb["usage"])
+        if USAGE_SHRINK:
+            weight *= share / (share + USAGE_SHRINK)
         return 2 ** (math.log2(raw) * weight), known
 
     def section(self, species: str, key: str) -> dict:
@@ -219,12 +224,14 @@ class UsageData:
         ]
 
     def popular_set(self, species: str, dex: Dex, taken_items: set[str] | None = None,
-                    allow_mega: bool = True) -> PokemonSet | None:
+                    allow_mega: bool = True, team: list[PokemonSet] | None = None) -> PokemonSet | None:
         """
         The most common set for a team-sheet Pokemon: built from its most-used
         variant (e.g. Charizard -> Charizard-Mega-Y with Charizardite Y), using
         the top ability, spread and four legal moves, and the most popular item
-        that doesn't break Item Clause. With allow_mega=False (the team already
+        that doesn't break Item Clause. Given the team it joins, items that only
+        work with something the team lacks (Psychic Seed without Psychic Terrain,
+        Room Service without Trick Room) are skipped. With allow_mega=False (the team already
         has its Mega) the non-Mega variant is used, or the Mega's moves and
         spread with an ordinary item if no non-Mega data exists.
         """
@@ -252,9 +259,7 @@ class UsageData:
             fallback = ["sitrusberry", "leftovers", "focussash", "lifeorb", "expertbelt", "mentalherb", "covertcloak"]
             item = next((dex.items[i]["name"] for i in fallback if i in dex.items and i not in taken), "")
         else:
-            item = next((dex.items[to_id(i)]["name"] for i in self.section(entry_name, "items")
-                         if to_id(i) in dex.items and to_id(i) not in taken
-                         and not dex.mega_stone_species(i)), "")
+            item = None  # chosen below, once the ability and moves are known
         legal_abilities = {to_id(a): a for a in base.abilities}
         ability = next((legal_abilities[to_id(a)] for a in self.section(base.name, "abilities")
                         if to_id(a) in legal_abilities), base.abilities[0])
@@ -263,10 +268,49 @@ class UsageData:
             nature, sps = parse_spread(spread)
             break
         moves = [m for m in self.common_moves(entry_name, dex) if dex.can_learn(base.id, m)][:4]
+        if item is None:
+            if team is not None:
+                own = (to_id(ability), {to_id(m) for m in moves})
+                support = [own] + [(to_id(p.ability), {to_id(m) for m in p.moves}) for p in team]
+            item = next((dex.items[to_id(i)]["name"] for i in self.section(entry_name, "items")
+                         if to_id(i) in dex.items and to_id(i) not in taken
+                         and not dex.mega_stone_species(i)
+                         and (team is None or item_has_support(to_id(i), support, own))), "")
         pset = PokemonSet(species=base.name, item=item, ability=ability, nature=nature, moves=moves)
         if sps:
             pset.sps = sps
         return pset
+
+
+# usage % at which pair lift keeps half its strength (see pair_lift); 0 turns it off
+USAGE_SHRINK = 0.3
+
+
+# Items that only do something when the team provides a condition:
+# item -> (abilities that provide it, moves that provide it, must the holder provide it itself?)
+CONDITIONAL_ITEMS = {
+    "psychicseed": ({"psychicsurge"}, {"psychicterrain"}, False),
+    "grassyseed": ({"grassysurge"}, {"grassyterrain"}, False),
+    "electricseed": ({"electricsurge", "hadronengine"}, {"electricterrain"}, False),
+    "mistyseed": ({"mistysurge"}, {"mistyterrain"}, False),
+    "roomservice": (set(), {"trickroom"}, False),
+    "damprock": ({"drizzle"}, {"raindance"}, True),
+    "heatrock": ({"drought"}, {"sunnyday"}, True),
+    "smoothrock": ({"sandstream"}, {"sandstorm"}, True),
+    "icyrock": ({"snowwarning"}, {"snowscape", "chillyreception"}, True),
+    "terrainextender": ({"psychicsurge", "grassysurge", "electricsurge", "mistysurge"},
+                        {"psychicterrain", "grassyterrain", "electricterrain", "mistyterrain"}, True),
+}
+
+
+def item_has_support(item_id: str, team: list[tuple[str, set[str]]], own: tuple[str, set[str]]) -> bool:
+    """team / own: (ability id, move ids). True unless the item needs something nobody provides."""
+    rule = CONDITIONAL_ITEMS.get(item_id)
+    if rule is None:
+        return True
+    abilities, moves, self_only = rule
+    holders = [own] if self_only else team
+    return any(a in abilities or ms & moves for a, ms in holders)
 
 
 @lru_cache(maxsize=None)
