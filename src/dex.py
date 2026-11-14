@@ -33,9 +33,27 @@ def _to_id(text: str) -> str:
     return _NON_ID.sub("", text.lower())
 
 
+# Pokemon whose male and female are separate formes. Showdown names the male just
+# "Meowstic"; the app labels it "Meowstic-M" so the two read as a pair, and both
+# spellings resolve to the same id.
+MALE_FORMES = ("meowstic", "indeedee", "basculegion", "oinkologne")
+_ALIASES = {f"{sid}m": sid for sid in MALE_FORMES}
+
+
 def to_id(text: str | None) -> str:
-    """Showdown-style id: lowercase alphanumerics only."""
-    return _to_id(text or "")
+    """Showdown-style id: lowercase alphanumerics only ("Meowstic-M" -> "meowstic")."""
+    tid = _to_id(text or "")
+    return _ALIASES.get(tid, tid)
+
+
+def display_name(name: str) -> str:
+    """'Meowstic' -> 'Meowstic-M'; every other name unchanged."""
+    return f"{name}-M" if _to_id(name) in MALE_FORMES else name
+
+
+def showdown_name(name: str) -> str:
+    """The name Showdown expects in a paste: 'Meowstic-M' -> 'Meowstic'."""
+    return name[:-2] if name.endswith("-M") and _to_id(name[:-2]) in MALE_FORMES else name
 
 
 @dataclass(frozen=True)
@@ -81,7 +99,7 @@ class Dex:
         self.species: dict[str, Species] = {
             sid: Species(
                 id=sid,
-                name=s["name"],
+                name=display_name(s["name"]) if f"{sid}f" in raw["species"] else s["name"],
                 num=s["num"],
                 base_species=s["baseSpecies"],
                 forme=s["forme"],
@@ -89,7 +107,7 @@ class Dex:
                 base_stats=s["baseStats"],
                 abilities=tuple(s["abilities"]),
                 is_mega=s["isMega"],
-                battle_only=tuple(s["battleOnly"]),
+                battle_only=tuple(display_name(b) for b in s["battleOnly"]),
                 required_item=s["requiredItem"],
                 sprite=s["sprite"],
                 tier=s.get("tier", ""),
@@ -108,6 +126,20 @@ class Dex:
     # ---- lookups -------------------------------------------------------
     def get_species(self, name: str | None) -> Species | None:
         return self.species.get(to_id(name))
+
+    @staticmethod
+    def sheet_id(species: Species) -> str:
+        """The Pokemon as written on a team sheet: a Mega is its base forme; regional and
+        gendered formes (Arcanine-Hisui, Meowstic-F) are their own entries."""
+        if species.battle_only:
+            return to_id(species.battle_only[0])
+        return to_id(species.base_species) if species.is_mega else species.id
+
+    @staticmethod
+    def clause_key(species: Species) -> int:
+        """Species Clause goes by Pokedex number: Arcanine and Arcanine-Hisui, or
+        Meowstic-M and Meowstic-F, can't share a team."""
+        return species.num
 
     def get_item(self, name: str | None) -> dict | None:
         return self.items.get(to_id(name))

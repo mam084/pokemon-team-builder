@@ -77,10 +77,19 @@ def check_team(team: list[PokemonSet], dex: Dex) -> list[Issue]:
     for i, pset in enumerate(team):
         issues.extend(check_set(pset, dex, slot=i))
 
-    species_ids = [to_id(p.species) for p in team]
-    for sid, n in Counter(species_ids).items():
-        if n > 1:
-            issues.append(Issue("error", f"Species Clause: {dex.get_species(sid).name if dex.get_species(sid) else sid} appears {n} times."))
+    # Species Clause goes by Pokedex number, so regional and gendered formes count as one
+    by_num: dict = {}
+    for p in team:
+        s = dex.get_species(p.species)
+        by_num.setdefault(s.num if s else to_id(p.species), []).append(p.species)
+    for names in by_num.values():
+        if len(names) < 2:
+            continue
+        if len(set(names)) == 1:
+            msg = f"Species Clause: {names[0]} appears {len(names)} times."
+        else:
+            msg = f"Species Clause: {' and '.join(dict.fromkeys(names))} count as the same Pokémon."
+        issues.append(Issue("error", msg))
 
     items = [to_id(p.item) for p in team if p.item]
     for iid, n in Counter(items).items():

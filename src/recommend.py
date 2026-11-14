@@ -210,7 +210,7 @@ def recommend(
     needs = team_needs(members, dex, usage, doubles, weight_by_meta=explore)
     # Usage stats key Megas by their Mega name, so look members up by battle form.
     team_species = [m.form.name for m in members]
-    on_team = {_root(m.form) for m in members}
+    on_team = {m.form.num for m in members}  # Species Clause: by Pokedex number
     megas_on_team = sum(1 for m in members if m.form.is_mega)
     plans = team_plans(members, dex)
 
@@ -231,7 +231,7 @@ def recommend(
         pool = [name for name, _ in usage.ranked(pool_size)]
     else:
         pool = [s.name for s in dex.selectable_species()]
-    pool = [p for p in pool if dex.get_species(p) and _root(dex.get_species(p)) not in on_team]
+    pool = [p for p in pool if dex.get_species(p) and dex.get_species(p).num not in on_team]
 
     max_usage = max((usage.usage(p) for p in pool), default=1.0) if usage else 1.0
     rows = []

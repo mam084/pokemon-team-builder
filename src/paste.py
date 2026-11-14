@@ -21,7 +21,7 @@ from __future__ import annotations
 
 import re
 
-from src.dex import STAT_LABELS, Dex
+from src.dex import STAT_LABELS, Dex, showdown_name
 from src.stats import format_sps
 from src.team import PokemonSet, empty_sps
 
@@ -129,7 +129,8 @@ def _canonicalize(pset: PokemonSet, dex: Dex, warnings: list[str]) -> None:
 def export_paste(team: list[PokemonSet]) -> str:
     blocks = []
     for pset in team:
-        header = f"{pset.nickname} ({pset.species})" if pset.nickname else pset.species
+        species = showdown_name(pset.species)  # Showdown calls Meowstic-M just "Meowstic"
+        header = f"{pset.nickname} ({species})" if pset.nickname else species
         if pset.item:
             header += f" @ {pset.item}"
         lines = [header]
