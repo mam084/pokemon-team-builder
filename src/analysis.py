@@ -227,14 +227,25 @@ ROLES = [
 
 
 def providers(role: Role, members: list[Member]) -> list[str]:
-    if role.key == "spread":
-        return [m.label for m in members if any(mv["spread"] for mv in m.damaging_moves)]
+    return [label for label, _ in provider_sources(role, members)]
+
+
+def provider_sources(role: Role, members: list[Member]) -> list[tuple[str, str]]:
+    """[(member, what gives it the role)], e.g. ("Dragonite", "Thunder Wave")."""
     out = []
     for m in members:
+        if role.key == "spread":
+            spread = [mv["name"] for mv in m.damaging_moves if mv["spread"]]
+            if spread:
+                out.append((m.label, ", ".join(spread)))
+            continue
         if role.abilities and m.ability_id in role.abilities:
-            out.append(m.label)
-        elif any(mv["id"] in role.moves for mv in m.moves):
-            out.append(m.label)
+            name = next((a for a in m.form.abilities if to_id(a) == m.ability_id), m.ability_id)
+            out.append((m.label, name))
+            continue
+        moves = [mv["name"] for mv in m.moves if mv["id"] in role.moves]
+        if moves:
+            out.append((m.label, ", ".join(moves)))
     return out
 
 
@@ -243,13 +254,15 @@ def role_checklist(members: list[Member], doubles: bool) -> pd.DataFrame:
     for role in ROLES:
         if role.doubles_only and not doubles:
             continue
-        who = providers(role, members)
+        sources = provider_sources(role, members)
+        who = [label for label, _ in sources]
         if role.key == "protect":
             ok = len(who) >= max(1, len(members) - 2)
             status = "Yes" if ok else ("Partly" if who else "Missing")
         else:
             status = "Yes" if who else ("Missing" if role.essential else "Optional")
-        rows.append({"status": status, "role": role.label, "covered by": ", ".join(who) or "—", "why it matters": role.why})
+        rows.append({"status": status, "role": role.label, "covered by": ("; ".join(label if role.key in ("protect", "fakeout") else f"{label} ({src})"
+                                        for label, src in sources) or "—"), "why it matters": role.why})
     return pd.DataFrame(rows)
 
 
