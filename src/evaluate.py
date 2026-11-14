@@ -65,7 +65,7 @@ class Query:
             return
         t = t.sort_values("root", kind="stable")
         self.components = t[SIGNALS].to_numpy(dtype=float)
-        self.mega = t["second_mega"].to_numpy(dtype=bool)
+        self.mega = t["extra_mega"].to_numpy(dtype=bool)
         roots = t["root"].to_numpy()
         self.starts = np.flatnonzero(np.r_[True, roots[1:] != roots[:-1]])
         group_roots = roots[self.starts]

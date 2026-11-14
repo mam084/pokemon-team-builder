@@ -6,7 +6,7 @@ Build a whole team around one Pokemon.
 Starting from the core Pokemon (its popular set, or the set you made), the
 builder adds one Pokemon at a time: whichever the recommender ranks highest
 for the team so far, using that Pokemon's popular set with an item that keeps
-Item Clause, and a non-Mega set once the team has its Mega. To give real
+Item Clause (up to two Mega Stones - you choose which Mega Evolves each game). To give real
 alternatives rather than three near-copies, team k starts from the k-th best
 second Pokemon; after that each team is filled greedily.
 
@@ -18,10 +18,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from src.analysis import build_members
+from src.analysis import build_members, mega_variants
 from src.dex import Dex, to_id
 from src.recommend import recommend
-from src.team import PokemonSet
+from src.team import MAX_MEGAS, PokemonSet
 from src.usage import UsageData
 
 TEAM_SIZE = 6
@@ -36,8 +36,8 @@ class BuiltTeam:
 
 def _set_for(name: str, team: list[PokemonSet], dex: Dex, usage: UsageData) -> PokemonSet | None:
     taken = {p.item for p in team if p.item}
-    has_mega = any(p.is_mega(dex) for p in team)
-    return usage.popular_set(name, dex, taken_items=taken, allow_mega=not has_mega)
+    megas = sum(p.is_mega(dex) for p in team)
+    return usage.popular_set(name, dex, taken_items=taken, allow_mega=megas < MAX_MEGAS)
 
 
 def _complete(team: list[PokemonSet], reasons: list[str], dex: Dex, usage: UsageData, doubles: bool,
@@ -83,7 +83,7 @@ def build_teams(core: PokemonSet | str, dex: Dex, usage: UsageData, doubles: boo
     if archetypes:
         from src.matchup import meta_matchups
         for t in teams:
-            table = meta_matchups(build_members(t.sets, dex), archetypes, usage, dex, doubles=doubles)
+            table = meta_matchups(mega_variants(t.sets, dex), archetypes, usage, dex, doubles=doubles)
             w = table["popularity"]
             t.meta_score = float((table["score"] * w).sum() / w.sum()) if len(table) else 0.0
         teams.sort(key=lambda t: -(t.meta_score or 0))

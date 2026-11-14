@@ -9,8 +9,9 @@ built here can be entered in game without surprises:
 - Stat Points: at most 32 in a stat, 66 in total
 - six Pokemon on the sheet
 
-It also raises softer warnings - e.g. two Mega Stones on one team is legal,
-but only one Pokemon can Mega Evolve per battle.
+It also raises softer warnings - e.g. three or more Mega Stones is legal, but
+only one Pokemon can Mega Evolve per battle (two is normal: you pick at team
+preview).
 """
 
 from __future__ import annotations
@@ -20,7 +21,7 @@ from dataclasses import dataclass
 
 from src.dex import Dex, to_id
 from src.stats import sp_problems
-from src.team import TEAM_SIZE, PokemonSet
+from src.team import MAX_MEGAS, TEAM_SIZE, PokemonSet
 
 
 @dataclass(frozen=True)
@@ -88,10 +89,12 @@ def check_team(team: list[PokemonSet], dex: Dex) -> list[Issue]:
             issues.append(Issue("error", f"Item Clause: {item_name} is held by {n} Pokemon."))
 
     megas = [p.species for p in team if p.is_mega(dex)]
-    if len(megas) > 1:
+    if len(megas) > MAX_MEGAS:
         issues.append(Issue(
             "warning",
-            f"{len(megas)} Mega Stones ({', '.join(megas)}): only one Pokemon can Mega Evolve per battle.",
+            f"{len(megas)} Mega Stones ({', '.join(megas)}): only one can Mega Evolve per battle, so the "
+            "extras mostly hold an item that does nothing. Two is common (choose at team preview); "
+            "three or more is rare.",
         ))
 
     if 0 < len(team) < TEAM_SIZE:

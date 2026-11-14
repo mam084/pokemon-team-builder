@@ -110,8 +110,13 @@ play on the ladder.
   Trick Room, Tailwind and terrain do. A Mega Froslass (Snow Warning) team gets
   Beartic (Slush Rush), Glaceon and Rotom-Frost (Blizzard never misses in snow)
   instead of the meta's usual partners. A Swift Swim team with no rain setter
-  gets rain setters. The plan signal has diminishing returns, so you don't end
-  up with five Ice types sharing five weaknesses.
+  gets rain setters. The plan signal has diminishing returns, and once a plan
+  has its core (two or more members using it), recommendations switch to
+  **covering the core's weak spots**. Each weakness is weighted by how often
+  the meta attacks with that type, so an Ice core gets Water/Fighting types or
+  a Flash Fire Ceruledge, not a fifth Ice type.
+- **Two Megas**: teams may carry two Mega Stones. The builder and swaps use
+  that, and every matchup tells you which one to Mega Evolve.
 
 **Find what's missing**
 - **Recommendations**: every candidate gets five scores from 0 to 1, and you can
@@ -148,25 +153,30 @@ never saw.
 
 | model | top 1 | top 5 | top 10 | MRR |
 |---|---|---|---|---|
-| tuned weights | 34.9% | 63.0% | 73.8% | 0.477 |
-| hand-set weights | 21.6% | 47.5% | 59.3% | 0.345 |
-| synergy only | 21.0% | 49.5% | 61.9% | 0.350 |
-| popularity only | 6.5% | 35.6% | 47.1% | 0.204 |
+| tuned weights | 38.2% | 66.2% | 75.2% | 0.511 |
+| hand-set weights | 24.0% | 52.0% | 63.8% | 0.372 |
+| synergy only | 23.0% | 52.1% | 63.1% | 0.368 |
+| popularity only | 6.5% | 36.4% | 49.8% | 0.208 |
 | random | 1.5% | 7.3% | 14.7% | 0.071 |
 
-- The tuned weights find the missing Pokémon **first try 35% of the
-  time** and in the top 10 74% of the time. That's
-  38% better MRR than the
+- The tuned weights find the missing Pokémon **first try 38% of the
+  time** and in the top 10 75% of the time. That's
+  37% better MRR than the
   weights the recommender originally shipped with.
-- The **game-plan signal was tested the same way and did not help** (test MRR
-  0.479 at weight 0, falling to 0.444 at 0.3): tournament players mostly bring
-  proven meta Pokémon rather than building around weather. So it gets no weight
-  in *Popular picks* mode and drives the *Neutral* / *Hidden gems* modes, whose
-  weights are a design choice rather than fitted. In Neutral mode on 400
+- **Two Mega Stones are normal**: 81% of these tournament teams carry two (you
+  choose which Mega Evolves at team preview). Removing the old "second Mega"
+  penalty raised test MRR from 0.477 to 0.511. The matchup engine now scores a
+  two-Mega team with whichever Mega Evolves best against each opponent, and says
+  which one.
+- The **game-plan signal** only helps a little: the tuning gives it a small
+  weight (0.05), and more than that hurts (MRR falls to about 0.44 at 0.3).
+  Tournament players mostly bring proven meta Pokémon rather than building
+  around weather. So it does most of its work in the *Neutral* / *Hidden gems*
+  modes, whose weights are a design choice rather than fitted. In Neutral mode on 400
   held-out teams the recommender still ranks the real missing Pokémon in its
   top 10 48% of the time among ~260 candidates (random: 4%).
-- The tuning learned **synergy 0.57, meta 0.29,
-  defense 0.14**, with **offense and roles at 0**: real players pick partners
+- The tuning learned **synergy 0.54, meta 0.27,
+  defense 0.14, plan 0.05**, with **offense and roles at 0**: real players pick partners
   that are proven together and patch type weaknesses, more than ones that fill a checklist.
   Those two signals still explain each pick in the app, and you can raise their weights there.
 - About 6% of hidden Pokémon are outside the candidate pool

@@ -123,12 +123,12 @@ class Battler:
         return "Flying" not in self.form.types and self.ability != "levitate"
 
     @classmethod
-    def from_set(cls, pset: PokemonSet, dex: Dex, boosts: dict | None = None) -> "Battler":
-        form = pset.battle_form(dex)
+    def from_set(cls, pset: PokemonSet, dex: Dex, boosts: dict | None = None, mega: bool = True) -> "Battler":
+        form = pset.battle_form(dex, mega)
         return cls(
             form=form,
             stats=calc_stats(form.base_stats, pset.sps, dex.get_nature(pset.nature)),
-            ability=to_id(pset.battle_ability(dex)),
+            ability=to_id(pset.battle_ability(dex, mega)),
             item=to_id(pset.item),
             boosts=dict(boosts or {}),
         )

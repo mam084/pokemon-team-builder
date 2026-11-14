@@ -37,6 +37,7 @@ from itertools import combinations
 import pandas as pd
 
 from src.analysis import Member, build_members
+from src.team import MAX_MEGAS
 from src.damage import Field, calculate
 from src.dex import Dex, Species, to_id
 from src.usage import UsageData
@@ -103,7 +104,7 @@ def build_archetypes(usage: UsageData, dex: Dex, team_size: int = 6, anchors: in
             continue
         team = [anchor]
         roots = {_root(anchor_form)}
-        mega = anchor_form.is_mega
+        megas = int(anchor_form.is_mega)
         while len(team) < team_size:
             scores: dict[str, float] = {}
             for i, member in enumerate(team):
@@ -113,7 +114,7 @@ def build_archetypes(usage: UsageData, dex: Dex, team_size: int = 6, anchors: in
             best = None
             for mate, score in sorted(scores.items(), key=lambda kv: -kv[1]):
                 form = dex.get_species(mate)
-                if form is None or _root(form) in roots or (mega and form.is_mega) or not usage.entry(mate):
+                if form is None or _root(form) in roots or (form.is_mega and megas >= MAX_MEGAS) or not usage.entry(mate):
                     continue
                 best = mate
                 break
@@ -122,7 +123,7 @@ def build_archetypes(usage: UsageData, dex: Dex, team_size: int = 6, anchors: in
             team.append(best)
             form = dex.get_species(best)
             roots.add(_root(form))
-            mega |= form.is_mega
+            megas += int(form.is_mega)
         if len(team) < 4:
             continue
         if any(len(set(team) & set(a.members)) >= 5 for a in archetypes):
@@ -136,8 +137,11 @@ def build_archetypes(usage: UsageData, dex: Dex, team_size: int = 6, anchors: in
 
 
 def opponent_members(archetype_members: list[str], usage: UsageData, dex: Dex) -> list[Member]:
-    sets = [usage.popular_set(m, dex) for m in archetype_members]
-    return build_members([s for s in sets if s is not None], dex)
+    """A meta team's popular sets. If it carries two Mega Stones, the first (its anchor's side)
+    Mega Evolves and the other plays in its base forme, since only one can per battle."""
+    sets = [s for s in (usage.popular_set(m, dex) for m in archetype_members) if s is not None]
+    stones = [i for i, p in enumerate(sets) if p.is_mega(dex)]
+    return build_members(sets, dex, evolve=stones[0] if stones else None)
 
 
 # --------------------------------------------------------------------------
@@ -233,18 +237,40 @@ def verdict(score: float) -> str:
 # --------------------------------------------------------------------------
 # Team vs meta
 # --------------------------------------------------------------------------
-def meta_matchups(yours: list[Member], archetypes: list[Archetype], usage: UsageData, dex: Dex,
+def best_variant(variants, theirs: list[Member], trick_room: bool, doubles: bool, weather: str | None,
+                 bring: int) -> tuple[str | None, pd.DataFrame, list[str], float]:
+    """
+    For a team with several Mega Stones, which one to Mega Evolve against this
+    opponent: the version with the best bring-N score. `variants` is the output
+    of analysis.mega_variants (or a plain member list, treated as one version).
+    Returns (who evolves, pair matrix, bring picks, bring score).
+    """
+    if variants and isinstance(variants[0], Member):
+        variants = [(next((m.form.name for m in variants if m.form.is_mega), None), variants)]
+    best = None
+    for who, members in variants:
+        matrix = pair_matrix(members, theirs, trick_room, doubles, weather)
+        picks, picked = best_bring(matrix, bring)
+        key = (picked, team_score(matrix))
+        if best is None or key > best[0]:
+            best = (key, who, matrix, picks, picked)
+    _, who, matrix, picks, picked = best
+    return who, matrix, picks, picked
+
+
+def meta_matchups(yours, archetypes: list[Archetype], usage: UsageData, dex: Dex,
                   bring: int = 4, doubles: bool = True) -> pd.DataFrame:
+    """`yours`: a member list, or analysis.mega_variants(...) to choose the Mega per opponent."""
     rows = []
     for arch in archetypes:
         theirs = opponent_members(arch.members, usage, dex)
-        matrix = pair_matrix(yours, theirs, arch.trick_room, doubles, arch.weather)
-        picks, picked_score = best_bring(matrix, bring)
+        who, matrix, picks, picked_score = best_variant(yours, theirs, arch.trick_room, doubles,
+                                                        arch.weather, bring)
         worst = matrix.max(axis=0).idxmin() if not matrix.empty else ""
         rows.append({
             "archetype": arch.name, "popularity": arch.popularity,
             "score": round(team_score(matrix), 2), "verdict": verdict(team_score(matrix)),
-            f"bring {bring}": ", ".join(picks), "with bring": round(picked_score, 2),
+            "mega evolve": who or "—", f"bring {bring}": ", ".join(picks), "with bring": round(picked_score, 2),
             "hardest to answer": worst,
         })
     return pd.DataFrame(rows)
