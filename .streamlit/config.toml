@@ -1,16 +1,69 @@
-# Both themes are defined, so the app follows the viewer's system setting and
-# the Settings menu (top-right) can switch between Light and Dark.
+# Visual design: a cool slate page, a deep-navy "team preview" stage for your six, one
+# cobalt accent, and Barlow / Barlow Semi Condensed (self-hosted in static/fonts, SIL OFL).
+# Both themes are defined, so the app follows the viewer's system setting and the
+# Settings menu (top-right) can switch between Light and Dark.
+
+[server]
+enableStaticServing = true
+
 [theme]
-font = "sans serif"
+font = "Barlow, system-ui, sans-serif"
+headingFont = "Barlow Semi Condensed, Barlow, system-ui, sans-serif"
+headingFontWeights = [700, 700, 600, 600, 600, 600]
+headingFontSizes = ["2.1rem", "1.55rem", "1.25rem", "1.1rem", "1rem", "0.95rem"]
+baseFontSize = 15
+baseRadius = "0.55rem"
+buttonRadius = "0.55rem"
+metricValueFontSize = "1.9rem"
+metricValueFontWeight = 600
+showSidebarBorder = false
+
+[[theme.fontFaces]]
+family = "Barlow"
+url = "app/static/fonts/barlow-latin-400-normal.woff2"
+weight = 400
+
+[[theme.fontFaces]]
+family = "Barlow"
+url = "app/static/fonts/barlow-latin-500-normal.woff2"
+weight = 500
+
+[[theme.fontFaces]]
+family = "Barlow"
+url = "app/static/fonts/barlow-latin-600-normal.woff2"
+weight = 600
+
+[[theme.fontFaces]]
+family = "Barlow"
+url = "app/static/fonts/barlow-latin-700-normal.woff2"
+weight = 700
+
+[[theme.fontFaces]]
+family = "Barlow Semi Condensed"
+url = "app/static/fonts/barlow-semi-condensed-latin-600-normal.woff2"
+weight = 600
+
+[[theme.fontFaces]]
+family = "Barlow Semi Condensed"
+url = "app/static/fonts/barlow-semi-condensed-latin-700-normal.woff2"
+weight = 700
 
 [theme.light]
-primaryColor = "#2a78d6"
-backgroundColor = "#fcfcfb"
-secondaryBackgroundColor = "#f3f2ee"
-textColor = "#0b0b0b"
+primaryColor = "#2f56d9"
+backgroundColor = "#f3f5f9"
+secondaryBackgroundColor = "#e6eaf2"
+textColor = "#17202e"
+linkColor = "#2f56d9"
+borderColor = "#d5dbe6"
+dataframeBorderColor = "#e1e6ef"
+dataframeHeaderBackgroundColor = "#eaeef5"
 
 [theme.dark]
-primaryColor = "#3987e5"
-backgroundColor = "#1a1a19"
-secondaryBackgroundColor = "#252523"
-textColor = "#f0efec"
+primaryColor = "#7b96ff"
+backgroundColor = "#121826"
+secondaryBackgroundColor = "#1c2435"
+textColor = "#e7ebf3"
+linkColor = "#9db0ff"
+borderColor = "#2b3549"
+dataframeBorderColor = "#263045"
+dataframeHeaderBackgroundColor = "#1a2233"

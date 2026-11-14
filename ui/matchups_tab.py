@@ -17,6 +17,7 @@ from src.swaps import SwapEngine, mode_pool, suggest_swaps
 from src.usage import load_usage
 from ui.common import matchup_scale, sprite, type_badges
 from ui.state import write_slot
+from ui.theme import how_it_works
 
 @st.cache_resource(show_spinner=False)
 def archetypes_for(fmt_id: str):
@@ -54,14 +55,16 @@ def matchups_tab(fmt_id, team, members, dex, usage, fmt) -> None:
         return
     archetypes = archetypes_for(fmt_id)
     doubles = fmt.is_doubles
-    st.caption(
-        "Common meta teams are rebuilt from Smogon teammate data: start from a popular Pokémon and keep adding "
-        "whoever is most often paired with the whole team so far. Each opponent uses its most popular set. "
-        "Every pairing is decided by **real damage calcs both ways**: a pair scores +1 when your Pokémon needs "
-        "half as many hits to KO theirs as they need to KO yours, ±0.5 for Speed (reversed under Trick Room). "
-        "Weather teams are scored in their weather. Team score = how well you answer them minus how well they "
-        "answer you, so 0 is even."
-    )
+    st.subheader("Against the meta")
+    how_it_works(
+        "- **Meta teams** are rebuilt from Smogon teammate data: start from a popular Pokémon and keep adding "
+        "whoever is most often paired with the whole team so far. Each opponent uses its most popular set.\n"
+        "- **Each pairing** is decided by real damage calcs both ways. A pair scores +1 when your Pokémon needs "
+        "half as many hits to KO theirs as they need to KO yours, and ±0.5 for Speed (reversed under Trick "
+        "Room). Weather teams are scored in their weather.\n"
+        "- **Team score** is how well you answer them minus how well they answer you, so 0 is even. "
+        "With two Mega Stones, each matchup uses whichever Mega Evolves best.",
+        "How matchups are scored")
     if not members:
         st.info("Add Pokémon on the **Team** tab to see how you match up. The meta teams are listed below.")
     else:
@@ -156,9 +159,9 @@ def threats_section(members, dex, usage, doubles: bool) -> pd.DataFrame:
     if not members:
         st.info("Add Pokémon on the **Team** tab to see which popular Pokémon threaten you.")
         return pd.DataFrame()
-    st.caption("The 30 most-used Pokémon (popular sets), ranked by **usage × (your Pokémon it 2HKOs + 1) ÷ "
-               "(answers + 1)**. An *answer* 2HKOs it back while taking under 50%. **Meta counters** are the "
-               "Pokémon with the best pairing against it, if you want to add one.")
+    how_it_works("The 30 most-used Pokémon (popular sets), ranked by **usage × (your Pokémon it 2HKOs + 1) ÷ "
+                 "(answers + 1)**. An *answer* 2HKOs it back while taking under 50%. **Meta counters** are the "
+                 "Pokémon with the best pairing against it, if you want to add one.", "How threats are ranked")
     threats = threat_report(members, usage, dex, n=30, doubles=doubles)
     if threats.empty:
         return threats
@@ -197,12 +200,12 @@ def swaps_section(team, dex, usage, fmt, threats: pd.DataFrame) -> None:
         st.info("Swaps need at least two Pokémon on your team.")
         return
     mode = st.session_state.get("rec_mode", "popular")
-    st.caption(
-        "Replace one member with a Pokémon that fixes a problem without hurting the overall matchup. "
-        f"Candidates follow the **{MODES[mode]}** style set on the Recommendations tab. Each swap is "
-        "scored with the same damage calcs as above, using the newcomer's popular set (keeping Item "
-        "Clause and one Mega)."
-    )
+    st.caption("Replace one member with a Pokémon that fixes a problem without hurting the overall matchup.")
+    how_it_works(
+        f"Candidates follow the **{MODES[mode]}** style chosen on the Recommendations tab. Each swap is scored "
+        "with the same damage calcs as above, using the newcomer's popular set (keeping Item Clause and at most "
+        "two Mega Stones). Swaps that lower your overall score by more than 0.05 are never shown.",
+        "How swaps are chosen")
     threat_names = list(threats["pokemon"].head(10)) if not threats.empty else []
     others = [n for n, _ in usage.ranked(60) if n not in threat_names]
     options = ["Best overall vs the meta"] + threat_names + others

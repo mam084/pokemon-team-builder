@@ -2,14 +2,13 @@
 
 from __future__ import annotations
 
-import html
 
 import streamlit as st
 
 from src.dex import STAT_LABELS, STATS, Dex, to_id
 from src.presets import presets_for
 from src.roles import role_text, set_roles, species_roles
-from src.team import PokemonSet
+
 from src.usage import UsageData
 from ui.common import NONE, SLOTS, nature_label, ranked_options, sprite, type_badges
 from ui.state import apply_preset, k, on_species_change, read_slot, write_slot
@@ -129,38 +128,11 @@ def slot_editor(slot: int, dex: Dex, usage: UsageData | None) -> None:
     st.button("Remove", key=k(slot, "rm"), on_click=write_slot, args=(slot, None))
 
 
-def team_strip(team: list[PokemonSet], dex: Dex) -> None:
-    """One wrapping row of team cards: six across on desktop, two or three per line on a phone."""
-    if not team:
-        st.caption("No Pokémon yet. Pick some on the Team tab, add a suggestion from Recommendations, "
-                   "or load the example team from the sidebar.")
-        return
-    doubles = st.session_state.get("doubles", True)
-    cards = []
-    for pset in team:
-        form = pset.battle_form(dex)
-        roles = role_text(set_roles(pset, dex, doubles), 2)
-        if form.is_mega:
-            held = f"@ {html.escape(pset.item)} &rarr; <b>{form.name}</b>"
-        else:
-            held = f"@ {html.escape(pset.item)}" if pset.item else "<i>no item</i>"
-        cards.append(
-            "<div style='flex:1 1 140px;max-width:220px;min-width:120px'>"
-            f"<img src='{sprite(form, dex)}' width='56' height='56' style='image-rendering:pixelated' alt=''>"
-            f"<div style='font-weight:600'>{html.escape(pset.nickname or pset.species)}</div>"
-            f"<div style='font-size:0.8rem;margin-bottom:2px'>{held}</div>"
-            f"<div>{type_badges(form.types)}</div>"
-            f"<div style='font-size:0.8rem;opacity:0.7;margin-top:2px'>{roles}</div></div>"
-        )
-    st.markdown(f"<div style='display:flex;flex-wrap:wrap;gap:12px 16px'>{''.join(cards)}</div>",
-                unsafe_allow_html=True)
-
-
 def team_tab(dex: Dex, usage: UsageData | None) -> None:
     labels = []
     for i in range(SLOTS):
         sp = st.session_state.get(k(i, "species"), NONE)
-        labels.append(f"{i + 1}. {sp}" if sp != NONE else f"{i + 1}. empty")
+        labels.append(sp if sp != NONE else f"Slot {i + 1}")
     for i, tab in enumerate(st.tabs(labels)):
         with tab:
             slot_editor(i, dex, usage)

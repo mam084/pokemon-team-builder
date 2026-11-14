@@ -69,7 +69,6 @@ Modest Nature
 
 def sidebar() -> tuple[str, Dex, UsageData | None]:
     with st.sidebar:
-        st.header("Champions Team Builder")
         if st.session_state.get("format") not in FORMATS:
             st.session_state["format"] = DEFAULT_FORMAT
         fmt_id = st.selectbox("Format", list(FORMATS), key="format", format_func=lambda f: FORMATS[f].label)
@@ -121,6 +120,6 @@ def sidebar() -> tuple[str, Dex, UsageData | None]:
         if st.button("Clear team", width="stretch", type="secondary"):
             load_team([])
             st.rerun()
-        st.caption("Light or dark mode: open the ⋮ menu (top right), then Settings.")
+        st.caption("Light or dark: ⋮ menu (top right), then Settings.")
         st.caption(f"Legality data: Pokémon Showdown ({dex.format_name}), exported {dex.generated_at}.")
     return fmt_id, dex, usage
