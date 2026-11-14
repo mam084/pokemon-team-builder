@@ -123,10 +123,10 @@ def suggest_swaps(team: list[PokemonSet], dex: Dex, usage: UsageData, engine: Sw
         threat = opp[0] if opp else None
     base_focus = _answer(members, threat, engine.doubles)[0] if threat else 0.0
 
-    roots_on_team = {_root(m.form) for m in members}
+    nums_on_team = {m.form.num for m in members}  # Species Clause: by Pokedex number
     if pool is None:
         pool = [name for name, _ in usage.ranked(80)]
-    candidates = [n for n in pool if dex.get_species(n) and _root(dex.get_species(n)) not in roots_on_team]
+    candidates = [n for n in pool if dex.get_species(n) and dex.get_species(n).num not in nums_on_team]
 
     rows = []
     for i, out_set in enumerate(team):

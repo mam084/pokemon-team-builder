@@ -34,7 +34,7 @@ import math
 from functools import lru_cache
 from pathlib import Path
 
-from src.dex import Dex, to_id
+from src.dex import Dex, display_name, to_id
 from src.stats import parse_spread
 from src.team import PokemonSet
 
@@ -92,7 +92,13 @@ def trim_chaos(raw: dict, fmt: str, month: str, cutoff: int) -> dict:
 class UsageData:
     def __init__(self, trimmed: dict):
         self.info: dict = trimmed["info"]
-        self.pokemon: dict = trimmed["pokemon"]
+        # label the male of a gendered pair "-M" (Meowstic -> Meowstic-M), as the dex does
+        self.pokemon: dict = {
+            display_name(name): {key: ({display_name(n): v for n, v in sec.items()}
+                                       if key in ("teammates", "counters") and isinstance(sec, dict) else sec)
+                                 for key, sec in e.items()}
+            for name, e in trimmed["pokemon"].items()
+        }
         self._by_id = {to_id(name): name for name in self.pokemon}
         # {species id: {teammate id: pct}} so pair lookups are O(1)
         self._mates = {to_id(name): {to_id(m): pct for m, pct in e["teammates"].items()}
@@ -167,15 +173,9 @@ class UsageData:
         base = dex.get_species(species)
         if base is None:
             return []
-        base_id = to_id(base.battle_only[0] if base.battle_only else base.base_species)
-        out = []
-        for name in self.pokemon:
-            s = dex.get_species(name)
-            if s is None:
-                continue
-            root = to_id(s.battle_only[0] if s.battle_only else s.base_species)
-            if s.id == base_id or (root == base_id and (s.is_mega or s.battle_only)):
-                out.append(name)
+        base_id = dex.sheet_id(base)  # Arcanine-Hisui stays Arcanine-Hisui, not Arcanine
+        out = [name for name in self.pokemon
+               if (s := dex.get_species(name)) is not None and dex.sheet_id(s) == base_id]
         return sorted(out, key=lambda n: -self.pokemon[n]["usage"])
 
     def species_usage(self, species: str, dex: Dex) -> float:

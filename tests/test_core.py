@@ -481,6 +481,27 @@ class TestPlanBuilderSwaps(unittest.TestCase):
         keys = {p.key for p in team_plans(build_members([tr, ttar], self.dex), self.dex)}
         self.assertEqual(keys, {"trickroom", "sand"})
 
+    def test_regional_and_gendered_formes_are_separate(self):
+        hisui = self.usage.popular_set("Arcanine-Hisui", self.dex)
+        self.assertEqual(hisui.species, "Arcanine-Hisui")
+        self.assertIn("Rock Head", self.dex.get_species("Arcanine-Hisui").abilities)
+        self.assertEqual(self.usage.variants("Arcanine-Hisui", self.dex), ["Arcanine-Hisui"])
+        names = {s.name for s in self.dex.selectable_species()}
+        self.assertTrue({"Meowstic-M", "Meowstic-F", "Indeedee-M", "Indeedee-F"} <= names)
+        self.assertEqual(self.dex.get_species("Meowstic").name, "Meowstic-M")  # Showdown spelling still works
+        self.assertEqual(to_id("Meowstic-M"), to_id("Meowstic"))
+        self.assertEqual(PokemonSet("Meowstic-M", item="Meowsticite").battle_form(self.dex).name, "Meowstic-M-Mega")
+        self.assertEqual(PokemonSet("Meowstic-F", item="Meowsticite").battle_form(self.dex).name, "Meowstic-F-Mega")
+        self.assertTrue(export_paste([PokemonSet("Meowstic-M")]).startswith("Meowstic\n"))
+
+    def test_species_clause_by_dex_number(self):
+        msgs = [i.message for i in check_team([PokemonSet("Arcanine", item="Leftovers"),
+                                               PokemonSet("Arcanine-Hisui", item="Choice Band")], self.dex)]
+        self.assertTrue(any("Species Clause" in m for m in msgs))
+        team = [self.usage.popular_set("Arcanine-Hisui", self.dex)]
+        recs = recommend(build_members(team, self.dex), self.dex, self.usage, top_n=None)
+        self.assertNotIn("Arcanine", set(recs["pokemon"]))
+
     def test_conditional_items_need_support(self):
         garg = self.usage.popular_set("Garganacl", self.dex)
         corv = self.usage.popular_set("Corviknight", self.dex, team=[garg])

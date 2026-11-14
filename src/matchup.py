@@ -57,10 +57,8 @@ class Archetype:
     weather: str | None = None  # "sun" / "rain" / "sand" / "snow" if the team sets it
 
 
-def _root(species: Species) -> str:
-    if species.battle_only:
-        return to_id(species.battle_only[0])
-    return to_id(species.base_species)  # Basculegion-F and Basculegion share a species
+def _root(species: Species) -> int:
+    return species.num  # Species Clause: Basculegion-F and Basculegion, Arcanine and -Hisui, share one
 
 
 SETTERS = [  # (label, abilities, moves) - first match names the archetype
