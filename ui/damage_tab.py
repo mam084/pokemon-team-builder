@@ -10,6 +10,7 @@ from src.dex import STAT_LABELS, Dex, to_id
 from src.stats import format_sps
 from src.team import PokemonSet
 from src.usage import UsageData
+from ui.theme import how_it_works
 
 WEATHER = {"None": None, "Sun": "sun", "Rain": "rain", "Sand": "sand", "Snow": "snow"}
 TERRAIN = {"None": None, "Grassy": "grassy", "Electric": "electric", "Psychic": "psychic", "Misty": "misty"}
@@ -52,9 +53,9 @@ def damage_tab(team: list[PokemonSet], dex: Dex, usage: UsageData | None, fmt) -
     if len(options) < 2:
         st.info("Add Pokémon to your team (or pick a format with usage data) to run calcs.")
         return
-    st.caption("Level 50 Champions damage, using the same formula and rounding as Pokémon Showdown "
-               "(checked roll-for-roll against Showdown's engine in the test suite). Pick any of your Pokémon "
-               "or a meta Pokémon's most popular set on either side.")
+    how_it_works("Level 50 Champions damage, using the same formula and rounding as Pokémon Showdown "
+                 "(checked roll-for-roll against Showdown's engine in the test suite). Pick any of your Pokémon "
+                 "or a meta Pokémon's most popular set on either side.", "About these numbers")
 
     left, right = st.columns(2)
     with left:

@@ -16,6 +16,7 @@ from src.roles import meta_roles, role_text, set_roles
 from ui.common import SLOTS, sprite, type_badges
 from ui.matchups_tab import archetypes_for
 from ui.state import add_to_team, load_team
+from ui.theme import how_it_works
 
 HELP = {
     "synergy": "Average over your whole team of how much more often it appears next to each member "
@@ -71,7 +72,7 @@ def team_builder_section(team, dex, usage, fmt, mode, weights) -> None:
         mine = next((p for p in team if to_id(p.species) == to_id(core_name)), None)
         use_mine = st.checkbox(f"Use my {core_name} set", value=mine is not None, disabled=mine is None,
                                key="build_use_mine")
-        st.caption("Builds three different teams. Each one is filled one Pokémon at a time with the top "
+        st.caption("Three different teams. Each is filled one Pokémon at a time with the top "
                    "recommendation (in the style picked above), then rated against the meta teams on the "
                    "Matchups tab. Loading a team replaces your current one.")
         if st.button(f"Build teams around {core_name}", type="primary", width="stretch"):
@@ -113,9 +114,10 @@ def recommendations_tab(team, members, dex, usage, fmt) -> None:
     if len(team) >= SLOTS:
         st.info("Your team is full - remove a member (Team tab) to add one of these, or see "
                 "**Suggested swaps** on the Matchups tab.")
-    st.caption("Every candidate is scored on six signals (0–1 each) and ranked by the weighted blend. "
-               "**Synergy** is judged against your whole team: the average of how much more often the "
-               "candidate appears next to each of your Pokémon than chance predicts.")
+    how_it_works("Every candidate is scored on six signals (0–1 each) and ranked by the weighted blend: synergy, "
+                 "defense, offense, roles, meta and game plan (hover the weight sliders for each). **Synergy** is "
+                 "judged against your whole team: the average of how much more often the candidate appears next "
+                 "to each of your Pokémon than chance predicts.", "How picks are scored")
     if mode == "popular":
         accuracy_note(fmt)
     recs = recommend(members, dex, usage, doubles=fmt.is_doubles,
