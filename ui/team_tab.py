@@ -10,8 +10,8 @@ from src.presets import presets_for
 from src.roles import role_text, set_roles, species_roles
 
 from src.usage import UsageData
-from ui.common import NONE, SLOTS, nature_label, ranked_options, sprite, type_badges
-from ui.state import apply_preset, k, on_species_change, read_slot, write_slot
+from ui.common import NONE, nature_label, ranked_options, sprite, type_badges
+from ui.state import apply_preset, k, on_slot_tab_change, on_species_change, read_slot, slot_labels, write_slot
 
 def slot_editor(slot: int, dex: Dex, usage: UsageData | None) -> None:
     ss = st.session_state
@@ -138,10 +138,12 @@ def slot_editor(slot: int, dex: Dex, usage: UsageData | None) -> None:
 
 
 def team_tab(dex: Dex, usage: UsageData | None) -> None:
-    labels = []
-    for i in range(SLOTS):
-        sp = st.session_state.get(k(i, "species"), NONE)
-        labels.append(sp if sp != NONE else f"Slot {i + 1}")
-    for i, tab in enumerate(st.tabs(labels)):
+    # The selected slot must survive reruns: a key keeps it when a warning box appears
+    # above the tabs, and the remembered index re-selects it when its label changes
+    # (Streamlit treats tabs with new labels as new tabs).
+    labels = slot_labels()
+    index = min(st.session_state.get("slot_tab_index", 0), len(labels) - 1)
+    for i, tab in enumerate(st.tabs(labels, key="slot_tabs", default=labels[index],
+                                    on_change=on_slot_tab_change)):
         with tab:
             slot_editor(i, dex, usage)

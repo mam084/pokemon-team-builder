@@ -70,9 +70,28 @@ def starting_set(species: str, dex: Dex, usage: UsageData | None, slot: int) -> 
     return default_set(dex, species)
 
 
+def slot_labels() -> list[str]:
+    """Tab labels for the six slots: the species, or 'Slot N' when empty (always unique)."""
+    labels: list[str] = []
+    for i in range(SLOTS):
+        sp = st.session_state.get(k(i, "species"), NONE)
+        label = sp if sp != NONE else f"Slot {i + 1}"
+        labels.append(label if label not in labels else f"{label} ({i + 1})")
+    return labels
+
+
+def on_slot_tab_change() -> None:
+    labels = slot_labels()
+    chosen = st.session_state.get("slot_tabs")
+    if chosen in labels:
+        st.session_state["slot_tab_index"] = labels.index(chosen)
+
+
 def on_species_change(slot: int, dex: Dex, usage: UsageData | None) -> None:
     species = st.session_state[k(slot, "species")]
     write_slot(slot, None if species == NONE else starting_set(species, dex, usage, slot))
+    # the slot's tab is renamed; keep it selected instead of jumping back to slot 1
+    st.session_state["slot_tab_index"] = slot
 
 
 def apply_preset(slot: int, pset: PokemonSet) -> None:

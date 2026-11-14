@@ -89,6 +89,8 @@ def _priority_and_spread(move_pcts: dict[str, float], dex: Dex) -> list[RoleTag]
 
 
 def _attacker_profile(move_pcts: dict[str, float], sps: dict | None, dex: Dex) -> list[RoleTag]:
+    """'Physical attacker' / 'Special attacker' / 'Bulky'. A set only counts as an attacker
+    of a kind when it has the attacks for it (two moves' worth), whatever its stat points."""
     phys = spec = 0.0
     for mid, pct in move_pcts.items():
         mv = dex.moves.get(to_id(mid))
@@ -97,6 +99,7 @@ def _attacker_profile(move_pcts: dict[str, float], sps: dict | None, dex: Dex) -
                 phys += pct
             elif mv["category"] == "Special":
                 spec += pct
+    has = {"Physical": phys >= 150, "Special": spec >= 150}
     tags = []
     if sps:
         bulk = sps["hp"] + sps["def"] + sps["spd"]
@@ -104,7 +107,11 @@ def _attacker_profile(move_pcts: dict[str, float], sps: dict | None, dex: Dex) -
             tags.append(RoleTag("Bulky", 100))
         elif sps["atk"] >= 28 or sps["spa"] >= 28:
             kind = "Physical" if sps["atk"] >= sps["spa"] else "Special"
-            tags.append(RoleTag(f"{kind} attacker", 100))
+            other = "Special" if kind == "Physical" else "Physical"
+            if has[kind]:
+                tags.append(RoleTag(f"{kind} attacker", 100))
+            elif has[other]:
+                tags.append(RoleTag(f"{other} attacker", 100))
     elif phys + spec >= 150:
         tags.append(RoleTag("Physical attacker" if phys >= spec else "Special attacker", 100))
     return tags
