@@ -26,6 +26,12 @@ directly from the rules:
 
 It also works backwards: a team of Swift Swimmers with no rain setter rates a
 rain setter highly.
+
+Weather and terrain set by a *move* only count as a plan when someone on the
+team uses them. Prankster Rain Dance on Sableye is usually weather control -
+overwriting the opponent's sun or snow - not the start of a rain team, so on
+its own it shouldn't pull Swift Swimmers into the suggestions. Weather from an
+ability (Drizzle, Sand Stream...) is always up, so it always counts.
 """
 
 from __future__ import annotations
@@ -58,6 +64,8 @@ NEEDS = {
     "sandrush": "sand", "sandforce": "sand", "sandveil": "sand",
 }
 SLOW, FAST = 60, 100
+# Plans that are a move by nature: setting them is the point, users or not.
+MOVE_PLANS = {"trickroom", "tailwind"}
 
 
 @dataclass
@@ -66,6 +74,7 @@ class Plan:
     label: str
     setters: list[str]       # members that turn it on
     needed: bool = False     # True when members need it but nobody sets it
+    by_ability: bool = False  # at least one setter turns it on with its ability
 
 
 @dataclass
@@ -84,7 +93,13 @@ def team_plans(members, dex: Dex) -> list[Plan]:
         move_ids = {mv["id"] for mv in m.moves}
         for key, (abilities, moves) in SETTERS.items():
             if m.ability_id in abilities or move_ids & moves:
-                plans.setdefault(key, Plan(key, LABELS[key], [])).setters.append(m.label)
+                plan = plans.setdefault(key, Plan(key, LABELS[key], []))
+                plan.setters.append(m.label)
+                plan.by_ability = plan.by_ability or m.ability_id in abilities
+    # A weather or terrain move with nobody using it is weather control, not a plan.
+    for key in [k for k, p in plans.items() if k not in MOVE_PLANS and not p.by_ability]:
+        if plan_users(members, plans[key], dex) == 0:
+            del plans[key]
     # Abusers with no setter: the team *needs* that plan.
     for m in members:
         need = NEEDS.get(m.ability_id)

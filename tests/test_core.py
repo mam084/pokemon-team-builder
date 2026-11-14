@@ -467,6 +467,20 @@ class TestPlanBuilderSwaps(unittest.TestCase):
         self.assertGreater(plan_score(beartic, plans, members, self.dex)[0], 0.8)
         self.assertEqual(plan_score(incin, plans, members, self.dex)[0], 0.0)
 
+    def test_weather_move_without_users_is_not_a_plan(self):
+        garg = PokemonSet("Garganacl", ability="Purifying Salt", moves=["Salt Cure", "Protect"])
+        sableye = PokemonSet("Sableye", ability="Prankster", moves=["Rain Dance", "Encore", "Reflect"])
+        self.assertEqual(team_plans(build_members([garg, sableye], self.dex), self.dex), [])
+        # ...until someone uses the rain
+        swampert = PokemonSet("Swampert", ability="Swift Swim", moves=["Liquidation", "Protect"])
+        plans = team_plans(build_members([garg, sableye, swampert], self.dex), self.dex)
+        self.assertEqual([p.key for p in plans], ["rain"])
+        # Trick Room and weather from an ability always count
+        tr = PokemonSet("Sinistcha", ability="Hospitality", moves=["Trick Room", "Rage Powder"])
+        ttar = PokemonSet("Tyranitar", ability="Sand Stream", moves=["Knock Off"])
+        keys = {p.key for p in team_plans(build_members([tr, ttar], self.dex), self.dex)}
+        self.assertEqual(keys, {"trickroom", "sand"})
+
     def test_plan_has_diminishing_returns(self):
         ice = [PokemonSet("Froslass", item="Froslassite", moves=["Blizzard"]),
                PokemonSet("Glaceon", moves=["Blizzard"]), PokemonSet("Beartic", ability="Slush Rush",

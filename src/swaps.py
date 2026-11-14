@@ -33,6 +33,7 @@ import pandas as pd
 
 from src.analysis import Member, build_members, mega_variants
 from src.dex import Dex, to_id
+from src.plan import team_plans
 from src.matchup import Archetype, _set_key, best_attack, opponent_members, pair_score
 from src.recommend import _root
 from src.roles import job, plan_roles, set_roles
@@ -40,6 +41,11 @@ from src.team import MAX_MEGAS, PokemonSet
 from src.usage import UsageData
 
 MAX_OVERALL_LOSS = 0.05
+
+
+PLAN_ROLE = {"rain": "Rain setter", "sun": "Sun setter", "sand": "Sand setter", "snow": "Snow setter",
+             "trickroom": "Trick Room setter", "psychicterrain": "Terrain setter",
+             "grassyterrain": "Terrain setter", "electricterrain": "Terrain setter"}
 
 
 @dataclass
@@ -106,6 +112,8 @@ def suggest_swaps(team: list[PokemonSet], dex: Dex, usage: UsageData, engine: Sw
                   focus: str | None = None, pool: list[str] | None = None, top_n: int = 8,
                   same_role: bool = False) -> pd.DataFrame:
     members = build_members(team, dex)
+    # roles the team is actually built around (a Rain Dance nobody uses doesn't count)
+    live_plans = {PLAN_ROLE[p.key] for p in team_plans(members, dex) if not p.needed and p.key in PLAN_ROLE}
     if len(members) < 2:
         return pd.DataFrame()
     base_overall = engine.overall(team)
@@ -129,7 +137,7 @@ def suggest_swaps(team: list[PokemonSet], dex: Dex, usage: UsageData, engine: Sw
         out_tags = set_roles(out_set, dex, engine.doubles)
         out_job = job(out_tags)
         # a plan role only this member provides (the team's only snow setter, say) must be kept
-        must_keep = plan_roles(out_tags) - set().union(*[plan_roles(set_roles(p, dex, engine.doubles))
+        must_keep = (plan_roles(out_tags) & live_plans) - set().union(*[plan_roles(set_roles(p, dex, engine.doubles))
                                                           for p in rest])
         seen_roots = set()
         for name in candidates:
