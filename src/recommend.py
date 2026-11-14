@@ -34,6 +34,7 @@ import pandas as pd
 
 from src.analysis import ROLES, Member, defense_matrix, meta_form, provides_role
 from src.dex import Dex, to_id
+from src.plan import plan_score, profile_from, team_plans
 from src.type_chart import ALL_TYPES, ability_defensive_multiplier
 from src.usage import UsageData
 
@@ -41,7 +42,21 @@ from src.usage import UsageData
 # (src/evaluate.py, results in data/evaluation/regmc.json). Offense and roles got
 # zero weight: they didn't help predict what players actually bring, so they
 # only shape the "why" text unless you raise them in the app.
-DEFAULT_WEIGHTS = {"synergy": 0.57, "defense": 0.14, "offense": 0.0, "roles": 0.0, "meta": 0.29}
+DEFAULT_WEIGHTS = {"synergy": 0.57, "defense": 0.14, "offense": 0.0, "roles": 0.0, "meta": 0.29, "plan": 0.0}
+# The plan signal (weather / Trick Room / Tailwind / terrain fit, src/plan.py) was tested the same
+# way and did NOT improve predictions of tournament teams (test MRR 0.479 at weight 0, 0.444 at
+# 0.3): tournament players mostly bring proven meta Pokemon. So it stays at 0 in the data-tuned
+# "popular" mode, and drives the exploration modes, whose weights are a design choice rather
+# than fitted: synergy (lift is already popularity-adjusted), defense to stop type stacking,
+# and plan to build around the core's mechanics.
+EXPLORE_WEIGHTS = {"synergy": 0.40, "defense": 0.25, "offense": 0.05, "roles": 0.05, "meta": 0.0, "plan": 0.25}
+
+# How much the recommender leans on popularity:
+#   popular  tuned defaults; the candidate pool is the usage top 80
+#   neutral  popularity gets no weight, and every Pokemon with usage data is a candidate
+#            (teammate lift is already popularity-adjusted, so rare picks compete fairly)
+#   hidden   like neutral, but popular Pokemon are marked down (up to -60% for the most used)
+MODES = {"popular": "Popular picks", "neutral": "Neutral", "hidden": "Hidden gems"}
 
 
 @dataclass
@@ -117,18 +132,23 @@ def _build_profile(name: str, dex: Dex, usage: UsageData | None):
         form, ability = meta_form(name, usage, dex)
         move_ids = {to_id(m) for m, pct in usage.section(name, "moves").items() if pct >= 25}
         abilities = {ability}
+        plan_abilities = {to_id(a) for a, pct in usage.section(name, "abilities").items() if pct >= 20} | {ability}
     else:
         form, ability = species, to_id(species.abilities[0])
         move_ids = set(species.learnset)
         abilities = {to_id(a) for a in species.abilities}
+        plan_abilities = abilities
     form = form or species
+    if form.is_mega:
+        plan_abilities = {to_id(form.abilities[0])}
     atk_types = {t.lower() for t in form.types}
     for mid in move_ids:
         mv = dex.moves.get(mid)
         if mv and mv["category"] != "Status" and (mv["basePower"] or 0) >= 60 and usage is not None:
             atk_types.add(mv["type"].lower())
     spread = any(dex.moves.get(mid, {}).get("spread") and dex.moves[mid]["category"] != "Status" for mid in move_ids)
-    return form, ability, move_ids, abilities, atk_types, spread
+    plan_profile = profile_from(form, plan_abilities, move_ids, dex)
+    return form, ability, move_ids, abilities, atk_types, spread, plan_profile
 
 
 def recommend(
@@ -140,15 +160,20 @@ def recommend(
     top_n: int | None = 12,
     pool_size: int = 80,
     raw: bool = False,
+    mode: str = "popular",
 ) -> pd.DataFrame:
     """
     Rank candidates for the next slot. With raw=True, return every candidate
     (unsorted, with a "root" column and the un-blended component scores) so
     callers such as src/evaluate.py can re-rank under any weights cheaply.
     """
-    weights = {**DEFAULT_WEIGHTS, **(weights or {})}
+    base_weights = DEFAULT_WEIGHTS if mode == "popular" else EXPLORE_WEIGHTS
+    weights = {**base_weights, **(weights or {})}
     if usage is None:
         weights["synergy"] = weights["meta"] = 0.0
+    if mode in ("neutral", "hidden"):
+        weights["meta"] = 0.0
+        pool_size = 10_000
     total_w = sum(weights.values()) or 1.0
 
     needs = team_needs(members, dex, usage, doubles)
@@ -156,6 +181,7 @@ def recommend(
     team_species = [m.form.name for m in members]
     on_team = {_root(m.form) for m in members}
     mega_on_team = any(m.form.is_mega for m in members)
+    plans = team_plans(members, dex)
 
     # Candidate pool: the usage leaderboard if we have one, else every legal Pokemon.
     if usage is not None:
@@ -167,7 +193,7 @@ def recommend(
     max_usage = max((usage.usage(p) for p in pool), default=1.0) if usage else 1.0
     rows = []
     for name in pool:
-        form, ability, move_ids, abilities, atk_types, spread = _candidate_profile(name, dex, usage)
+        form, ability, move_ids, abilities, atk_types, spread, plan_profile = _candidate_profile(name, dex, usage)
         cand_types = [t.lower() for t in form.types]
         reasons = []
 
@@ -217,10 +243,17 @@ def recommend(
                 labels = {r.key: r.label for r in ROLES}
                 reasons.append("adds " + ", ".join(labels[r] for r in filled[:3]))
 
+        # plan: how well it plays into the team's weather / Trick Room / Tailwind / terrain
+        plan, plan_why = plan_score(plan_profile, plans, members, dex)
+        if plan_why:
+            reasons.insert(0, plan_why)
+
         meta = (usage.usage(name) / max_usage) if usage is not None else 0.0
 
         score = (weights["synergy"] * synergy + weights["defense"] * defense + weights["offense"] * offense
-                 + weights["roles"] * roles + weights["meta"] * meta) / total_w
+                 + weights["roles"] * roles + weights["meta"] * meta + weights["plan"] * plan) / total_w
+        if mode == "hidden":
+            score *= 1 - 0.6 * meta
         note = ""
         if mega_on_team and form.is_mega:
             note = "second Mega - only one can Mega Evolve per battle"
@@ -228,7 +261,7 @@ def recommend(
         rows.append({
             "pokemon": name, "form": form.name, "types": "/".join(form.types), "score": round(score * 100, 1),
             "synergy": round(synergy, 2), "defense": round(defense, 2), "offense": round(offense, 2),
-            "roles": round(roles, 2), "meta": round(meta, 2),
+            "roles": round(roles, 2), "meta": round(meta, 2), "plan": round(plan, 2),
             "why": "; ".join(reasons) or "solid all-round pick", "note": note,
             "second_mega": bool(mega_on_team and form.is_mega),
         })
@@ -244,4 +277,4 @@ def recommend(
     return (df.head(top_n) if top_n else df).reset_index(drop=True)
 
 
-__all__ = ["DEFAULT_WEIGHTS", "TeamNeeds", "team_needs", "recommend", "ALL_TYPES"]
+__all__ = ["DEFAULT_WEIGHTS", "EXPLORE_WEIGHTS", "MODES", "TeamNeeds", "team_needs", "recommend", "ALL_TYPES"]

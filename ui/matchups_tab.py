@@ -10,9 +10,12 @@ from src.dex import load_dex
 from src.formats import FORMATS
 from src.matchup import (best_attack, best_bring, build_archetypes, counter_picks, meta_matchups,
                          opponent_members, pair_matrix, team_score, threat_report, verdict)
+from src.recommend import MODES
 from src.roles import meta_roles, role_text
+from src.swaps import SwapEngine, mode_pool, suggest_swaps
 from src.usage import load_usage
 from ui.common import matchup_scale, sprite, type_badges
+from ui.state import write_slot
 
 @st.cache_resource(show_spinner=False)
 def archetypes_for(fmt_id: str):
@@ -135,20 +138,21 @@ def matchups_tab(fmt_id, team, members, dex, usage, fmt) -> None:
         st.dataframe(counters, hide_index=True, width="stretch",
                      column_config={"avg matchup": st.column_config.NumberColumn(format="%+.2f")})
 
-    threats_section(members, dex, usage, doubles)
+    threats = threats_section(members, dex, usage, doubles)
+    swaps_section(team, dex, usage, fmt, threats)
 
 
-def threats_section(members, dex, usage, doubles: bool) -> None:
+def threats_section(members, dex, usage, doubles: bool) -> pd.DataFrame:
     st.subheader("Biggest threats to your team")
     if not members:
         st.info("Add Pokémon on the **Team** tab to see which popular Pokémon threaten you.")
-        return
+        return pd.DataFrame()
     st.caption("The 30 most-used Pokémon (popular sets), ranked by **usage × (your Pokémon it 2HKOs + 1) ÷ "
                "(answers + 1)**. An *answer* 2HKOs it back while taking under 50%. **Meta counters** are the "
                "Pokémon with the best pairing against it, if you want to add one.")
     threats = threat_report(members, usage, dex, n=30, doubles=doubles)
     if threats.empty:
-        return
+        return threats
     threats["meta counters"] = [
         ", ".join(counter_picks(opponent_members([name], usage, dex), usage, dex, pool=50, top_n=3,
                                 doubles=doubles)["pokemon"])
@@ -169,3 +173,53 @@ def threats_section(members, dex, usage, doubles: bool) -> None:
                  column_config={"threat score": st.column_config.ProgressColumn(
                      "threat score", min_value=0, max_value=float(threats["threat score"].max() or 1),
                      format="%.1f")})
+    return threats
+
+
+@st.cache_resource(show_spinner=False)
+def swap_engine_for(fmt_id: str) -> SwapEngine:
+    fmt = FORMATS[fmt_id]
+    return SwapEngine(archetypes_for(fmt_id), load_usage(fmt_id), load_dex(fmt.regulation), fmt.is_doubles)
+
+
+def swaps_section(team, dex, usage, fmt, threats: pd.DataFrame) -> None:
+    st.subheader("Suggested swaps")
+    if len(team) < 2:
+        st.info("Swaps need at least two Pokémon on your team.")
+        return
+    mode = st.session_state.get("rec_mode", "popular")
+    st.caption(
+        "Replace one member with a Pokémon that fixes a problem without hurting the overall matchup. "
+        f"Candidates follow the **{MODES[mode]}** style set on the Recommendations tab. Each swap is "
+        "scored with the same damage calcs as above, using the newcomer's popular set (keeping Item "
+        "Clause and one Mega)."
+    )
+    threat_names = list(threats["pokemon"].head(10)) if not threats.empty else []
+    others = [n for n, _ in usage.ranked(60) if n not in threat_names]
+    options = ["Best overall vs the meta"] + threat_names + others
+    focus = st.selectbox("Fix", options, key="swap_focus",
+                         format_func=lambda o: o if o == options[0] else
+                         (f"{o} (threat #{threat_names.index(o) + 1})" if o in threat_names else o))
+    focus_name = None if focus == options[0] else focus
+    with st.spinner("Trying swaps…"):
+        swaps = suggest_swaps(team, dex, usage, swap_engine_for(fmt.id), focus=focus_name,
+                              pool=mode_pool(usage, mode), top_n=8)
+    if swaps.empty:
+        st.success("No single swap improves this without hurting the overall matchup. Your team already "
+                   "handles it about as well as one change can." if focus_name else
+                   "No single swap improves the overall matchup.")
+        return
+    base = swaps.attrs.get("base_overall", 0.0)
+    st.caption(f"Your team now: {base:+.2f} vs the meta ({verdict(base)}).")
+    for i, row in swaps.iterrows():
+        with st.container(border=True):
+            cols = st.columns([5, 2])
+            gain = f" · vs {focus_name} {row['vs threat']:+.1f}" if focus_name else ""
+            cols[0].markdown(
+                f"**{row['swap out']} → {row['swap in']}** · overall {row['overall']:+.2f} "
+                f"({row['overall change']:+.2f}){gain}"
+            )
+            detail = row["set"] + (f"  \n{row['key calc']}" if row["key calc"] else "")
+            cols[0].caption(detail)
+            cols[1].button("Apply swap", key=f"swap_{i}_{row['swap in']}", width="stretch",
+                           on_click=write_slot, args=(int(row["slot"]), row["_set"]))

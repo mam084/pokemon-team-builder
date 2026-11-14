@@ -22,7 +22,10 @@ from src.paste import export_paste, parse_paste
 from src.matchup import (best_bring, build_archetypes, counter_picks, meta_matchups, opponent_members,
                          pair_matrix, pair_score, team_score, threat_report)
 from src.presets import presets_for
+from src.builder import build_teams
+from src.plan import plan_score, profile_from, team_plans
 from src.recommend import recommend
+from src.swaps import SwapEngine, suggest_swaps
 from src.roles import meta_roles, set_roles
 from src.stats import calc_stat, calc_stats, parse_spread, sp_problems
 from src.team import PokemonSet
@@ -410,6 +413,72 @@ class TestEvaluation(unittest.TestCase):
             m = report["results"][name]
             self.assertTrue(0 <= m["hit@1"] <= m["hit@5"] <= m["hit@10"] <= 1, (name, m))
         self.assertAlmostEqual(sum(report["tuned_weights"].values()), 1.0, places=2)
+
+
+class TestPlanBuilderSwaps(unittest.TestCase):
+    """Uses the shipped Reg M-C usage data (skips if it's missing)."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.dex = load_dex("regmc")
+        cls.usage = load_usage("gen9championsvgc2026regmc")
+        if cls.usage is None:
+            raise unittest.SkipTest("no shipped usage data")
+
+    def test_snow_plan_detected_and_scored(self):
+        froslass = PokemonSet("Froslass", item="Froslassite", moves=["Blizzard", "Protect"])
+        members = build_members([froslass], self.dex)
+        plans = team_plans(members, self.dex)
+        self.assertEqual([p.key for p in plans], ["snow"])
+        beartic = profile_from(self.dex.get_species("Beartic"), {"slushrush"}, {"iciclecrash"}, self.dex)
+        incin = profile_from(self.dex.get_species("Incineroar"), {"intimidate"}, {"flareblitz"}, self.dex)
+        self.assertGreater(plan_score(beartic, plans, members, self.dex)[0], 0.8)
+        self.assertEqual(plan_score(incin, plans, members, self.dex)[0], 0.0)
+
+    def test_plan_has_diminishing_returns(self):
+        ice = [PokemonSet("Froslass", item="Froslassite", moves=["Blizzard"]),
+               PokemonSet("Glaceon", moves=["Blizzard"]), PokemonSet("Beartic", ability="Slush Rush",
+                                                                    moves=["Icicle Crash"])]
+        few, many = build_members(ice[:1], self.dex), build_members(ice, self.dex)
+        prof = profile_from(self.dex.get_species("Baxcalibur"), {"thermalexchange"}, {"iciclecrash"}, self.dex)
+        self.assertLess(plan_score(prof, team_plans(many, self.dex), many, self.dex)[0],
+                        plan_score(prof, team_plans(few, self.dex), few, self.dex)[0])
+
+    def test_needed_setter(self):
+        swimmer = build_members([PokemonSet("Basculegion", ability="Swift Swim", moves=["Wave Crash"])], self.dex)
+        plans = team_plans(swimmer, self.dex)
+        self.assertTrue(plans and plans[0].key == "rain" and plans[0].needed)
+        pelipper = profile_from(self.dex.get_species("Pelipper"), {"drizzle"}, {"hurricane"}, self.dex)
+        self.assertEqual(plan_score(pelipper, plans)[0], 1.0)
+
+    def test_modes_change_the_picks(self):
+        members = build_members([self.usage.popular_set("Froslass-Mega", self.dex)], self.dex)
+        popular = recommend(members, self.dex, self.usage, top_n=10)
+        neutral = recommend(members, self.dex, self.usage, top_n=10, mode="neutral")
+        top_usage = {n for n, _ in self.usage.ranked(10)}
+        self.assertGreater(len(top_usage & set(popular["pokemon"])), len(top_usage & set(neutral["pokemon"])))
+        self.assertTrue(any("Snow" in why for why in neutral["why"]))
+
+    def test_builder(self):
+        teams = build_teams("Garganacl", self.dex, self.usage, alternatives=2)
+        self.assertEqual(len(teams), 2)
+        for t in teams:
+            self.assertEqual(len(t.sets), 6)
+            self.assertEqual(t.sets[0].species, "Garganacl")
+            self.assertFalse([i for i in check_team(t.sets, self.dex) if i.level == "error"])
+            self.assertLessEqual(sum(p.is_mega(self.dex) for p in t.sets), 1)
+
+    def test_swaps(self):
+        team, _ = parse_paste(GARGANACL_TEAM, self.dex)
+        engine = SwapEngine(build_archetypes(self.usage, self.dex, keep=4), self.usage, self.dex)
+        base = engine.overall(build_members(team, self.dex))
+        swaps = suggest_swaps(team, self.dex, self.usage, engine, focus="Incineroar")
+        self.assertFalse(swaps.empty)
+        for _, row in swaps.iterrows():
+            self.assertGreater(row["vs threat"], 0)
+            self.assertGreaterEqual(row["overall"], base - 0.05 - 1e-9)
+            new_team = team[:row["slot"]] + [row["_set"]] + team[row["slot"] + 1:]
+            self.assertFalse([i for i in check_team(new_team, self.dex) if i.level == "error"], row["swap in"])
 
 
 if __name__ == "__main__":
