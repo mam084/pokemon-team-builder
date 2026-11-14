@@ -35,7 +35,7 @@ import pandas as pd
 from src.analysis import ROLES, Member, defense_matrix, meta_form, provides_role
 from src.dex import Dex, to_id
 from src.team import MAX_MEGAS
-from src.plan import plan_score, plan_users, profile_from, team_plans
+from src.plan import enabler_score, plan_score, plan_users, profile_from, team_plans
 from src.type_chart import ALL_TYPES, ability_defensive_multiplier
 from src.usage import UsageData
 
@@ -58,7 +58,7 @@ EXPLORE_WEIGHTS = {"synergy": 0.40, "defense": 0.25, "offense": 0.05, "roles": 0
 #   neutral  popularity gets no weight, and every Pokemon with usage data is a candidate
 #            (teammate lift is already popularity-adjusted, so rare picks compete fairly)
 #   hidden   like neutral, but popular Pokemon are marked down (up to -60% for the most used)
-MODES = {"popular": "Popular picks", "neutral": "Neutral", "hidden": "Hidden gems"}
+MODES = {"neutral": "Neutral", "popular": "Popular picks", "hidden": "Hidden gems"}
 
 
 @dataclass
@@ -293,6 +293,11 @@ def recommend(
 
         # plan: how well it plays into the team's weather / Trick Room / Tailwind / terrain
         plan, plan_why = plan_score(plan_profile, plans, members, dex)
+        start, start_why, starts = enabler_score(plan_profile, members, plans, dex)
+        if start > plan:
+            plan, plan_why = start, start_why
+        else:
+            starts = ""
         if plan_why:
             reasons.insert(0, plan_why)
 
@@ -314,13 +319,14 @@ def recommend(
             "synergy": round(synergy, 2), "defense": round(defense, 2), "offense": round(offense, 2),
             "roles": round(roles, 2), "meta": round(meta, 2), "plan": round(plan, 2),
             "why": "; ".join(reasons) or "solid all-round pick", "note": note,
-            "extra_mega": bool(extra_mega),
+            "extra_mega": bool(extra_mega), "starts": starts,
         })
 
     df = pd.DataFrame(rows)
     if df.empty:
         return df
     df.attrs["glue"] = glue.label if glue else None
+    df.attrs["weights"] = dict(weights)  # as actually applied (glue mode shifts them)
     df.attrs["weak_types"] = sorted(needs.weak_types, key=lambda t: -needs.weak_types[t])[:4]
     df["root"] = [_root(dex.get_species(n)) for n in df["pokemon"]]
     if raw:

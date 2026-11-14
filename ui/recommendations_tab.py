@@ -25,7 +25,8 @@ HELP = {
     "offense": "Hits popular Pokémon your team can't hit super effectively.",
     "roles": "Commonly brings a role you're missing (Fake Out, speed control…).",
     "meta": "Overall usage - proven Pokémon tend to be good.",
-    "plan": "Plays into your team's weather, Trick Room, Tailwind or terrain (with diminishing returns).",
+    "plan": "Plays into your team's weather, Trick Room, Tailwind or terrain (with diminishing returns), "
+            "or sets one up that your team already benefits from.",
 }
 MODE_HELP = {
     "popular": "Data-tuned on real tournament teams. Leans on proven meta Pokémon.",
@@ -38,7 +39,7 @@ MODE_HELP = {
 def mode_picker() -> str:
     """Shared by recommendations, the team builder and swap suggestions."""
     if st.session_state.get("rec_mode") not in MODES:
-        st.session_state["rec_mode"] = "popular"
+        st.session_state["rec_mode"] = "neutral"
     mode = st.radio("Recommendation style", list(MODES), format_func=MODES.get, key="rec_mode",
                     horizontal=True)
     st.caption(MODE_HELP[mode])
@@ -52,7 +53,7 @@ def weights_for(mode: str) -> dict:
     with st.expander(title):
         cols = st.columns(3)
         weights = {
-            key: cols[i % 3].slider(key.title(), 0.0, 1.0, float(defaults[key]), 0.05, help=HELP[key],
+            key: cols[i % 3].slider(SIGNALS[key], 0.0, 1.0, float(defaults[key]), 0.05, help=HELP[key],
                                     key=f"w_{mode}_{key}", disabled=(key == "meta" and mode != "popular"))
             for i, key in enumerate(DEFAULT_WEIGHTS)
         }
@@ -89,7 +90,8 @@ def team_builder_section(team, dex, usage, fmt, mode, weights) -> None:
         for n, t in enumerate(built):
             with st.container(border=True):
                 score = t.meta_score or 0.0
-                st.markdown(f"**Team {n + 1}** · vs meta {score:+.2f} ({verdict(score)})")
+                theme = f" · {t.theme} team" if t.theme else ""
+                st.markdown(f"**Team {n + 1}**{theme} · vs meta {score:+.2f} ({verdict(score)})")
                 cards = []
                 for p in t.sets:
                     form = p.battle_form(dex)
@@ -151,6 +153,7 @@ def recommendations_tab(team, members, dex, usage, fmt) -> None:
                 if usage:
                     st.caption(f"Usually plays: {row['usually plays']}")
                 st.markdown(row["why"][0].upper() + row["why"][1:])
+                st.caption(drivers(row, recs.attrs.get("weights", weights)))
                 if row["note"]:
                     st.caption(f"Note: {row['note']}")
                 st.button(
@@ -161,7 +164,7 @@ def recommendations_tab(team, members, dex, usage, fmt) -> None:
                 )
     with st.expander("Score breakdown (all signals)"):
         st.dataframe(
-            recs.drop(columns=["form"]), hide_index=True, width="stretch",
+            recs.drop(columns=["form", "starts", "extra_mega"], errors="ignore"), hide_index=True, width="stretch",
             column_config={
                 "score": st.column_config.ProgressColumn("score", min_value=0, max_value=100, format="%.0f"),
                 **{c: st.column_config.NumberColumn(c, format="%.2f", width="small")
@@ -169,6 +172,20 @@ def recommendations_tab(team, members, dex, usage, fmt) -> None:
                 "why": st.column_config.TextColumn(width="large"),
             },
         )
+
+
+SIGNALS = {"synergy": "Synergy", "defense": "Defense", "offense": "Offense", "roles": "Roles",
+           "meta": "Popularity", "plan": "Game plan"}
+
+
+def drivers(row, weights: dict) -> str:
+    """Which signals the score came from, as shares: 'Ranked on: Synergy 48%, Defense 30%...'"""
+    parts = {k: weights.get(k, 0) * float(row[k]) for k in SIGNALS}
+    total = sum(parts.values())
+    if total <= 0:
+        return ""
+    top = [(k, v / total) for k, v in sorted(parts.items(), key=lambda kv: -kv[1]) if v / total >= 0.08]
+    return "Ranked on: " + ", ".join(f"{SIGNALS[k]} {share:.0%}" for k, share in top)
 
 
 EVAL_DIR = Path(__file__).resolve().parent.parent / "data" / "evaluation"

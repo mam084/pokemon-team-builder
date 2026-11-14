@@ -167,7 +167,7 @@ def fit(profile: Profile, plan: Plan) -> tuple[float, str]:
             score -= 0.3
     elif key == "sand":
         if "Rock" in types:
-            score += 0.4
+            score += 0.6
             why.append("Rock type (+50% SpD in sand)")
         if types & {"Ground", "Steel"}:
             score += 0.2
@@ -181,10 +181,12 @@ def fit(profile: Profile, plan: Plan) -> tuple[float, str]:
             score += 0.5
         elif spe >= FAST:
             score -= 0.5
+        if score > 0 and not p.attack_types:  # a slow wall barely needs to move first
+            score *= 0.4
         if score > 0:
             why.append(f"slow (base {spe} Speed)")
     elif key == "tailwind":
-        if SLOW < spe <= FAST:
+        if SLOW < spe <= FAST and p.attack_types:
             score += 0.6
             why.append(f"base {spe} Speed doubles to outspeed")
         elif spe <= 50:
@@ -209,7 +211,7 @@ def plan_users(members, plan: Plan, dex: Dex) -> int:
     """Members that already benefit from a plan (fit >= 0.5), not counting pure setters."""
     count = 0
     for m in members:
-        prof = profile_from(m.form, {m.ability_id}, {mv["id"] for mv in m.moves}, dex)
+        prof = member_profile(m, dex)
         if fit(prof, Plan(plan.key, plan.label, plan.setters))[0] >= 0.5:
             count += 1
     return count
@@ -231,6 +233,31 @@ def plan_score(profile: Profile, plans: list[Plan], members=None, dex: Dex | Non
         return mean, ""
     reason = why if why.startswith("sets the") else f"plays into your {plan.label}: {why}"
     return mean, reason
+
+
+def member_profile(m, dex: Dex) -> Profile:
+    return profile_from(m.form, {m.ability_id}, {mv["id"] for mv in m.moves}, dex)
+
+
+def enabler_score(profile: Profile, members, plans: list[Plan], dex: Dex) -> tuple[float, str, str]:
+    """
+    Credit for *starting* a plan the team doesn't run yet but already benefits
+    from: a sand setter next to Garganacl (Rock types get +50% Special Defense
+    in sand), Trick Room next to slow attackers. Worth 80% of the best fit.
+    Returns (score, reason, the plan's label).
+    """
+    present = {p.key for p in plans if not p.needed}
+    best, why, label_out = 0.0, "", ""
+    profiles = [(m.label, member_profile(m, dex)) for m in members]
+    for key, (abilities, moves) in SETTERS.items():
+        if key in present or not (profile.abilities & abilities or profile.moves & moves):
+            continue
+        plan = Plan(key, LABELS[key], [])
+        for label, prof in profiles:
+            value = 0.8 * fit(prof, plan)[0]
+            if value > best:
+                best, why, label_out = value, f"its {LABELS[key]} helps your {label}", LABELS[key]
+    return best, why, label_out
 
 
 def profile_from(form: Species, abilities, moves, dex: Dex) -> Profile:

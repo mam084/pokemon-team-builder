@@ -481,6 +481,24 @@ class TestPlanBuilderSwaps(unittest.TestCase):
         keys = {p.key for p in team_plans(build_members([tr, ttar], self.dex), self.dex)}
         self.assertEqual(keys, {"trickroom", "sand"})
 
+    def test_conditional_items_need_support(self):
+        garg = self.usage.popular_set("Garganacl", self.dex)
+        corv = self.usage.popular_set("Corviknight", self.dex, team=[garg])
+        self.assertNotIn(corv.item, {"Psychic Seed", "Grassy Seed", "Electric Seed", "Misty Seed", "Room Service"})
+        indeedee = PokemonSet("Indeedee", ability="Psychic Surge", moves=["Expanding Force"])
+        from src.usage import item_has_support
+        self.assertTrue(item_has_support("psychicseed", [("psychicsurge", set())], ("mirrorarmor", set())))
+        self.assertFalse(item_has_support("psychicseed", [("purifyingsalt", set())], ("mirrorarmor", set())))
+        self.assertIsNotNone(indeedee)
+
+    def test_sand_setter_credited_for_rock_partner(self):
+        from src.plan import enabler_score
+        garg = build_members([PokemonSet("Garganacl", ability="Purifying Salt", moves=["Salt Cure"])], self.dex)
+        ttar = profile_from(self.dex.get_species("Tyranitar"), {"sandstream"}, {"rockslide"}, self.dex)
+        value, why, label = enabler_score(ttar, garg, team_plans(garg, self.dex), self.dex)
+        self.assertEqual(label, "Sand")
+        self.assertGreater(value, 0.4)
+
     def test_plan_has_diminishing_returns(self):
         ice = [PokemonSet("Froslass", item="Froslassite", moves=["Blizzard"]),
                PokemonSet("Glaceon", moves=["Blizzard"]), PokemonSet("Beartic", ability="Slush Rush",
