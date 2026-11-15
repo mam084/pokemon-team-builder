@@ -1,0 +1,30 @@
+name: Probe Showdown replays
+
+# One-off: how much Champions replay data is public? Runs on demand (Actions tab ->
+# Run workflow) and commits data/replays/probe.json to the branch it ran on.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install requests
+      - run: python scripts/probe_replays.py --pages 120
+        timeout-minutes: 35
+      - name: Commit the probe
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/replays/
+          git diff --cached --quiet || git commit -m "Replay probe results"
+          git pull --rebase origin "${GITHUB_REF_NAME}" || true
+          git push origin "HEAD:${GITHUB_REF_NAME}"

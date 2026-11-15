@@ -190,6 +190,7 @@ def build_dataset(regulation: str = "regmc", format_id: str = "gen9championsvgc2
             continue
         ma, mb = members[a], members[b]
         row = {"tournament": m["tournament"], "date": teams[a]["date"], "round": m.get("round"),
+               "phase": m.get("phase"), "p1": m["p1"], "p2": m["p2"],
                "won": int(m["winner"] == m["p1"]), "species_a": species[a], "species_b": species[b]}
         row.update(matchup_features(pair_parts(ma, mb), ma, mb))
         row["score vs meta"] = meta[a] - meta[b]
@@ -213,6 +214,21 @@ MATCHUP = ["matchup score", "bring-4 score", "best damage (mean %)", "OHKOs", "2
 CONTEXT = ["score vs meta", "popularity", "base speed (mean)", "bulk (mean)", "has Mega"]
 SUPPORT = [f"tool: {t}" for t in TOOLS]
 INTERACT = ["Trick Room x slow team", "Tailwind x fast team"]
+SKILL = ["skill (Elo)", "experience"]
+
+
+def add_skill(df: pd.DataFrame, regulation: str) -> pd.DataFrame:
+    """Each player's Elo and games played *before* the match (src/ratings.py), as features:
+    the Elo log-odds of player 1 winning and the difference in log games played."""
+    from src.ratings import K_BASE, NEW_BOOST, ordered_matches, run
+    pre = {(r["tournament"], r.get("phase"), r.get("round"), r["p1"], r["p2"]): r
+           for r in run(ordered_matches(regulation), K_BASE, NEW_BOOST)}
+    rows = [pre.get((t, ph, rd, a, b)) for t, ph, rd, a, b in
+            zip(df["tournament"], df["phase"], df["round"], df["p1"], df["p2"])]
+    df = df.copy()
+    df["skill (Elo)"] = [((r["r1"] - r["r2"]) / 400 * math.log(10)) if r else 0.0 for r in rows]
+    df["experience"] = [(math.log1p(r["g1"]) - math.log1p(r["g2"])) if r else 0.0 for r in rows]
+    return df
 
 
 def species_matrix(df: pd.DataFrame, vocab: list[str]) -> np.ndarray:
@@ -315,11 +331,13 @@ def forward_cv(df: pd.DataFrame, make_x, make_model, folds: int = 3) -> float:
 # --------------------------------------------------------------------------
 # Training, evaluation and export
 # --------------------------------------------------------------------------
-FEATURES = MATCHUP + CONTEXT + SUPPORT + INTERACT
-GRID = {"c": (0.0003, 0.0005, 0.001), "shrink": (0.3, 0.5), "min_sheets": (40,)}
+FEATURES = MATCHUP + CONTEXT + SUPPORT + INTERACT   # what the app can know about two teams
+TOLERANCE = 0.0005  # per-Pokemon effects must beat the simpler model by this much CV log loss
 
 
-def _design(part: pd.DataFrame, vocab: list[str], features: list[str] = FEATURES) -> np.ndarray:
+def _design(part: pd.DataFrame, vocab: list[str], features: list[str]) -> np.ndarray:
+    if not vocab:
+        return part[features].to_numpy(float)
     return np.hstack([part[features].to_numpy(float), species_matrix(part, vocab)])
 
 
@@ -335,51 +353,70 @@ def _losses(p: np.ndarray, y: np.ndarray) -> np.ndarray:
     return -(y * np.log(p) + (1 - y) * np.log(1 - p))
 
 
+def _choose(train: pd.DataFrame, features: list[str], vocab: list[str]) -> tuple[float, float, float]:
+    """(cv log loss, C, shrink) by forward-chaining CV inside the training period."""
+    best = None
+    for c in (0.0003, 0.001, 0.003, 0.01):
+        for w in ((0.3, 0.5) if vocab else (1.0,)):
+            cv = forward_cv(train, lambda part, full: _design(part, vocab, features),
+                            lambda c=c, w=w: Logit(c, len(vocab), w))
+            if best is None or cv < best[0]:
+                best = (cv, c, w)
+    return best
+
+
 def train_and_report(regulation: str = "regmc", format_id: str = "gen9championsvgc2026regmc",
                      boot: int = 200, verbose: bool = True) -> dict:
-    df = build_dataset(regulation, format_id, verbose=verbose)
+    """
+    Fits P(player 1 wins) from team features *and* player skill (Elo before the match),
+    so team effects are measured between equally rated players. The app predicts with
+    skill set to equal, i.e. "your team vs theirs, same players".
+    """
+    df = add_skill(build_dataset(regulation, format_id, verbose=verbose), regulation)
     y = df["won"].to_numpy(float)
     tr, te = time_split(df)
     train = df[tr]
+    features = SKILL + FEATURES
 
-    # 1. choose settings by forward-chaining CV inside the training period
-    best = None
-    for ms in GRID["min_sheets"]:
-        vocab = species_vocab(train, ms)
-        for c in GRID["c"]:
-            for w in GRID["shrink"]:
-                cv = forward_cv(train, lambda part, full, v=vocab: _design(part, v),
-                                lambda c=c, w=w, n=len(vocab): Logit(c, n, w))
-                if best is None or cv < best[0]:
-                    best = (cv, ms, c, w)
-    _, ms, c, w = best
-    vocab = species_vocab(train, ms)
+    # 1. settings and whether per-Pokemon effects earn their place, on the training period only
+    plain = _choose(train, features, [])
+    vocab_tr = species_vocab(train, 40)
+    with_sp = _choose(train, features, vocab_tr)
+    use_species = with_sp[0] < plain[0] - TOLERANCE
+    cv, c, w = with_sp if use_species else plain
+    vocab = vocab_tr if use_species else []
     if verbose:
-        print(f"chosen: min_sheets={ms} C={c} shrink={w} (cv log loss {best[0]:.5f})", flush=True)
+        print(f"CV log loss: without Pokémon effects {plain[0]:.5f}, with {with_sp[0]:.5f} -> "
+              f"{'with' if use_species else 'without'}; C={c}", flush=True)
 
-    # 2. judge on the newest tournaments against baselines
-    models = {}
-    final = Logit(c, len(vocab), w).fit(_design(train, vocab), y[tr])
-    p_final = final.predict(_design(df[te], vocab))
-    base = Logit(c).fit(train[["matchup score"]].to_numpy(float), y[tr])
-    p_base = base.predict(df[te][["matchup score"]].to_numpy(float))
-    nosp = Logit(c).fit(train[FEATURES].to_numpy(float), y[tr])
-    p_nosp = nosp.predict(df[te][FEATURES].to_numpy(float))
-    pop = Logit(c).fit(train[["popularity"]].to_numpy(float), y[tr])
-    p_pop = pop.predict(df[te][["popularity"]].to_numpy(float))
+    # 2. judge on the newest tournaments against simpler models
+    def fit_predict(cols, voc, c_, w_):
+        m = Logit(c_, len(voc), w_).fit(_design(train, voc, cols), y[tr])
+        return m.predict(_design(df[te], voc, cols))
+
     yt = y[te]
-    for name, p in [("learned model", p_final), ("learned, no Pokémon effects", p_nosp),
-                    ("matchup score only", p_base), ("popularity only", p_pop)]:
-        models[name] = {k: round(v, 4) for k, v in metrics(p, yt).items()}
+    preds = {
+        "learned model (skill + team)": fit_predict(features, vocab, c, w),
+        "player skill only": fit_predict(SKILL, [], _choose(train, SKILL, [])[1], 1.0),
+        "team only": fit_predict(FEATURES, [], _choose(train, FEATURES, [])[1], 1.0),
+        "damage-calc matchup score": fit_predict(["matchup score"], [], c, 1.0),
+        "popularity only": fit_predict(["popularity"], [], c, 1.0),
+    }
+    models = {name: {k: round(v, 4) for k, v in metrics(p, yt).items()} for name, p in preds.items()}
     models["coin flip"] = {"accuracy": 0.5, "log_loss": round(math.log(2), 4), "brier": 0.25, "auc": 0.5}
-    gain = _bootstrap_gain(_losses(p_base, yt), _losses(p_final, yt))
-    order = np.argsort(p_final)
-    calibration = [{"predicted": round(float(p_final[i].mean()), 3), "actual": round(float(yt[i].mean()), 3),
+    main = preds["learned model (skill + team)"]
+    gains = {
+        "team beyond skill": _bootstrap_gain(_losses(preds["player skill only"], yt), _losses(main, yt)),
+        "learned vs damage-calc score": _bootstrap_gain(_losses(preds["damage-calc matchup score"], yt),
+                                                        _losses(main, yt)),
+    }
+    order = np.argsort(main)
+    calibration = [{"predicted": round(float(main[i].mean()), 3), "actual": round(float(yt[i].mean()), 3),
                     "matches": int(len(i))} for i in np.array_split(order, 5)]
 
     # 3. refit on everything for the app, with tournament-level bootstrap intervals
-    vocab_all = species_vocab(df, ms)
-    x_all = _design(df, vocab_all)
+    vocab_all = species_vocab(df, 40) if use_species else []
+    x_all = _design(df, vocab_all, features)
     full = Logit(c, len(vocab_all), w).fit(x_all, y)
     tournaments = df["tournament"].unique()
     rng = np.random.default_rng(1)
@@ -391,22 +428,23 @@ def train_and_report(regulation: str = "regmc", format_id: str = "gen9championsv
         draws.append(Logit(c, len(vocab_all), w).fit(x_all[idx], y[idx]).coef_)
     draws = np.array(draws)
     lo, hi = np.percentile(draws, 5, axis=0), np.percentile(draws, 95, axis=0)
-    names = FEATURES + [f"species: {s}" for s in vocab_all]
-    share = (x_all != 0).mean(axis=0)  # how often the two teams differ on it
+    names = features + [f"species: {s}" for s in vocab_all]
+    share = (x_all != 0).mean(axis=0)
     effects = [{"feature": n, "coef": round(float(b), 5), "lo90": round(float(a), 5), "hi90": round(float(z), 5),
-                # win-probability points for one unit, around a 50/50 match
                 "points": round(float(b) * 25, 2), "differs_in": round(float(sh), 4)}
                for n, b, a, z, sh in zip(names, full.coef_, lo, hi, share)]
 
+    from src.ratings import K_BASE, NEW_BOOST
     return {
         "regulation": regulation, "matches": int(len(df)), "train_matches": int(tr.sum()),
         "test_matches": int(te.sum()),
         "test_dates": [str(df[te]["date"].min()), str(df[te]["date"].max())],
-        "settings": {"min_sheets": ms, "C": c, "shrink": w, "cv_log_loss": round(best[0], 5)},
-        "test": models, "log_loss_gain_vs_matchup_score_ci95": [round(g, 5) for g in gain],
+        "settings": {"C": c, "shrink": w, "cv_log_loss": round(cv, 5), "species_effects": use_species,
+                     "cv_without_species": round(plain[0], 5), "cv_with_species": round(with_sp[0], 5),
+                     "elo_k": K_BASE, "elo_new_boost": NEW_BOOST},
+        "test": models, "gain_ci95": {k: [round(g, 5) for g in v] for k, v in gains.items()},
         "calibration": calibration,
-        "model": {"features": FEATURES, "species": vocab_all,
-                  "coef": [round(float(b), 6) for b in full.coef_]},
+        "model": {"features": features, "species": vocab_all, "coef": [round(float(b), 6) for b in full.coef_]},
         "effects": effects,
     }
 
@@ -446,11 +484,12 @@ def contributions(model: dict, a: dict, b: dict, parts: dict | None = None) -> l
     m = model["model"]
     row = matchup_features(parts if parts is not None else pair_parts(a["members"], b["members"]),
                            a["members"], b["members"])
+    row["skill (Elo)"] = row["experience"] = 0.0   # the app compares teams, not players
     row["score vs meta"] = a["meta"] - b["meta"]
     row["popularity"] = (a["popularity"] - b["popularity"]) / 10
     for k in a["profile"]:
         row[k] = a["profile"][k] - b["profile"][k]
-    x = [row[f] for f in m["features"]]
+    x = [row.get(f, 0.0) for f in m["features"]]
     index = {s: i for i, s in enumerate(m["species"])}
     sp = [0.0] * len(index)
     for s in a["species"]:
@@ -487,5 +526,5 @@ if __name__ == "__main__":
     out.write_text(json.dumps(report, indent=1))
     for name, r in report["test"].items():
         print(f"{name:30s} acc {r['accuracy']:.3f}  log loss {r['log_loss']:.4f}  auc {r['auc']:.3f}")
-    print("gain vs matchup score (95% CI):", report["log_loss_gain_vs_matchup_score_ci95"])
+    print("log-loss gains (95% CI):", report["gain_ci95"])
     print(f"-> {out}")

@@ -1,0 +1,432 @@
+{
+ "probed_at": "2026-11-15T16:26:13.376929+00:00",
+ "pages_per_format": 120,
+ "formats": [
+  {
+   "format": "gen9championsvgc2026regmc",
+   "replays": 6000,
+   "hit_page_limit": true,
+   "newest": "2026-11-15T16:25:40+00:00",
+   "oldest": "2026-11-11T04:25:02+00:00",
+   "per_month": {
+    "2026-11": 6000
+   },
+   "rated": 4608,
+   "rating_quantiles": {
+    "10": 1050,
+    "50": 1289,
+    "90": 1623,
+    "99": 1725
+   },
+   "rated_1500_plus": 1170,
+   "rated_1700_plus": 100,
+   "unique_players": 4394,
+   "samples": [
+    {
+     "id": "gen9championsvgc2026regmc-2714426216",
+     "turns": 7,
+     "has_team_preview": true,
+     "has_open_team_sheets": false,
+     "switches": 9,
+     "moves": 22,
+     "player_lines": [
+      "|player|p1|DanielCarter|hilbert-wonderlauncher|1330",
+      "|player|p2|SunRainCoach|266|1473",
+      "|player|p2|"
+     ],
+     "rating": 1355,
+     "first_lines": [
+      "|j|\u2606DanielCarter",
+      "|j|\u203dSunRainCoach",
+      "|t:|1794759758",
+      "|gametype|doubles",
+      "|player|p1|DanielCarter|hilbert-wonderlauncher|1330",
+      "|player|p2|SunRainCoach|266|1473",
+      "|gen|9",
+      "|tier|[Gen 9 Champions] VGC 2026 Reg M-C",
+      "|rated|",
+      "|rule|Species Clause: Limit one of each Pokemon",
+      "|rule|Item Clause: Limit 1 of each item",
+      "|clearpoke"
+     ]
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2714425670",
+     "turns": 7,
+     "has_team_preview": true,
+     "has_open_team_sheets": true,
+     "switches": 10,
+     "moves": 18,
+     "player_lines": [
+      "|player|p1|endershovel|ethan|",
+      "|player|p2|pikacheese36|fisherman-gen4|",
+      "|player|p2|"
+     ],
+     "rating": null,
+     "first_lines": [
+      "|j|\u2606endershovel",
+      "|j|\u2606pikacheese36",
+      "|html|<table width=\"100%\"><tr><td align=\"left\">endershovel</td><td align=\"right\">pikacheese36</tr><tr><td align=\"left\"><i class=\"fa fa-circle\"></i> <i class=\"fa fa-circle-o\"></i> </td><td align=\"right\"><i class=\"fa fa-circle-o\"></i> <i class=\"fa fa-circle-o\"></i> </tr></table>",
+      "|uhtml|bestof|<h2><strong>Game 2</strong> of <a href=\"/game-bestof3-gen9championsvgc2026regmc-2714424572\">a best-of-3</a></h2>",
+      "|t:|1794759665",
+      "|gametype|doubles",
+      "|player|p1|endershovel|ethan|",
+      "|player|p2|pikacheese36|fisherman-gen4|",
+      "|gen|9",
+      "|tier|[Gen 9 Champions] VGC 2026 Reg M-C",
+      "|rated|Tournament battle",
+      "|rule|Species Clause: Limit one of each Pokemon"
+     ]
+    },
+    {
+     "id": "gen9championsvgc2026regmc-2714425609",
+     "turns": 6,
+     "has_team_preview": true,
+     "has_open_team_sheets": false,
+     "switches": 9,
+     "moves": 16,
+     "player_lines": [
+      "|player|p1|PreGum|psychic-gen4|1280",
+      "|player|p2|Blackninjamb|cyrus|1237"
+     ],
+     "rating": 1215,
+     "first_lines": [
+      "|j|\u2606PreGum",
+      "|j|\u203dBlackninjamb",
+      "|t:|1794759656",
+      "|gametype|doubles",
+      "|player|p1|PreGum|psychic-gen4|1280",
+      "|player|p2|Blackninjamb|cyrus|1237",
+      "|gen|9",
+      "|tier|[Gen 9 Champions] VGC 2026 Reg M-C",
+      "|rated|",
+      "|rule|Species Clause: Limit one of each Pokemon",
+      "|rule|Item Clause: Limit 1 of each item",
+      "|clearpoke"
+     ]
+    }
+   ]
+  },
+  {
+   "format": "gen9championsvgc2026regmcbo3",
+   "replays": 6000,
+   "hit_page_limit": true,
+   "newest": "2026-11-15T16:27:03+00:00",
+   "oldest": "2026-11-11T07:27:59+00:00",
+   "per_month": {
+    "2026-11": 6000
+   },
+   "rated": 2141,
+   "rating_quantiles": {
+    "10": 1038,
+    "50": 1170,
+    "90": 1350,
+    "99": 1443
+   },
+   "rated_1500_plus": 4,
+   "rated_1700_plus": 0,
+   "unique_players": 1762,
+   "samples": [
+    {
+     "id": "gen9championsvgc2026regmcbo3-2714425460",
+     "turns": 10,
+     "has_team_preview": true,
+     "has_open_team_sheets": true,
+     "switches": 12,
+     "moves": 30,
+     "player_lines": [
+      "|player|p1|Jj18697|2|1349",
+      "|player|p2|Asamoah09|2|1374",
+      "|player|p2|"
+     ],
+     "rating": 1330,
+     "first_lines": [
+      "|j|\u2606Jj18697",
+      "|j|\u2606Asamoah09",
+      "|html|<table width=\"100%\"><tr><td align=\"left\">Jj18697</td><td align=\"right\">Asamoah09</tr><tr><td align=\"left\"><i class=\"fa fa-circle\"></i> <i class=\"fa fa-circle-o\"></i> </td><td align=\"right\"><i class=\"fa fa-circle-o\"></i> <i class=\"fa fa-circle\"></i> </tr></table>",
+      "|uhtml|bestof|<h2><strong>Game 3</strong> of <a href=\"/game-bestof3-gen9championsvgc2026regmcbo3-2714421428\">a best-of-3</a></h2>",
+      "|t:|1794759633",
+      "|gametype|doubles",
+      "|player|p1|Jj18697|2|1349",
+      "|player|p2|Asamoah09|2|1374",
+      "|gen|9",
+      "|tier|[Gen 9 Champions] VGC 2026 Reg M-C (Bo3)",
+      "|rated|",
+      "|rule|Species Clause: Limit one of each Pokemon"
+     ]
+    },
+    {
+     "id": "gen9championsvgc2026regmcbo3-2714426202",
+     "turns": 6,
+     "has_team_preview": true,
+     "has_open_team_sheets": true,
+     "switches": 9,
+     "moves": 15,
+     "player_lines": [
+      "|player|p1|gurted|roark|1219",
+      "|player|p2|bonelesswingeater|265|1259",
+      "|player|p1|"
+     ],
+     "rating": 1197,
+     "first_lines": [
+      "|j|\u2606gurted",
+      "|j|\u2606bonelesswingeater",
+      "|html|<table width=\"100%\"><tr><td align=\"left\">gurted</td><td align=\"right\">bonelesswingeater</tr><tr><td align=\"left\"><i class=\"fa fa-circle\"></i> <i class=\"fa fa-circle-o\"></i> </td><td align=\"right\"><i class=\"fa fa-circle-o\"></i> <i class=\"fa fa-circle\"></i> </tr></table>",
+      "|uhtml|bestof|<h2><strong>Game 3</strong> of <a href=\"/game-bestof3-gen9championsvgc2026regmcbo3-2714423726\">a best-of-3</a></h2>",
+      "|t:|1794759755",
+      "|gametype|doubles",
+      "|player|p1|gurted|roark|1219",
+      "|player|p2|bonelesswingeater|265|1259",
+      "|gen|9",
+      "|tier|[Gen 9 Champions] VGC 2026 Reg M-C (Bo3)",
+      "|rated|",
+      "|rule|Species Clause: Limit one of each Pokemon"
+     ]
+    },
+    {
+     "id": "gen9championsvgc2026regmcbo3-2714424679",
+     "turns": 16,
+     "has_team_preview": true,
+     "has_open_team_sheets": true,
+     "switches": 13,
+     "moves": 43,
+     "player_lines": [
+      "|player|p1|gurted|roark|1219",
+      "|player|p2|bonelesswingeater|265|1259",
+      "|player|p1|"
+     ],
+     "rating": null,
+     "first_lines": [
+      "|j|\u2606gurted",
+      "|j|\u2606bonelesswingeater",
+      "|html|<table width=\"100%\"><tr><td align=\"left\">gurted</td><td align=\"right\">bonelesswingeater</tr><tr><td align=\"left\"><i class=\"fa fa-circle\"></i> <i class=\"fa fa-circle-o\"></i> </td><td align=\"right\"><i class=\"fa fa-circle-o\"></i> <i class=\"fa fa-circle-o\"></i> </tr></table>",
+      "|uhtml|bestof|<h2><strong>Game 2</strong> of <a href=\"/game-bestof3-gen9championsvgc2026regmcbo3-2714423726\">a best-of-3</a></h2>",
+      "|t:|1794759505",
+      "|gametype|doubles",
+      "|player|p1|gurted|roark|1219",
+      "|player|p2|bonelesswingeater|265|1259",
+      "|gen|9",
+      "|tier|[Gen 9 Champions] VGC 2026 Reg M-C (Bo3)",
+      "|rated|",
+      "|rule|Species Clause: Limit one of each Pokemon"
+     ]
+    }
+   ]
+  },
+  {
+   "format": "gen9championsbssregmc",
+   "replays": 6000,
+   "hit_page_limit": true,
+   "newest": "2026-11-15T15:48:14+00:00",
+   "oldest": "2026-10-10T19:08:08+00:00",
+   "per_month": {
+    "2026-10": 4864,
+    "2026-11": 1136
+   },
+   "rated": 5686,
+   "rating_quantiles": {
+    "10": 1045,
+    "50": 1157,
+    "90": 1312,
+    "99": 1418
+   },
+   "rated_1500_plus": 9,
+   "rated_1700_plus": 0,
+   "unique_players": 1396,
+   "samples": [
+    {
+     "id": "gen9championsbssregmc-2714413290",
+     "turns": 6,
+     "has_team_preview": true,
+     "has_open_team_sheets": false,
+     "switches": 7,
+     "moves": 8,
+     "player_lines": [
+      "|player|p1|ffczxx|170|1347",
+      "|player|p2|Cackleford967|skyla|1395",
+      "|player|p1|"
+     ],
+     "rating": 1330,
+     "first_lines": [
+      "|j|\u2606ffczxx",
+      "|j|\u2606Cackleford967",
+      "|t:|1794757549",
+      "|gametype|singles",
+      "|player|p1|ffczxx|170|1347",
+      "|player|p2|Cackleford967|skyla|1395",
+      "|gen|9",
+      "|tier|[Gen 9 Champions] BSS Reg M-C",
+      "|rated|",
+      "|rule|Species Clause: Limit one of each Pokemon",
+      "|rule|Item Clause: Limit 1 of each item",
+      "|clearpoke"
+     ]
+    },
+    {
+     "id": "gen9championsbssregmc-2714411318",
+     "turns": 13,
+     "has_team_preview": true,
+     "has_open_team_sheets": false,
+     "switches": 8,
+     "moves": 22,
+     "player_lines": [
+      "|player|p1|AACV|juggler|1108",
+      "|player|p2|7th of runtz|janine|1118"
+     ],
+     "rating": 1084,
+     "first_lines": [
+      "|j|\u2606AACV",
+      "|j|\u26067th of runtz",
+      "|t:|1794757214",
+      "|gametype|singles",
+      "|player|p1|AACV|juggler|1108",
+      "|player|p2|7th of runtz|janine|1118",
+      "|gen|9",
+      "|tier|[Gen 9 Champions] BSS Reg M-C",
+      "|rated|",
+      "|rule|Species Clause: Limit one of each Pokemon",
+      "|rule|Item Clause: Limit 1 of each item",
+      "|clearpoke"
+     ]
+    },
+    {
+     "id": "gen9championsbssregmc-2714352012",
+     "turns": 13,
+     "has_team_preview": true,
+     "has_open_team_sheets": false,
+     "switches": 12,
+     "moves": 15,
+     "player_lines": [
+      "|player|p1|tuanquewang|backersf|1365",
+      "|player|p2|Cackleford967|skyla|1429",
+      "|player|p1|"
+     ],
+     "rating": 1349,
+     "first_lines": [
+      "|badge|p1|bronze|gen9ou|100-11",
+      "|uhtml|medal-msg|<div class=\"broadcast-blue\">Curious what those medals under the avatar are? PS now has Ladder Seasons! For more information, check out the <a href=\"https://www.smogon.com/forums/threads/3740067/\">thread on Smogon.</a></div>",
+      "|j|\u2606tuanquewang",
+      "|j|\u2606Cackleford967",
+      "|t:|1794745135",
+      "|gametype|singles",
+      "|player|p1|tuanquewang|backersf|1365",
+      "|player|p2|Cackleford967|skyla|1429",
+      "|gen|9",
+      "|tier|[Gen 9 Champions] BSS Reg M-C",
+      "|rated|",
+      "|rule|Species Clause: Limit one of each Pokemon"
+     ]
+    }
+   ]
+  },
+  {
+   "format": "gen9championsvgc2026regmb",
+   "replays": 6000,
+   "hit_page_limit": true,
+   "newest": "2026-11-15T14:54:07+00:00",
+   "oldest": "2026-09-09T04:31:42+00:00",
+   "per_month": {
+    "2026-09": 3458,
+    "2026-10": 2144,
+    "2026-11": 398
+   },
+   "rated": 104,
+   "rating_quantiles": {
+    "10": 1036,
+    "50": 1165,
+    "90": 1318,
+    "99": 1496
+   },
+   "rated_1500_plus": 2,
+   "rated_1700_plus": 0,
+   "unique_players": 1995,
+   "samples": [
+    {
+     "id": "gen9championsvgc2026regmb-2714394360",
+     "turns": 9,
+     "has_team_preview": true,
+     "has_open_team_sheets": false,
+     "switches": 10,
+     "moves": 30,
+     "player_lines": [
+      "|player|p1|EPJZ|brycenman|",
+      "|player|p2|heretoch|striker|"
+     ],
+     "rating": null,
+     "first_lines": [
+      "|j|\u2606EPJZ",
+      "|j|\u2606heretoch",
+      "|html|<table width=\"100%\"><tr><td align=\"left\">EPJZ</td><td align=\"right\">heretoch</tr><tr><td align=\"left\"><i class=\"fa fa-circle-o\"></i> <i class=\"fa fa-circle-o\"></i> </td><td align=\"right\"><i class=\"fa fa-circle-o\"></i> <i class=\"fa fa-circle-o\"></i> </tr></table>",
+      "|uhtml|bestof|<h2><strong>Game 1</strong> of <a href=\"/game-bestof3-gen9championsvgc2026regmb-2714394359\">a best-of-3</a></h2>",
+      "|t:|1794754133",
+      "|gametype|doubles",
+      "|player|p1|EPJZ|brycenman|",
+      "|player|p2|heretoch|striker|",
+      "|gen|9",
+      "|tier|[Gen 9 Champions] VGC 2026 Reg M-B",
+      "|rule|Species Clause: Limit one of each Pokemon",
+      "|rule|Item Clause: Limit 1 of each item"
+     ]
+    },
+    {
+     "id": "gen9championsvgc2026regmb-2714382133",
+     "turns": 8,
+     "has_team_preview": true,
+     "has_open_team_sheets": false,
+     "switches": 11,
+     "moves": 22,
+     "player_lines": [
+      "|player|p1|EPJZ|brycenman|",
+      "|player|p2|heretoch|striker|"
+     ],
+     "rating": null,
+     "first_lines": [
+      "|j|\u2606EPJZ",
+      "|j|\u2606heretoch",
+      "|html|<table width=\"100%\"><tr><td align=\"left\">EPJZ</td><td align=\"right\">heretoch</tr><tr><td align=\"left\"><i class=\"fa fa-circle-o\"></i> <i class=\"fa fa-circle-o\"></i> </td><td align=\"right\"><i class=\"fa fa-circle-o\"></i> <i class=\"fa fa-circle\"></i> </tr></table>",
+      "|uhtml|bestof|<h2><strong>Game 2</strong> of <a href=\"/game-bestof3-gen9championsvgc2026regmb-2714379965\">a best-of-3</a></h2>",
+      "|t:|1794751802",
+      "|gametype|doubles",
+      "|player|p1|EPJZ|brycenman|",
+      "|player|p2|heretoch|striker|",
+      "|gen|9",
+      "|tier|[Gen 9 Champions] VGC 2026 Reg M-B",
+      "|rule|Species Clause: Limit one of each Pokemon",
+      "|rule|Item Clause: Limit 1 of each item"
+     ]
+    },
+    {
+     "id": "gen9championsvgc2026regmb-2714379966",
+     "turns": 8,
+     "has_team_preview": true,
+     "has_open_team_sheets": false,
+     "switches": 12,
+     "moves": 23,
+     "player_lines": [
+      "|player|p1|EPJZ|brycenman|",
+      "|player|p2|heretoch|striker|"
+     ],
+     "rating": null,
+     "first_lines": [
+      "|j|\u2606EPJZ",
+      "|j|\u2606heretoch",
+      "|html|<table width=\"100%\"><tr><td align=\"left\">EPJZ</td><td align=\"right\">heretoch</tr><tr><td align=\"left\"><i class=\"fa fa-circle-o\"></i> <i class=\"fa fa-circle-o\"></i> </td><td align=\"right\"><i class=\"fa fa-circle-o\"></i> <i class=\"fa fa-circle-o\"></i> </tr></table>",
+      "|uhtml|bestof|<h2><strong>Game 1</strong> of <a href=\"/game-bestof3-gen9championsvgc2026regmb-2714379965\">a best-of-3</a></h2>",
+      "|t:|1794751368",
+      "|gametype|doubles",
+      "|player|p1|EPJZ|brycenman|",
+      "|player|p2|heretoch|striker|",
+      "|gen|9",
+      "|tier|[Gen 9 Champions] VGC 2026 Reg M-B",
+      "|rule|Species Clause: Limit one of each Pokemon",
+      "|rule|Item Clause: Limit 1 of each item"
+     ]
+    }
+   ]
+  },
+  {
+   "format": "gen9championsvgc2026",
+   "replays": 0
+  }
+ ]
+}

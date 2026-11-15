@@ -66,10 +66,14 @@ def what_wins_section(regulation: str, dex: Dex) -> None:
     if model is None:
         return
     st.subheader("What wins games")
+    skill = "skill (Elo)" in model["model"]["features"]
     st.caption(f"Learned from {model['matches']:,} real Limitless matches with both team lists. Each number is "
                "the change in win chance (percentage points, near a 50/50 match) for one more Pokémon with that "
-               "tool than the opponent, with everything else held equal. These are patterns in real results, not "
-               "proof of cause: a tool can look good because strong players use it.")
+               "tool than the opponent, with everything else held equal"
+               + (", **including both players' skill ratings**, so a tool doesn't get credit just because strong "
+                  "players use it. They're still patterns in real results, not proof of cause."
+                  if skill else ". These are patterns in real results, not proof of cause: a tool can look good "
+                  "because strong players use it."))
     effects = {e["feature"]: e for e in model["effects"]}
     tools = sorted((e for f, e in effects.items() if f.startswith("tool: ")), key=lambda e: -e["points"])
     def verdict(e):
@@ -84,6 +88,10 @@ def what_wins_section(regulation: str, dex: Dex) -> None:
     st.dataframe(pd.DataFrame(rows), hide_index=True, width="stretch",
                  column_config={"win chance (points)": st.column_config.NumberColumn(format="%+.1f")})
     species = [e for f, e in effects.items() if f.startswith("species: ") and (e["lo90"] > 0 or e["hi90"] < 0)]
+    if not species and skill:
+        st.caption("Per-Pokémon effects aren't in the model: once player skill is accounted for, they stopped "
+                   "improving predictions. Pokémon that seemed to \"win more than their calcs\" were mostly being "
+                   "used by stronger players.")
     if species:
         best = sorted(species, key=lambda e: -e["points"])[:6]
         worst = sorted(species, key=lambda e: e["points"])[:6]
