@@ -9,115 +9,115 @@
  ],
  "models": {
   "team vs team (bring 4)": {
-   "k": 0.1292,
-   "accuracy": 0.5176,
+   "k": 0.1308,
+   "accuracy": 0.5244,
    "log_loss": 0.6912,
    "brier": 0.249,
    "calibration": [
     {
-     "score": -1.53,
+     "score": -1.5,
      "predicted": 0.451,
-     "actual": 0.477,
+     "actual": 0.474,
      "matches": 757
     },
     {
-     "score": -0.56,
+     "score": -0.55,
      "predicted": 0.482,
-     "actual": 0.501,
+     "actual": 0.514,
      "matches": 757
     },
     {
      "score": 0.01,
      "predicted": 0.5,
-     "actual": 0.52,
+     "actual": 0.518,
      "matches": 757
     },
     {
-     "score": 0.62,
+     "score": 0.6,
      "predicted": 0.52,
-     "actual": 0.535,
+     "actual": 0.518,
      "matches": 757
     },
     {
-     "score": 1.58,
-     "predicted": 0.551,
-     "actual": 0.542,
+     "score": 1.54,
+     "predicted": 0.55,
+     "actual": 0.551,
      "matches": 757
     }
    ]
   },
   "team vs team (all 6)": {
-   "k": 0.2595,
-   "accuracy": 0.5192,
-   "log_loss": 0.6911,
+   "k": 0.2601,
+   "accuracy": 0.5178,
+   "log_loss": 0.6912,
    "brier": 0.249,
    "calibration": [
     {
-     "score": -0.75,
-     "predicted": 0.451,
-     "actual": 0.481,
+     "score": -0.74,
+     "predicted": 0.452,
+     "actual": 0.473,
      "matches": 757
     },
     {
      "score": -0.27,
-     "predicted": 0.482,
-     "actual": 0.494,
+     "predicted": 0.483,
+     "actual": 0.501,
      "matches": 757
     },
     {
      "score": 0.01,
      "predicted": 0.501,
-     "actual": 0.527,
+     "actual": 0.528,
      "matches": 757
     },
     {
-     "score": 0.3,
+     "score": 0.29,
      "predicted": 0.519,
      "actual": 0.515,
      "matches": 757
     },
     {
-     "score": 0.77,
-     "predicted": 0.55,
+     "score": 0.76,
+     "predicted": 0.549,
      "actual": 0.557,
      "matches": 757
     }
    ]
   },
   "score vs the meta": {
-   "k": 0.1978,
-   "accuracy": 0.5177,
-   "log_loss": 0.6924,
+   "k": 0.1826,
+   "accuracy": 0.5135,
+   "log_loss": 0.6923,
    "brier": 0.2496,
    "calibration": [
     {
-     "score": -0.67,
-     "predicted": 0.467,
-     "actual": 0.501,
+     "score": -0.68,
+     "predicted": 0.469,
+     "actual": 0.483,
      "matches": 757
     },
     {
-     "score": -0.24,
-     "predicted": 0.488,
-     "actual": 0.486,
+     "score": -0.25,
+     "predicted": 0.489,
+     "actual": 0.499,
      "matches": 757
     },
     {
      "score": 0.01,
      "predicted": 0.501,
-     "actual": 0.535,
+     "actual": 0.528,
      "matches": 757
     },
     {
      "score": 0.27,
-     "predicted": 0.513,
-     "actual": 0.509,
+     "predicted": 0.512,
+     "actual": 0.513,
      "matches": 757
     },
     {
-     "score": 0.68,
-     "predicted": 0.534,
-     "actual": 0.544,
+     "score": 0.69,
+     "predicted": 0.532,
+     "actual": 0.551,
      "matches": 757
     }
    ]

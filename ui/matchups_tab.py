@@ -13,7 +13,7 @@ from src.dex import load_dex
 from src.formats import FORMATS
 from src.analysis import build_members, mega_variants
 from src.matchup import (best_attack, best_variant, build_archetypes, counter_picks, meta_matchups,
-                         opponent_members, team_score, threat_report, verdict)
+                         opponent_members, side_support, team_score, threat_report, verdict)
 from src.gameplan import game_plan
 from src.recommend import MODES
 from src.roles import meta_roles, role_text
@@ -156,6 +156,11 @@ def matchups_tab(fmt_id, team, members, dex, usage, fmt) -> None:
         "- **Each pairing** is decided by real damage calcs both ways. A pair scores +1 when your Pokémon needs "
         "half as many hits to KO theirs as they need to KO yours, and ±0.5 for Speed (reversed under Trick "
         "Room). Weather teams are scored in their weather.\n"
+        "- **Support counts for the whole side**: Reflect, Light Screen and Aurora Veil cut the other side's "
+        "physical/special hits, and Intimidate cuts their physical hits, at partial strength since they're only up "
+        "for part of a game. A screens setter can earn a bring slot by making the rest of the team take less "
+        "damage. Tailwind and Trick Room setters aren't credited: on real match results, adding them made "
+        "predictions worse. Fake Out, redirection, status, boosts and switching aren't modeled.\n"
         "- **Team score** is how well you answer them minus how well they answer you, so 0 is even. "
         "With two Mega Stones, each matchup uses whichever Mega Evolves best.",
         "How matchups are scored")
@@ -252,6 +257,7 @@ def matchups_tab(fmt_id, team, members, dex, usage, fmt) -> None:
                 })
             st.dataframe(pd.DataFrame(answers), hide_index=True, width="stretch")
         plan = game_plan(members_now, theirs, matrix, picks, dex, doubles, arch.trick_room, arch.weather)
+        plan.support_note = support_note(members_now, theirs, picks)
         game_plan_box(plan, who if len(variants) > 1 else None)
 
     st.markdown(f"**Counter picks for {pick}**: meta Pokémon (popular sets) with the best average pairing "
@@ -268,6 +274,18 @@ def matchups_tab(fmt_id, team, members, dex, usage, fmt) -> None:
     swaps_section(team, dex, usage, fmt, threats)
 
 
+def support_note(members, theirs, picks) -> str:
+    counted = {"Reflect", "Light Screen", "Intimidate"}  # what changes the score (see matchup.py)
+    mine = [n for n in side_support([m for m in members if m.label in picks]).names() if n in counted]
+    their = [n for n in side_support(theirs).names() if n in counted]
+    parts = []
+    if mine:
+        parts.append(f"your bring sets up {', '.join(mine)}")
+    if their:
+        parts.append(f"they can set up {', '.join(their)}")
+    return ("Support counted: " + "; ".join(parts) + ".") if parts else ""
+
+
 def game_plan_box(plan, mega: str | None) -> None:
     with st.container(border=True):
         st.markdown("**Game plan**")
@@ -277,6 +295,8 @@ def game_plan_box(plan, mega: str | None) -> None:
                  f"**Expect them to lead:** {' + '.join(plan.their_leads)}",
                  f"**Your strongest piece:** {plan.strongest} ({plan.strongest_why})" if plan.strongest else ""]
         st.markdown("  \n".join(line for line in lines if line))
+        if plan.support_note:
+            st.caption(plan.support_note)
         if plan.watch_out:
             st.markdown("**Watch out for**  \n" + "  \n".join(
                 f"- **{w['pokemon']}**: {w['hit']}; {w['your best']}." for w in plan.watch_out))

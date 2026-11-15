@@ -26,7 +26,7 @@ from src.dex import Dex
 from src.matchup import best_attack, team_score
 from src.roles import set_roles
 
-LEAD_TOOLS = {"Fake Out support": 0.35, "Tailwind setter": 0.3, "Trick Room setter": 0.3,
+LEAD_TOOLS = {"Fake Out support": 0.35, "Tailwind setter": 0.3, "Trick Room setter": 0.3, "Screens": 0.3,
               "Intimidate": 0.15, "Redirector": 0.2, "Speed control": 0.1}
 
 
@@ -42,6 +42,7 @@ class Plan:
     strongest_why: str = ""
     speed: list[dict] = field(default_factory=list)       # {pokemon, side, speed}
     speed_note: str = ""
+    support_note: str = ""
 
 
 def _tools(m: Member, dex: Dex, doubles: bool) -> list[str]:
