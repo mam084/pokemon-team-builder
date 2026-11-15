@@ -66,6 +66,11 @@ jobs:
         timeout-minutes: 45
         continue-on-error: true
 
+      - name: Check the matchup score against real match results
+        run: python -m src.validate
+        timeout-minutes: 30
+        continue-on-error: true
+
       - name: Commit changes
         run: |
           git config user.name "github-actions[bot]"

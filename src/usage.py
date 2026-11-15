@@ -93,6 +93,9 @@ class UsageData:
     def __init__(self, trimmed: dict):
         self.info: dict = trimmed["info"]
         # label the male of a gendered pair "-M" (Meowstic -> Meowstic-M), as the dex does
+        self._variant_index: dict = {}
+        self._set_cache: dict = {}
+        self.cooc = None  # src.cooccurrence.Cooccurrence from tournament teams, when available
         self.pokemon: dict = {
             display_name(name): {key: ({display_name(n): v for n, v in sec.items()}
                                        if key in ("teammates", "counters") and isinstance(sec, dict) else sec)
@@ -161,7 +164,14 @@ class UsageData:
         share = min(ea["usage"], eb["usage"])
         if USAGE_SHRINK:
             weight *= share / (share + USAGE_SHRINK)
-        return 2 ** (math.log2(raw) * weight), known
+        ladder = math.log2(raw) * weight  # already shrunk toward 0
+        if self.cooc is not None:
+            # blend in tournament pairings, each source weighted by its confidence
+            tour, confidence = self.cooc.log_lift(a, b)
+            if weight + confidence > 0:
+                blended = (weight * ladder + confidence * tour * confidence) / (weight + confidence)
+                return 2 ** blended, known or confidence > 0
+        return 2 ** ladder, known
 
     def section(self, species: str, key: str) -> dict:
         e = self.entry(species)
@@ -173,10 +183,16 @@ class UsageData:
         base = dex.get_species(species)
         if base is None:
             return []
-        base_id = dex.sheet_id(base)  # Arcanine-Hisui stays Arcanine-Hisui, not Arcanine
-        out = [name for name in self.pokemon
-               if (s := dex.get_species(name)) is not None and dex.sheet_id(s) == base_id]
-        return sorted(out, key=lambda n: -self.pokemon[n]["usage"])
+        index = self._variant_index.get(id(dex))
+        if index is None:  # sheet id -> usage entries, built once per dex
+            index = {}
+            for name in sorted(self.pokemon, key=lambda n: -self.pokemon[n]["usage"]):
+                s = dex.get_species(name)
+                if s is not None:
+                    index.setdefault(dex.sheet_id(s), []).append(name)
+            self._variant_index[id(dex)] = index
+        # Arcanine-Hisui stays Arcanine-Hisui, not Arcanine
+        return list(index.get(dex.sheet_id(base), []))
 
     def species_usage(self, species: str, dex: Dex) -> float:
         return round(sum(self.pokemon[v]["usage"] for v in self.variants(species, dex)), 3)
@@ -225,6 +241,20 @@ class UsageData:
 
     def popular_set(self, species: str, dex: Dex, taken_items: set[str] | None = None,
                     allow_mega: bool = True, team: list[PokemonSet] | None = None) -> PokemonSet | None:
+        """Memoized: see _popular_set. Returns a fresh copy, so callers may edit it."""
+        support = None
+        if team is not None:  # only what conditional items care about
+            triggers = CONDITIONAL_TRIGGERS
+            support = frozenset(x for p in team for x in [to_id(p.ability), *map(to_id, p.moves)] if x in triggers)
+        key = (id(dex), to_id(species), frozenset(to_id(i) for i in (taken_items or ()) if i),
+               allow_mega, support)
+        if key not in self._set_cache:
+            self._set_cache[key] = self._popular_set(species, dex, taken_items, allow_mega, team)
+        cached = self._set_cache[key]
+        return PokemonSet.from_dict(cached.to_dict()) if cached is not None else None
+
+    def _popular_set(self, species: str, dex: Dex, taken_items: set[str] | None = None,
+                     allow_mega: bool = True, team: list[PokemonSet] | None = None) -> PokemonSet | None:
         """
         The most common set for a team-sheet Pokemon: built from its most-used
         variant (e.g. Charizard -> Charizard-Mega-Y with Charizardite Y), using
@@ -282,6 +312,22 @@ class UsageData:
         return pset
 
 
+def typical_spread(usage: "UsageData", pset: PokemonSet, dex: Dex) -> dict | None:
+    """The most common ladder spread for this Pokemon (its Mega entry if it holds the stone),
+    preferring one with the set's nature. For team lists that don't publish stat points."""
+    form = pset.battle_form(dex)
+    entry = form.name if usage.entry(form.name) else pset.species
+    fallback = None
+    for spread in usage.section(entry, "spreads"):
+        nature, sps = parse_spread(spread)
+        if not sps:
+            continue
+        if to_id(nature) == to_id(pset.nature):
+            return sps
+        fallback = fallback or sps
+    return fallback
+
+
 # usage % at which pair lift keeps half its strength (see pair_lift); 0 turns it off
 USAGE_SHRINK = 0.3
 
@@ -303,6 +349,10 @@ CONDITIONAL_ITEMS = {
 }
 
 
+CONDITIONAL_TRIGGERS = frozenset(x for abilities, moves, _ in CONDITIONAL_ITEMS.values()
+                                 for x in (*abilities, *moves))
+
+
 def item_has_support(item_id: str, team: list[tuple[str, set[str]]], own: tuple[str, set[str]]) -> bool:
     """team / own: (ability id, move ids). True unless the item needs something nobody provides."""
     rule = CONDITIONAL_ITEMS.get(item_id)
@@ -314,8 +364,22 @@ def item_has_support(item_id: str, team: list[tuple[str, set[str]]], own: tuple[
 
 
 @lru_cache(maxsize=None)
-def load_usage(format_id: str) -> UsageData | None:
+def load_usage(format_id: str, tournament_pairs: bool = True) -> UsageData | None:
+    """Ladder usage for a format. For doubles formats with tournament team lists on disk,
+    synergy also draws on those lists' pairings (see src/cooccurrence.py)."""
     path = USAGE_DIR / f"{format_id}.json"
     if not path.exists():
         return None
-    return UsageData(json.loads(path.read_text()))
+    usage = UsageData(json.loads(path.read_text()))
+    if tournament_pairs:
+        from src.cooccurrence import Cooccurrence  # local imports: these modules import this one
+        from src.dex import load_dex
+        from src.evaluate import load_tournament_teams
+        from src.formats import FORMATS
+        fmt = FORMATS.get(format_id)
+        if fmt is not None and fmt.is_doubles:
+            dex = load_dex(fmt.regulation)
+            teams = load_tournament_teams(fmt.regulation, dex)
+            if teams:
+                usage.cooc = Cooccurrence([t["sets"] for t in teams], dex)
+    return usage

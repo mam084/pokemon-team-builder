@@ -38,7 +38,8 @@ from src.analysis import build_members
 from src.dex import Dex, to_id
 from src.recommend import _root, recommend
 from src.team import PokemonSet
-from src.usage import UsageData
+from src.cooccurrence import Cooccurrence
+from src.usage import UsageData, typical_spread
 
 TOURNAMENT_DIR = Path(__file__).resolve().parent.parent / "data" / "tournaments"
 SIGNALS = ["synergy", "defense", "offense", "roles", "meta", "plan"]
@@ -97,8 +98,11 @@ def normalize_species(name: str, dex: Dex) -> str:
     return name
 
 
-def load_tournament_teams(regulation: str, dex: Dex, path: Path | None = None) -> list[dict]:
-    """Tournament teams as {date, tournament, placing, sets: [PokemonSet x6]}; unknown species are skipped."""
+def load_tournament_teams(regulation: str, dex: Dex, path: Path | None = None,
+                          usage: UsageData | None = None) -> list[dict]:
+    """Tournament teams as {date, tournament, placing, player, wins, losses, sets: [PokemonSet x6]};
+    unknown species are skipped. Team lists don't publish stat points, so with usage given
+    each set gets its Pokemon's most common ladder spread (an estimate)."""
     path = path or TOURNAMENT_DIR / f"{regulation}.json"
     if not path.exists():
         return []
@@ -116,9 +120,13 @@ def load_tournament_teams(regulation: str, dex: Dex, path: Path | None = None) -
             ability = mon["ability"] if to_id(mon["ability"]) in {to_id(a) for a in base.abilities} else base.abilities[0]
             moves = [dex.get_move(m)["name"] for m in mon["moves"] if dex.get_move(m)]
             nature = mon["nature"] if dex.get_nature(mon["nature"]) else "Serious"
-            sets.append(PokemonSet(species=base.name, item=item, ability=ability, nature=nature, moves=moves))
+            pset = PokemonSet(species=base.name, item=item, ability=ability, nature=nature, moves=moves)
+            if usage is not None:
+                pset.sps = typical_spread(usage, pset, dex) or pset.sps
+            sets.append(pset)
         if len(sets) == 6 and len({to_id(s.species) for s in sets}) == 6:
-            teams.append({**{k: row[k] for k in ("date", "tournament", "placing", "players")}, "sets": sets})
+            teams.append({**{k: row.get(k) for k in ("date", "tournament", "placing", "players", "player",
+                                                      "wins", "losses")}, "sets": sets})
     return teams
 
 
@@ -198,8 +206,17 @@ def evaluate(regulation: str, dex: Dex, usage: UsageData, doubles: bool = True,
     if max_teams:
         teams = teams[-max_teams:]
     train, test = split_by_date(teams)
-    train_q = build_queries(train, dex, usage, doubles)
-    test_q = build_queries(test, dex, usage, doubles)
+    # Synergy also learns from tournament pairings (src/cooccurrence.py). To keep the test
+    # honest, those pairings come only from the oldest tournaments; the weights are tuned on
+    # the next ones and tested on the newest - never on teams the pairings saw.
+    pairs_from, train = split_by_date(train, 0.4) if usage.cooc is not None else ([], train)
+    saved_cooc = usage.cooc
+    usage.cooc = Cooccurrence([t["sets"] for t in pairs_from], dex) if pairs_from else None
+    try:
+        train_q = build_queries(train, dex, usage, doubles)
+        test_q = build_queries(test, dex, usage, doubles)
+    finally:
+        usage.cooc = saved_cooc
     pool = int(np.median([q.table["root"].nunique() for q in test_q])) if test_q else 0
 
     tuned, train_metrics = tune(train_q)
@@ -217,7 +234,7 @@ def evaluate(regulation: str, dex: Dex, usage: UsageData, doubles: bool = True,
         "regulation": regulation,
         "usage_month": usage.info.get("month"),
         "teams": len(teams),
-        "train_teams": len(train), "test_teams": len(test),
+        "pairing_teams": len(pairs_from), "train_teams": len(train), "test_teams": len(test),
         "train_tournaments": len({t["tournament"] for t in train}),
         "test_tournaments": len({t["tournament"] for t in test}),
         "test_dates": [min((t["date"] for t in test), default=""), max((t["date"] for t in test), default="")],
