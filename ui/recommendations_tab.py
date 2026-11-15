@@ -142,12 +142,10 @@ def recommendations_tab(team, members, dex, usage, fmt) -> None:
         with cols[i % 2]:
             with st.container(border=True):
                 form = dex.get_species(row["form"])
-                head = st.columns([1, 4])
-                if form is not None:
-                    head[0].image(sprite(form, dex), width=56)
-                head[1].markdown(
-                    f"**{i + 1}. {row['pokemon']}** · score {row['score']:.0f}<br>"
-                    f"{type_badges(row['types'].split('/'))}",
+                img = f"<img class='card-sprite' src='{sprite(form, dex)}' alt=''>" if form is not None else ""
+                st.markdown(  # sprite beside the name (not on its own row) so cards stay short on a phone
+                    f"<div class='card-head'>{img}<div><b>{i + 1}. {row['pokemon']}</b> · score "
+                    f"{row['score']:.0f}<br>{type_badges(row['types'].split('/'))}</div></div>",
                     unsafe_allow_html=True,
                 )
                 if usage:
@@ -156,12 +154,13 @@ def recommendations_tab(team, members, dex, usage, fmt) -> None:
                 st.caption(drivers(row, recs.attrs.get("weights", weights)))
                 if row["note"]:
                     st.caption(f"Note: {row['note']}")
-                st.button(
-                    "Team is full" if full else f"Add {row['pokemon']} to team",
-                    key=f"rec_add_{row['pokemon']}", width="stretch", disabled=full,
-                    on_click=add_to_team, args=(row["pokemon"], dex, usage),
-                    help="Adds its most popular set to the first empty slot",
-                )
+                if not full:  # a full team is explained once above the list
+                    st.button(
+                        f"Add {row['pokemon']} to team",
+                        key=f"rec_add_{row['pokemon']}", width="stretch",
+                        on_click=add_to_team, args=(row["pokemon"], dex, usage),
+                        help="Adds its most popular set to the first empty slot",
+                    )
     with st.expander("Score breakdown (all signals)"):
         st.dataframe(
             recs.drop(columns=["form", "starts", "extra_mega"], errors="ignore"), hide_index=True, width="stretch",

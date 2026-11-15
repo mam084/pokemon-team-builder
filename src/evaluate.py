@@ -38,7 +38,7 @@ from src.analysis import build_members
 from src.dex import Dex, to_id
 from src.recommend import _root, recommend
 from src.team import PokemonSet
-from src.usage import UsageData
+from src.usage import UsageData, typical_spread
 
 TOURNAMENT_DIR = Path(__file__).resolve().parent.parent / "data" / "tournaments"
 SIGNALS = ["synergy", "defense", "offense", "roles", "meta", "plan"]
@@ -97,8 +97,11 @@ def normalize_species(name: str, dex: Dex) -> str:
     return name
 
 
-def load_tournament_teams(regulation: str, dex: Dex, path: Path | None = None) -> list[dict]:
-    """Tournament teams as {date, tournament, placing, sets: [PokemonSet x6]}; unknown species are skipped."""
+def load_tournament_teams(regulation: str, dex: Dex, path: Path | None = None,
+                          usage: UsageData | None = None) -> list[dict]:
+    """Tournament teams as {date, tournament, placing, player, wins, losses, sets: [PokemonSet x6]};
+    unknown species are skipped. Team lists don't publish stat points, so with usage given
+    each set gets its Pokemon's most common ladder spread (an estimate)."""
     path = path or TOURNAMENT_DIR / f"{regulation}.json"
     if not path.exists():
         return []
@@ -116,9 +119,13 @@ def load_tournament_teams(regulation: str, dex: Dex, path: Path | None = None) -
             ability = mon["ability"] if to_id(mon["ability"]) in {to_id(a) for a in base.abilities} else base.abilities[0]
             moves = [dex.get_move(m)["name"] for m in mon["moves"] if dex.get_move(m)]
             nature = mon["nature"] if dex.get_nature(mon["nature"]) else "Serious"
-            sets.append(PokemonSet(species=base.name, item=item, ability=ability, nature=nature, moves=moves))
+            pset = PokemonSet(species=base.name, item=item, ability=ability, nature=nature, moves=moves)
+            if usage is not None:
+                pset.sps = typical_spread(usage, pset, dex) or pset.sps
+            sets.append(pset)
         if len(sets) == 6 and len({to_id(s.species) for s in sets}) == 6:
-            teams.append({**{k: row[k] for k in ("date", "tournament", "placing", "players")}, "sets": sets})
+            teams.append({**{k: row.get(k) for k in ("date", "tournament", "placing", "players", "player",
+                                                      "wins", "losses")}, "sets": sets})
     return teams
 
 

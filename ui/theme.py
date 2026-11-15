@@ -86,6 +86,26 @@ div[data-testid="stVerticalBlockBorderWrapper"][style*="border"] {{ background: 
 [class*="st-key-stats_box"] .stat-name, [class*="st-key-stats_box"] .stat-final {{ line-height: 2.5rem; }}
 [class*="st-key-moves_box"] [data-testid="stVerticalBlock"] {{ gap: .6rem; }}
 
+/* cards with the sprite beside the name */
+.card-head {{ display: flex; align-items: center; gap: .7rem; }}
+.card-head .card-sprite {{ width: 56px; height: 56px; image-rendering: pixelated; flex: none; }}
+/* opponent lineup: six across, three per row on phones */
+.opp-grid {{ display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: .6rem; margin: .3rem 0 .6rem; }}
+.opp-card {{ border: 1px solid {border}; border-radius: .6rem; padding: .45rem .5rem .55rem; min-width: 0; }}
+.opp-card img {{ width: 56px; height: 56px; image-rendering: pixelated; display: block; }}
+.opp-name {{ font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }}
+.opp-meta {{ font-size: .78rem; color: {muted}; margin-top: .25rem; line-height: 1.3; }}
+@media (max-width: 980px) {{ .opp-grid {{ grid-template-columns: repeat(3, minmax(0, 1fr)); }} }}
+/* metric rows stay one row on phones */
+[class*="st-key-metric_row"] [data-testid="stHorizontalBlock"] {{ flex-wrap: nowrap; gap: .5rem; }}
+[class*="st-key-metric_row"] [data-testid="stColumn"] {{ min-width: 0 !important; }}
+@media (max-width: 640px) {{
+  [class*="st-key-metric_row"] [data-testid="stMetricValue"] {{ font-size: 1.35rem; }}
+  [class*="st-key-metric_row"] [data-testid="stMetricLabel"] p {{ font-size: .78rem; }}
+  .opp-card img {{ width: 44px; height: 44px; }}
+  .opp-meta {{ display: none; }}
+}}
+
 /* ---- team preview stage ---- */
 .st-key-tp_stage {{ background: linear-gradient(180deg, {STAGE['bg2']} 0%, {STAGE['bg']} 100%);
   border-radius: .9rem; padding: 1rem 1.1rem 1.15rem; margin: .2rem 0 .6rem 0; gap: .7rem; }}

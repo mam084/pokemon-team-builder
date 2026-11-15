@@ -2,18 +2,22 @@
 
 from __future__ import annotations
 
+import json
+
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
 from src.dex import load_dex
 from src.formats import FORMATS
-from src.analysis import mega_variants
+from src.analysis import build_members, mega_variants
 from src.matchup import (best_attack, best_variant, build_archetypes, counter_picks, meta_matchups,
                          opponent_members, team_score, threat_report, verdict)
+from src.gameplan import game_plan
 from src.recommend import MODES
 from src.roles import meta_roles, role_text
 from src.swaps import HIDDEN_SKIP, SwapEngine, mode_pool, suggest_swaps
+from src.team import PokemonSet
 from src.usage import load_usage
 from ui.common import matchup_scale, sprite, type_badges
 from ui.state import write_slot
@@ -26,6 +30,50 @@ def archetypes_for(fmt_id: str):
     if usage is None:
         return []
     return build_archetypes(usage, load_dex(fmt.regulation), team_size=6)
+
+
+def team_key(team) -> str:
+    """A hashable fingerprint of the team for st.cache_data."""
+    return json.dumps([p.to_dict() for p in team], sort_keys=True)
+
+
+def _unkey(key: str) -> list[PokemonSet]:
+    return [PokemonSet.from_dict(d) for d in json.loads(key)]
+
+
+# The heavy tables only change when the team does, so they're cached on the team's
+# contents: tapping anything else (a tab, a selectbox) no longer recomputes them.
+@st.cache_data(show_spinner=False, max_entries=64)
+def cached_meta_matchups(fmt_id: str, key: str) -> pd.DataFrame:
+    fmt = FORMATS[fmt_id]
+    dex, usage = load_dex(fmt.regulation), load_usage(fmt_id)
+    return meta_matchups(mega_variants(_unkey(key), dex), archetypes_for(fmt_id), usage, dex,
+                         bring=fmt.pick, doubles=fmt.is_doubles)
+
+
+@st.cache_data(show_spinner=False, max_entries=64)
+def cached_threats(fmt_id: str, key: str) -> pd.DataFrame:
+    fmt = FORMATS[fmt_id]
+    dex, usage = load_dex(fmt.regulation), load_usage(fmt_id)
+    doubles = fmt.is_doubles
+    threats = threat_report(build_members(_unkey(key), dex), usage, dex, n=30, doubles=doubles)
+    if not threats.empty:
+        threats["meta counters"] = [
+            ", ".join(counter_picks(opponent_members([name], usage, dex), usage, dex, pool=50, top_n=3,
+                                    doubles=doubles)["pokemon"])
+            if i < 10 else "—"
+            for i, name in enumerate(threats["pokemon"])
+        ]
+    return threats
+
+
+@st.cache_data(show_spinner=False, max_entries=128)
+def cached_swaps(fmt_id: str, key: str, focus: str | None, mode: str, same_role: bool,
+                 per_member: int | None) -> pd.DataFrame:
+    fmt = FORMATS[fmt_id]
+    dex, usage = load_dex(fmt.regulation), load_usage(fmt_id)
+    return suggest_swaps(_unkey(key), dex, usage, swap_engine_for(fmt_id), focus=focus,
+                         pool=mode_pool(usage, mode, dex), top_n=8, same_role=same_role, per_member=per_member)
 
 
 def pair_scale() -> list:
@@ -69,20 +117,24 @@ def matchups_tab(fmt_id, team, members, dex, usage, fmt) -> None:
         st.info("Add Pokémon on the **Team** tab to see how you match up. The meta teams are listed below.")
     else:
         variants = mega_variants(team, dex)
-        table = meta_matchups(variants, archetypes, usage, dex, bring=fmt.pick, doubles=doubles)
+        table = cached_meta_matchups(fmt_id, team_key(team))
         if len(variants) < 2:
             table = table.drop(columns=["mega evolve"])
         weights = table["popularity"]
         overall = float((table["score"] * weights).sum() / weights.sum()) if len(table) else 0.0
-        c = st.columns(4)
-        c[0].metric("Overall vs meta", f"{overall:+.2f}", help="Usage-weighted average of the team scores below")
+        c = st.container(key="metric_row").columns(4)
+        c[0].metric("Overall", f"{overall:+.2f}", help="Usage-weighted average of the team scores below")
         c[0].caption(verdict(overall))
         c[1].metric("Favorable", int((table["score"] >= 0.25).sum()))
         c[2].metric("Even", int(((table["score"] > -0.25) & (table["score"] < 0.25)).sum()))
         c[3].metric("Unfavorable", int((table["score"] <= -0.25).sum()))
+        # score next to the name, so it's visible without scrolling sideways on a phone
+        first = ["archetype", "score", "verdict"]
+        table = table[first + [c for c in table.columns if c not in first]]
         st.dataframe(
             table, hide_index=True, width="stretch",
             column_config={
+                "archetype": st.column_config.TextColumn("meta team", width="medium"),
                 "popularity": st.column_config.NumberColumn("avg usage %", format="%.1f"),
                 "score": st.column_config.NumberColumn("score", format="%+.2f"),
                 "with bring": st.column_config.NumberColumn(f"score with bring {fmt.pick}", format="%+.2f"),
@@ -97,12 +149,13 @@ def matchups_tab(fmt_id, team, members, dex, usage, fmt) -> None:
     pick = st.selectbox("Meta team", names)
     arch = archetypes[names.index(pick)]
     theirs = opponent_members(arch.members, usage, dex)
-    cols = st.columns(len(theirs))
-    for i, opp in enumerate(theirs):
-        with cols[i]:
-            st.image(sprite(opp.form, dex), width=64)
-            st.markdown(f"**{opp.label}**<br>{type_badges(opp.form.types)}", unsafe_allow_html=True)
-            st.caption(f"{opp.pset.item or 'No item'} · " + role_text(meta_roles(arch.members[i], usage, dex, doubles), 2))
+    cards = "".join(
+        f"<div class='opp-card'><img src='{sprite(opp.form, dex)}' alt=''>"
+        f"<div class='opp-name'>{opp.label}</div><div>{type_badges(opp.form.types)}</div>"
+        f"<div class='opp-meta'>{opp.pset.item or 'No item'} · "
+        f"{role_text(meta_roles(arch.members[i], usage, dex, doubles), 2)}</div></div>"
+        for i, opp in enumerate(theirs))
+    st.markdown(f"<div class='opp-grid'>{cards}</div>", unsafe_allow_html=True)
     notes = []
     if arch.trick_room:
         notes.append("This team sets Trick Room, so slower Pokémon get the Speed bonus.")
@@ -139,6 +192,8 @@ def matchups_tab(fmt_id, team, members, dex, usage, fmt) -> None:
                     "key calc": f"{move} {pct:.0f}%" if col.max() >= 0.5 and move else "—",
                 })
             st.dataframe(pd.DataFrame(answers), hide_index=True, width="stretch")
+        plan = game_plan(members_now, theirs, matrix, picks, dex, doubles, arch.trick_room, arch.weather)
+        game_plan_box(plan, who if len(variants) > 1 else None)
 
     st.markdown(f"**Counter picks for {pick}**: meta Pokémon (popular sets) with the best average pairing "
                 "against this team" + (", not counting your current team." if team else "."))
@@ -150,11 +205,35 @@ def matchups_tab(fmt_id, team, members, dex, usage, fmt) -> None:
         st.dataframe(counters, hide_index=True, width="stretch",
                      column_config={"avg matchup": st.column_config.NumberColumn(format="%+.2f")})
 
-    threats = threats_section(members, dex, usage, doubles)
+    threats = threats_section(fmt_id, team, members, dex, usage, doubles)
     swaps_section(team, dex, usage, fmt, threats)
 
 
-def threats_section(members, dex, usage, doubles: bool) -> pd.DataFrame:
+def game_plan_box(plan, mega: str | None) -> None:
+    with st.container(border=True):
+        st.markdown("**Game plan**")
+        lines = [f"**Bring:** {', '.join(plan.bring)}" + (f" (Mega Evolve {mega})" if mega else ""),
+                 f"**Lead:** {' + '.join(plan.lead)}. {plan.lead_why}",
+                 f"**In the back:** {', '.join(plan.back)}" if plan.back else "",
+                 f"**Expect them to lead:** {' + '.join(plan.their_leads)}",
+                 f"**Your strongest piece:** {plan.strongest} ({plan.strongest_why})" if plan.strongest else ""]
+        st.markdown("  \n".join(line for line in lines if line))
+        if plan.watch_out:
+            st.markdown("**Watch out for**  \n" + "  \n".join(
+                f"- **{w['pokemon']}**: {w['hit']}; {w['your best']}." for w in plan.watch_out))
+        else:
+            st.markdown("**Watch out for:** nothing on their team goes unanswered by your bring.")
+        order, prev = [], None
+        for r in plan.speed:
+            name = f"**{r['pokemon']}**" if r["side"] == "yours" else r["pokemon"]
+            sep = "" if prev is None else (" = " if r["speed"] == prev else " › ")
+            order.append(f"{sep}{name} {r['speed']}")
+            prev = r["speed"]
+        st.caption("Speed order (yours in bold): " + "".join(order)
+                   + (f". {plan.speed_note}" if plan.speed_note else ""))
+
+
+def threats_section(fmt_id: str, team, members, dex, usage, doubles: bool) -> pd.DataFrame:
     st.subheader("Biggest threats to your team")
     if not members:
         st.info("Add Pokémon on the **Team** tab to see which popular Pokémon threaten you.")
@@ -162,23 +241,17 @@ def threats_section(members, dex, usage, doubles: bool) -> pd.DataFrame:
     how_it_works("The 30 most-used Pokémon (popular sets), ranked by **usage × (your Pokémon it 2HKOs + 1) ÷ "
                  "(answers + 1)**. An *answer* 2HKOs it back while taking under 50%. **Meta counters** are the "
                  "Pokémon with the best pairing against it, if you want to add one.", "How threats are ranked")
-    threats = threat_report(members, usage, dex, n=30, doubles=doubles)
+    threats = cached_threats(fmt_id, team_key(team))
     if threats.empty:
         return threats
-    threats["meta counters"] = [
-        ", ".join(counter_picks(opponent_members([name], usage, dex), usage, dex, pool=50, top_n=3,
-                                doubles=doubles)["pokemon"])
-        if i < 10 else "—"
-        for i, name in enumerate(threats["pokemon"])
-    ]
     cols = st.columns(3)
     for i, row in threats.head(3).iterrows():
         with cols[i]:
             with st.container(border=True):
                 form = dex.get_species(row["pokemon"])
-                if form:
-                    st.image(sprite(form, dex), width=64)
-                st.markdown(f"**{row['pokemon']}** · {row['usage %']:.1f}% usage")
+                img = f"<img class='card-sprite' src='{sprite(form, dex)}' alt=''>" if form else ""
+                st.markdown(f"<div class='card-head'>{img}<div><b>{row['pokemon']}</b><br>"
+                            f"{row['usage %']:.1f}% usage</div></div>", unsafe_allow_html=True)
                 st.caption(f"2HKOs {row['2HKOs']} of your team. Hardest hits: {row['hardest hits']}. "
                            f"Your answers: {row['answers']}.")
     st.dataframe(threats, hide_index=True, width="stretch",
@@ -224,9 +297,7 @@ def swaps_section(team, dex, usage, fmt, threats: pd.DataFrame) -> None:
                                 key="swap_view") or "For each member"
     per_member = view == "For each member"
     with st.spinner("Trying swaps…"):
-        swaps = suggest_swaps(team, dex, usage, swap_engine_for(fmt.id), focus=focus_name,
-                              pool=mode_pool(usage, mode, dex), top_n=8, same_role=same_role,
-                              per_member=2 if per_member else None)
+        swaps = cached_swaps(fmt.id, team_key(team), focus_name, mode, same_role, 2 if per_member else None)
     if per_member:
         member_alternatives(team, swaps, focus_name, same_role)
         return

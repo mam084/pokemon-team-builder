@@ -603,6 +603,20 @@ class TestPlanBuilderSwaps(unittest.TestCase):
         top_nums = {self.dex.get_species(n).num for n in ranked[:HIDDEN_SKIP] if self.dex.get_species(n)}
         self.assertFalse(any(self.dex.get_species(n).num in top_nums for n in pool))
 
+    def test_game_plan(self):
+        from src.gameplan import game_plan
+        from src.matchup import best_variant, opponent_members
+        team, _ = parse_paste(GARGANACL_TEAM, self.dex)
+        arch = build_archetypes(self.usage, self.dex, keep=1)[0]
+        theirs = opponent_members(arch.members, self.usage, self.dex)
+        members = build_members(team, self.dex)
+        _, matrix, picks, _ = best_variant(members, theirs, arch.trick_room, True, arch.weather, 4)
+        plan = game_plan(members, theirs, matrix, picks, self.dex, True, arch.trick_room, arch.weather)
+        self.assertEqual(len(plan.lead), 2)
+        self.assertEqual(sorted(plan.lead + plan.back), sorted(picks))
+        self.assertEqual(len(plan.their_leads), 2)
+        self.assertEqual(len(plan.speed), len(picks) + len(theirs))
+
     def test_job(self):
         from src.roles import RoleTag, job, plan_roles
         tags = [RoleTag("Tailwind setter", 100), RoleTag("Disruptor", 100), RoleTag("Special attacker", 100)]
