@@ -1,162 +1,162 @@
 {
  "regulation": "regmc",
- "matches": 12168,
- "fit_matches": 8383,
- "test_matches": 3785,
+ "matches": 12359,
+ "fit_matches": 8448,
+ "test_matches": 3911,
  "test_dates": [
   "2026-11-09",
-  "2026-11-14"
+  "2026-11-15"
  ],
  "models": {
   "team vs team (bring 4)": {
-   "k": 0.1308,
-   "accuracy": 0.5244,
-   "log_loss": 0.6912,
-   "brier": 0.249,
+   "k": 0.1315,
+   "accuracy": 0.5222,
+   "log_loss": 0.6917,
+   "brier": 0.2493,
    "calibration": [
     {
-     "score": -1.5,
+     "score": -1.49,
      "predicted": 0.451,
-     "actual": 0.474,
-     "matches": 757
+     "actual": 0.487,
+     "matches": 783
     },
     {
      "score": -0.55,
      "predicted": 0.482,
-     "actual": 0.514,
-     "matches": 757
+     "actual": 0.506,
+     "matches": 782
     },
     {
      "score": 0.01,
      "predicted": 0.5,
-     "actual": 0.518,
-     "matches": 757
+     "actual": 0.52,
+     "matches": 782
     },
     {
      "score": 0.6,
      "predicted": 0.52,
-     "actual": 0.518,
-     "matches": 757
+     "actual": 0.506,
+     "matches": 782
     },
     {
-     "score": 1.54,
-     "predicted": 0.55,
-     "actual": 0.551,
-     "matches": 757
+     "score": 1.55,
+     "predicted": 0.551,
+     "actual": 0.56,
+     "matches": 782
     }
    ]
   },
   "team vs team (all 6)": {
-   "k": 0.2601,
-   "accuracy": 0.5178,
-   "log_loss": 0.6912,
-   "brier": 0.249,
+   "k": 0.2615,
+   "accuracy": 0.5186,
+   "log_loss": 0.6915,
+   "brier": 0.2492,
    "calibration": [
     {
      "score": -0.74,
      "predicted": 0.452,
-     "actual": 0.473,
-     "matches": 757
+     "actual": 0.484,
+     "matches": 783
     },
     {
      "score": -0.27,
      "predicted": 0.483,
-     "actual": 0.501,
-     "matches": 757
+     "actual": 0.504,
+     "matches": 782
     },
     {
      "score": 0.01,
      "predicted": 0.501,
-     "actual": 0.528,
-     "matches": 757
+     "actual": 0.514,
+     "matches": 782
     },
     {
      "score": 0.29,
      "predicted": 0.519,
-     "actual": 0.515,
-     "matches": 757
+     "actual": 0.522,
+     "matches": 782
     },
     {
      "score": 0.76,
      "predicted": 0.549,
-     "actual": 0.557,
-     "matches": 757
+     "actual": 0.556,
+     "matches": 782
     }
    ]
   },
   "score vs the meta": {
-   "k": 0.1826,
-   "accuracy": 0.5135,
-   "log_loss": 0.6923,
-   "brier": 0.2496,
-   "calibration": [
-    {
-     "score": -0.68,
-     "predicted": 0.469,
-     "actual": 0.483,
-     "matches": 757
-    },
-    {
-     "score": -0.25,
-     "predicted": 0.489,
-     "actual": 0.499,
-     "matches": 757
-    },
-    {
-     "score": 0.01,
-     "predicted": 0.501,
-     "actual": 0.528,
-     "matches": 757
-    },
-    {
-     "score": 0.27,
-     "predicted": 0.512,
-     "actual": 0.513,
-     "matches": 757
-    },
-    {
-     "score": 0.69,
-     "predicted": 0.532,
-     "actual": 0.551,
-     "matches": 757
-    }
-   ]
-  },
-  "popularity": {
-   "k": 0.0145,
-   "accuracy": 0.5101,
+   "k": 0.252,
+   "accuracy": 0.5178,
    "log_loss": 0.6918,
    "brier": 0.2493,
    "calibration": [
     {
-     "score": -10.67,
-     "predicted": 0.461,
-     "actual": 0.477,
-     "matches": 757
+     "score": -0.67,
+     "predicted": 0.458,
+     "actual": 0.474,
+     "matches": 783
     },
     {
-     "score": -3.81,
+     "score": -0.24,
+     "predicted": 0.485,
+     "actual": 0.51,
+     "matches": 782
+    },
+    {
+     "score": 0.01,
+     "predicted": 0.501,
+     "actual": 0.529,
+     "matches": 782
+    },
+    {
+     "score": 0.26,
+     "predicted": 0.516,
+     "actual": 0.509,
+     "matches": 782
+    },
+    {
+     "score": 0.66,
+     "predicted": 0.541,
+     "actual": 0.558,
+     "matches": 782
+    }
+   ]
+  },
+  "popularity": {
+   "k": 0.0151,
+   "accuracy": 0.5045,
+   "log_loss": 0.6925,
+   "brier": 0.2497,
+   "calibration": [
+    {
+     "score": -10.61,
+     "predicted": 0.46,
+     "actual": 0.487,
+     "matches": 783
+    },
+    {
+     "score": -3.7,
      "predicted": 0.486,
-     "actual": 0.52,
-     "matches": 757
+     "actual": 0.535,
+     "matches": 782
     },
     {
-     "score": 0.03,
+     "score": 0.08,
      "predicted": 0.5,
-     "actual": 0.511,
-     "matches": 757
+     "actual": 0.497,
+     "matches": 782
     },
     {
-     "score": 4.12,
-     "predicted": 0.515,
-     "actual": 0.507,
-     "matches": 757
+     "score": 4.18,
+     "predicted": 0.516,
+     "actual": 0.508,
+     "matches": 782
     },
     {
-     "score": 10.68,
-     "predicted": 0.539,
-     "actual": 0.559,
-     "matches": 757
+     "score": 10.76,
+     "predicted": 0.54,
+     "actual": 0.554,
+     "matches": 782
     }
    ]
   },
