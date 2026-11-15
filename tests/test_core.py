@@ -596,6 +596,13 @@ class TestPlanBuilderSwaps(unittest.TestCase):
         self.assertTrue((alts.groupby("slot").size() <= 2).all())
         self.assertEqual(set(alts["pick"]), {"Best upgrade", "Most similar"})
 
+    def test_hidden_pool_skips_popular_species(self):
+        from src.swaps import HIDDEN_SKIP, mode_pool
+        ranked = [n for n, _ in self.usage.ranked()]
+        pool = mode_pool(self.usage, "hidden", self.dex)
+        top_nums = {self.dex.get_species(n).num for n in ranked[:HIDDEN_SKIP] if self.dex.get_species(n)}
+        self.assertFalse(any(self.dex.get_species(n).num in top_nums for n in pool))
+
     def test_job(self):
         from src.roles import RoleTag, job, plan_roles
         tags = [RoleTag("Tailwind setter", 100), RoleTag("Disruptor", 100), RoleTag("Special attacker", 100)]

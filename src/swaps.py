@@ -215,11 +215,22 @@ def suggest_swaps(team: list[PokemonSet], dex: Dex, usage: UsageData, engine: Sw
     return df
 
 
-def mode_pool(usage: UsageData, mode: str) -> list[str]:
-    """Candidate replacements for a recommendation mode."""
+HIDDEN_SKIP = 25  # Hidden gems leaves out this many of the most-used Pokemon
+
+
+def mode_pool(usage: UsageData, mode: str, dex: Dex | None = None) -> list[str]:
+    """Candidate replacements for a recommendation mode. Swaps rank by matchup score alone,
+    so Hidden gems can't just mark popular picks down - it leaves the top of the ladder out."""
     if mode == "popular":
         return [n for n, _ in usage.ranked(80)]
-    return [n for n, _ in usage.ranked()]
+    ranked = [n for n, _ in usage.ranked()]
+    if mode == "hidden":
+        if dex is None:
+            return ranked[HIDDEN_SKIP:]
+        # every form of a top species counts as popular (Salamence-Mega makes Salamence popular)
+        top = {s.num for n in ranked[:HIDDEN_SKIP] if (s := dex.get_species(n))}
+        return [n for n in ranked[HIDDEN_SKIP:] if (s := dex.get_species(n)) and s.num not in top]
+    return ranked
 
 
-__all__ = ["SwapEngine", "suggest_swaps", "mode_pool", "to_id"]
+__all__ = ["HIDDEN_SKIP", "SwapEngine", "suggest_swaps", "mode_pool", "to_id"]
