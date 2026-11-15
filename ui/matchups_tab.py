@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
 import pandas as pd
 import plotly.graph_objects as go
@@ -19,9 +20,13 @@ from src.roles import meta_roles, role_text
 from src.swaps import HIDDEN_SKIP, SwapEngine, mode_pool, suggest_swaps
 from src.team import PokemonSet
 from src.usage import load_usage
+from src.validate import win_chance
 from ui.common import matchup_scale, sprite, type_badges
 from ui.state import write_slot
 from ui.theme import how_it_works
+
+VALIDATION_DIR = Path(__file__).resolve().parent.parent / "data" / "evaluation"
+
 
 @st.cache_resource(show_spinner=False)
 def archetypes_for(fmt_id: str):
@@ -76,6 +81,47 @@ def cached_swaps(fmt_id: str, key: str, focus: str | None, mode: str, same_role:
                          pool=mode_pool(usage, mode, dex), top_n=8, same_role=same_role, per_member=per_member)
 
 
+@st.cache_data(show_spinner=False)
+def match_check(regulation: str) -> dict | None:
+    """data/evaluation/<reg>_matches.json from src/validate.py, if it exists."""
+    path = VALIDATION_DIR / f"{regulation}_matches.json"
+    return json.loads(path.read_text()) if path.exists() else None
+
+
+def win_text(score: float, check: dict | None, model: str) -> str:
+    """'about 47% to win', from how real tournament matches with this score went."""
+    if not check or model not in check["models"]:
+        return ""
+    return f"about {win_chance(score, check['models'][model]['k']):.0%} to win"
+
+
+def reliability_box(check: dict | None) -> None:
+    if not check:
+        return
+    m = check["models"]
+    h2h, pop = m["team vs team (all 6)"], m["popularity"]
+    cal = h2h["calibration"]
+    with st.expander(f"How reliable are these scores? Tested on {check['matches']:,} real tournament matches"):
+        st.markdown(
+            f"Every Limitless match with both team lists ({check['matches']:,} matches) was scored team against team "
+            f"with the same calcs as this tab. The win-chance curve was fitted on the older "
+            f"{check['fit_matches']:,} and checked on the newest {check['test_matches']:,} "
+            f"({check['test_dates'][0]} to {check['test_dates'][1]}).\n\n"
+            f"- The team this tab favors won **{h2h['accuracy']:.1%}** of those matches (coin flip 50%, "
+            f"\"the more popular team\" {pop['accuracy']:.1%}).\n"
+            f"- When it favored one side most strongly, that side won **{cal[-1]['actual']:.0%}**; "
+            f"when it favored the other side most strongly, **{cal[0]['actual']:.0%}**.\n\n"
+            "So the score carries real signal, but a single game is mostly decided by play and luck: treat a "
+            "\"favorable\" matchup as a few percentage points, not a guaranteed win. Team lists don't publish stat "
+            "points, so each Pokémon got its most common ladder spread."
+        )
+        st.dataframe(pd.DataFrame(cal).rename(columns={"score": "avg score", "predicted": "predicted win %",
+                                                       "actual": "actual win %"}),
+                     hide_index=True, width="stretch",
+                     column_config={c: st.column_config.NumberColumn(format="percent")
+                                    for c in ["predicted win %", "actual win %"]})
+
+
 def pair_scale() -> list:
     """Diverging red (their side wins) -> neutral -> blue (yours wins)."""
     scale = matchup_scale()
@@ -124,12 +170,18 @@ def matchups_tab(fmt_id, team, members, dex, usage, fmt) -> None:
         overall = float((table["score"] * weights).sum() / weights.sum()) if len(table) else 0.0
         c = st.container(key="metric_row").columns(4)
         c[0].metric("Overall", f"{overall:+.2f}", help="Usage-weighted average of the team scores below")
-        c[0].caption(verdict(overall))
+        check = match_check(fmt.regulation)
         c[1].metric("Favorable", int((table["score"] >= 0.25).sum()))
         c[2].metric("Even", int(((table["score"] > -0.25) & (table["score"] < 0.25)).sum()))
         c[3].metric("Unfavorable", int((table["score"] <= -0.25).sum()))
+        st.caption(f"Overall: {verdict(overall).lower()}"
+                   + (f", {win_text(overall, check, 'score vs the meta')} against a typical meta team." if check
+                      else "."))
         # score next to the name, so it's visible without scrolling sideways on a phone
-        first = ["archetype", "score", "verdict"]
+        if check:
+            k = check["models"]["team vs team (all 6)"]["k"]
+            table.insert(2, "win chance", [round(100 * win_chance(x, k)) for x in table["score"]])
+        first = ["archetype", "score"] + (["win chance"] if check else []) + ["verdict"]
         table = table[first + [c for c in table.columns if c not in first]]
         st.dataframe(
             table, hide_index=True, width="stretch",
@@ -137,9 +189,14 @@ def matchups_tab(fmt_id, team, members, dex, usage, fmt) -> None:
                 "archetype": st.column_config.TextColumn("meta team", width="medium"),
                 "popularity": st.column_config.NumberColumn("avg usage %", format="%.1f"),
                 "score": st.column_config.NumberColumn("score", format="%+.2f"),
+                "win chance": st.column_config.NumberColumn("win chance", format="%d%%",
+                                                            help="How often teams with this score won real "
+                                                                 "tournament matches"),
                 "with bring": st.column_config.NumberColumn(f"score with bring {fmt.pick}", format="%+.2f"),
             },
         )
+
+    reliability_box(match_check(fmt.regulation))
 
     st.subheader("Matchup detail")
     names = [a.name for a in archetypes]
@@ -175,7 +232,9 @@ def matchups_tab(fmt_id, team, members, dex, usage, fmt) -> None:
                        "(the other plays in its base forme).")
         left, right = st.columns([3, 2])
         with left:
-            st.markdown(f"**Your team vs {pick}: {score:+.2f} ({verdict(score)})**")
+            chance = win_text(score, match_check(fmt.regulation), "team vs team (all 6)")
+            st.markdown(f"**Your team vs {pick}: {score:+.2f} ({verdict(score)}"
+                        + (f", {chance}" if chance else "") + ")**")
             st.plotly_chart(pair_heatmap(matrix), width="stretch")
             st.caption("Blue = your Pokémon (row) wins that pairing, red = theirs (column) does.")
         with right:

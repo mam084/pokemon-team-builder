@@ -617,6 +617,26 @@ class TestPlanBuilderSwaps(unittest.TestCase):
         self.assertEqual(len(plan.their_leads), 2)
         self.assertEqual(len(plan.speed), len(picks) + len(theirs))
 
+    def test_win_chance_fit(self):
+        import numpy as np
+        from src.validate import fit_logistic, win_chance
+        rng = np.random.default_rng(1)
+        x = rng.normal(0, 1, 4000)
+        y = (rng.random(4000) < 1 / (1 + np.exp(-0.8 * x))).astype(float)
+        self.assertAlmostEqual(fit_logistic(x, y), 0.8, delta=0.12)
+        self.assertAlmostEqual(win_chance(0.0, 0.8), 0.5)
+
+    def test_cooccurrence(self):
+        from src.cooccurrence import Cooccurrence
+        a = [PokemonSet("Incineroar"), PokemonSet("Rillaboom"), PokemonSet("Garchomp")]
+        b = [PokemonSet("Incineroar"), PokemonSet("Rillaboom"), PokemonSet("Gholdengo")]
+        c = [PokemonSet("Garchomp"), PokemonSet("Gholdengo"), PokemonSet("Sinistcha")]
+        co = Cooccurrence([a, b, c] * 10, self.dex)
+        together, _ = co.log_lift("Incineroar", "Rillaboom")
+        apart, _ = co.log_lift("Incineroar", "Sinistcha")
+        self.assertGreater(together, 0)
+        self.assertLess(apart, 0)
+
     def test_job(self):
         from src.roles import RoleTag, job, plan_roles
         tags = [RoleTag("Tailwind setter", 100), RoleTag("Disruptor", 100), RoleTag("Special attacker", 100)]

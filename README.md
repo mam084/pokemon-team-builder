@@ -179,9 +179,51 @@ never saw.
   defense 0.14, plan 0.05**, with **offense and roles at 0**: real players pick partners
   that are proven together and patch type weaknesses, more than ones that fill a checklist.
   Those two signals still explain each pick in the app, and you can raise their weights there.
+- **Synergy also learns from tournament pairings** (`src/cooccurrence.py`):
+  ladder teammate stats are weighted to high-rated players, so a Pokémon on
+  0.05% of those teams is really one or two players. Thousands of tournament
+  team sheets give those Pokémon real sample sizes. In a three-way date split
+  (pairings from the oldest teams, weights tuned on the next, tested on the
+  newest 30%), adding them raised synergy-only MRR from 0.393 to 0.463 and the
+  full model from 0.539 to 0.556 (top 10: 74.2% to 76.9%).
 - About 6% of hidden Pokémon are outside the candidate pool
   (the usage top 80), which caps every model's scores.
 - `python scripts/evaluate.py` reproduces this. The monthly data refresh re-runs it on new tournaments.
+
+## Does the matchup score predict wins?
+
+The Matchups tab scores your team against others with damage calcs and Speed.
+`src/validate.py` checks that score against **12,168 real Limitless
+matches** where both players' team lists are known: each pair of teams is
+scored against each other, a win-chance curve is fitted on the older
+8,383 matches, and it's judged on the newest 3,785
+(2026-11-09 to 2026-11-14).
+
+| model | picks the winner | log loss |
+|---|---|---|
+| team vs team (all 6) | 51.9% | 0.6911 |
+| team vs team (bring 4) | 51.8% | 0.6912 |
+| score vs the meta | 51.8% | 0.6924 |
+| more popular team | 51.0% | 0.6918 |
+| coin flip | 50.0% | 0.6931 |
+
+Split into fifths by score, the side the model favors most strongly won
+**56%** and the side it disfavors most strongly
+**48%**, close to the fitted curve
+(55% / 45%).
+
+- **The signal is real but small.** One game is mostly play and luck, so the
+  app shows matchups as a calibrated win chance ("about 48% to win") rather
+  than implying a favorable matchup is a sure thing.
+- Player skill can't be read off the Swiss records: a player's record in their
+  *other* matches predicts nothing here, because Swiss pairs players with equal
+  records, so opponents start roughly even. That also makes these matches a
+  fair test of team choice.
+- The pair score's Speed bonus (0.5) was checked against 0 and 1.0 on the
+  older matches; 0.5 fit best, so it stays.
+- Team lists don't publish stat points; each Pokémon gets its most common
+  ladder spread (`usage.typical_spread`). Each side Mega Evolves its first stone.
+- `python -m src.validate` reproduces this; the monthly data refresh re-runs it.
 
 ## Data
 
@@ -276,8 +318,11 @@ The tests check:
 │   ├── recommend.py          explainable multi-signal recommender with popularity modes
 │   ├── plan.py               weather / Trick Room / Tailwind / terrain synergy
 │   ├── builder.py            build three full teams around one Pokémon
-│   ├── swaps.py              swap suggestions to fix threats without hurting the meta matchup
-│   └── evaluate.py           hide-one-member evaluation on real tournament teams
+│   ├── swaps.py              swap suggestions (best upgrade / most similar per member)
+│   ├── gameplan.py           per-matchup game plan: bring, leads, threats, Speed order
+│   ├── cooccurrence.py       tournament team pairings as a second synergy source
+│   ├── evaluate.py           hide-one-member evaluation on real tournament teams
+│   └── validate.py           does the matchup score predict real match winners?
 ├── scripts/
 │   ├── export_dex.js         Showdown → data/dex
 │   ├── fetch_usage.py        Smogon → data/usage
@@ -300,5 +345,7 @@ The tests check:
 - [x] Presets, role tags, and team-vs-meta matchups with bring-N and counter picks
 - [x] Damage calculator verified against Showdown; damage-based matchups and threats
 - [x] Evaluation on real tournament teams, with tuned weights and baselines
+- [x] Matchup score validated on real match results, shown as a calibrated win chance
+- [x] Game plans per matchup; tournament pairings in the synergy signal
 - [ ] Stage 5: learned embeddings (e.g. word2vec on tournament team lists) as an extra synergy signal, measured with the same evaluation
-- [ ] Deploy to Streamlit Community Cloud
+- [x] Deploy to Streamlit Community Cloud
