@@ -2,9 +2,10 @@
  "regulation": "regmc",
  "usage_month": "2026-10",
  "teams": 5510,
- "train_teams": 3769,
+ "pairing_teams": 2456,
+ "train_teams": 1313,
  "test_teams": 1741,
- "train_tournaments": 81,
+ "train_tournaments": 33,
  "test_tournaments": 36,
  "test_dates": [
   "2026-11-09",
@@ -13,34 +14,34 @@
  "queries": 10446,
  "candidate_pool": 68,
  "tuned_weights": {
-  "synergy": 0.682,
+  "synergy": 0.762,
   "defense": 0.0,
   "offense": 0.0,
   "roles": 0.0,
-  "meta": 0.227,
-  "plan": 0.091
+  "meta": 0.19,
+  "plan": 0.048
  },
- "train_mrr": 0.518,
+ "train_mrr": 0.558,
  "results": {
   "tuned weights": {
-   "hit@1": 0.4352,
-   "hit@5": 0.6689,
-   "hit@10": 0.7449,
-   "mrr": 0.5421,
+   "hit@1": 0.453,
+   "hit@5": 0.6913,
+   "hit@10": 0.7763,
+   "mrr": 0.5618,
    "in_pool": 0.9326
   },
   "hand-set weights": {
-   "hit@1": 0.2339,
-   "hit@5": 0.5035,
-   "hit@10": 0.6296,
-   "mrr": 0.3646,
+   "hit@1": 0.2692,
+   "hit@5": 0.5321,
+   "hit@10": 0.648,
+   "mrr": 0.3936,
    "in_pool": 0.9326
   },
   "synergy only": {
-   "hit@1": 0.2689,
-   "hit@5": 0.5286,
-   "hit@10": 0.6376,
-   "mrr": 0.3954,
+   "hit@1": 0.3355,
+   "hit@5": 0.6115,
+   "hit@10": 0.6928,
+   "mrr": 0.4646,
    "in_pool": 0.9326
   },
   "popularity only": {
@@ -59,5 +60,5 @@
   }
  },
  "format": "gen9championsvgc2026regmc",
- "seconds": 748.4
+ "seconds": 425.2
 }
