@@ -637,6 +637,20 @@ class TestPlanBuilderSwaps(unittest.TestCase):
         self.assertGreater(together, 0)
         self.assertLess(apart, 0)
 
+    def test_screens_help_the_whole_bring(self):
+        from src.matchup import pair_matrix
+        attacker = PokemonSet("Garchomp", ability="Rough Skin", moves=["Earthquake", "Dragon Claw"])
+        plain = PokemonSet("Meowstic-M", ability="Prankster", moves=["Psychic", "Fake Out"])
+        screens = PokemonSet("Meowstic-M", ability="Prankster", moves=["Reflect", "Light Screen", "Psychic"])
+        foe = [PokemonSet("Kingambit", ability="Supreme Overlord", moves=["Kowtow Cleave", "Iron Head"]),
+               PokemonSet("Sneasler", ability="Unburden", moves=["Close Combat", "Dire Claw"])]
+        foes = build_members(foe, self.dex)
+        without = pair_matrix(build_members([attacker, plain], self.dex), foes)
+        with_screens = pair_matrix(build_members([attacker, screens], self.dex), foes)
+        # Garchomp's row improves when its teammate sets screens
+        self.assertGreater(with_screens.loc["Garchomp"].sum(), without.loc["Garchomp"].sum() - 1e-9)
+        self.assertGreaterEqual(team_score(with_screens), team_score(without))
+
     def test_job(self):
         from src.roles import RoleTag, job, plan_roles
         tags = [RoleTag("Tailwind setter", 100), RoleTag("Disruptor", 100), RoleTag("Special attacker", 100)]

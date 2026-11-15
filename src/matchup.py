@@ -18,8 +18,20 @@ Matchups are scored one Pokemon pair at a time, with real damage calcs
                  + 0.5 if a outspeeds b (reversed under Trick Room)
 
 Calcs use the meta team's weather when it sets one (a Sun team is scored in
-sun), no terrain, and no stat boosts. So +1 means "a needs half as many hits to KO b as b needs to KO a". From the
-pair matrix:
+sun), no terrain, and no stat boosts. So +1 means "a needs half as many hits to KO b as b needs to KO a".
+
+Support counts at the team level, since it helps teammates rather than one
+pairing. A side's support (from the Pokemon it brings) changes every pair:
+
+    Reflect / Light Screen / Aurora Veil  their physical / special hits on you x2/3
+    Intimidate                            their physical hits on you x2/3
+    Tailwind                              your Speed x2
+    Trick Room                            turn order reversed
+
+Each lasts only part of a game and can be stopped (Taunt, Fake Out, KOs), so it
+applies with weight SUPPORT: damage x(1 - SUPPORT/3), and the Speed term is the
+expected value over "it's up" / "it isn't" (weight SPEED_SUPPORT). Both weights
+were checked on real match results; see the constants below. From the pair matrix:
 
     team score    = (mean over their Pokemon of your best answer to it)
                   - (mean over your Pokemon of their best answer to it)
@@ -34,6 +46,7 @@ import math
 from dataclasses import dataclass
 from itertools import combinations
 
+import numpy as np
 import pandas as pd
 
 from src.analysis import Member, build_members
@@ -43,6 +56,12 @@ from src.dex import Dex, Species, to_id
 from src.usage import UsageData
 
 SPEED_BONUS = 0.5
+# How much of a game a support effect counts for (see the docstring). Checked on 12,168 real
+# tournament matches (src/validate.py): screens and Intimidate at 0.2 cost no measurable accuracy
+# (log loss 0.69068 vs 0.69062 without), while Tailwind / Trick Room made predictions worse at
+# every strength tried, so they don't change the score (SPEED_SUPPORT = 0).
+SUPPORT = 0.2
+SPEED_SUPPORT = 0.0
 
 
 # --------------------------------------------------------------------------
@@ -179,6 +198,102 @@ def hits_to_ko(pct: float) -> int:
     return MAX_HITS if pct <= 0 else min(MAX_HITS, math.ceil(100 / pct - 1e-9))
 
 
+@dataclass(frozen=True)
+class Support:
+    """Team-wide effects one side can set up."""
+    reflect: bool = False
+    light_screen: bool = False
+    intimidate: bool = False
+    tailwind: bool = False
+    trick_room: bool = False
+
+    def __or__(self, other: "Support") -> "Support":
+        return Support(*(x or y for x, y in zip(self.astuple(), other.astuple())))
+
+    def astuple(self) -> tuple:
+        return (self.reflect, self.light_screen, self.intimidate, self.tailwind, self.trick_room)
+
+    def names(self) -> list[str]:
+        labels = ["Reflect", "Light Screen", "Intimidate", "Tailwind", "Trick Room"]
+        return [n for n, on in zip(labels, self.astuple()) if on]
+
+
+def member_support(m: Member) -> Support:
+    moves = {mv["id"] for mv in m.moves}
+    veil = "auroraveil" in moves
+    return Support(reflect="reflect" in moves or veil, light_screen="lightscreen" in moves or veil,
+                   intimidate=m.ability_id == "intimidate", tailwind="tailwind" in moves,
+                   trick_room="trickroom" in moves)
+
+
+def side_support(members) -> Support:
+    out = Support()
+    for m in members:
+        out = out | member_support(m)
+    return out
+
+
+def _category(m: Member, move_name: str) -> str:
+    return next((mv["category"] for mv in m.damaging_moves if mv["name"] == move_name), "Physical")
+
+
+def pair_parts(yours: list[Member], theirs: list[Member], doubles: bool = True,
+               weather: str | None = None) -> dict[str, np.ndarray]:
+    """The raw pieces of every pair, before support: % each way, physical or not, Speeds."""
+    shape = (len(yours), len(theirs))
+    parts = {k: np.zeros(shape) for k in ("a_pct", "b_pct", "a_phys", "b_phys", "a_spe", "b_spe")}
+    for i, a in enumerate(yours):
+        for j, b in enumerate(theirs):
+            a_pct, a_move = best_attack(a, b, doubles, weather)
+            b_pct, b_move = best_attack(b, a, doubles, weather)
+            parts["a_pct"][i, j], parts["b_pct"][i, j] = a_pct, b_pct
+            parts["a_phys"][i, j] = _category(a, a_move) == "Physical"
+            parts["b_phys"][i, j] = _category(b, b_move) == "Physical"
+            parts["a_spe"][i, j], parts["b_spe"][i, j] = a.stats["spe"], b.stats["spe"]
+    return parts
+
+
+def _hits(pct: np.ndarray) -> np.ndarray:
+    safe = np.where(pct > 0, pct, 1.0)
+    return np.where(pct > 0, np.minimum(MAX_HITS, np.ceil(100 / safe - 1e-9)), MAX_HITS)
+
+
+def _damage_factor(phys: np.ndarray, defender: Support, strength: float) -> np.ndarray:
+    """Multiplier on hits into a side with this support (screens, Intimidate)."""
+    cut = 1 - strength / 3
+    screen = np.where(phys > 0, defender.reflect, defender.light_screen)
+    factor = np.where(screen, cut, 1.0)
+    if defender.intimidate:
+        factor = factor * np.where(phys > 0, cut, 1.0)
+    return factor
+
+
+def scores_from_parts(parts: dict[str, np.ndarray], ours: Support, theirs: Support,
+                      trick_room: bool = False, strength: float | None = None) -> np.ndarray:
+    """Pair scores with both sides' support applied (see the module docstring)."""
+    strength = SUPPORT if strength is None else strength
+    a_pct = parts["a_pct"] * _damage_factor(parts["a_phys"], theirs, strength)
+    b_pct = parts["b_pct"] * _damage_factor(parts["b_phys"], ours, strength)
+    score = np.clip(np.log2(_hits(b_pct) / _hits(a_pct)), -3.0, 3.0)
+    # Speed: expected value over whether each side's Tailwind / Trick Room is up
+    speed_strength = SPEED_SUPPORT
+    p_tw_a = speed_strength if ours.tailwind else 0.0
+    p_tw_b = speed_strength if theirs.tailwind else 0.0
+    p_tr = 1.0 if trick_room else 1 - (1 - (speed_strength if ours.trick_room else 0.0)) * \
+        (1 - (speed_strength if theirs.trick_room else 0.0))
+    speed = np.zeros_like(score)
+    for tw_a, pa in ((2, p_tw_a), (1, 1 - p_tw_a)):
+        for tw_b, pb in ((2, p_tw_b), (1, 1 - p_tw_b)):
+            for tr, pt in ((True, p_tr), (False, 1 - p_tr)):
+                weight = pa * pb * pt
+                if weight == 0:
+                    continue
+                diff = parts["a_spe"] * tw_a - parts["b_spe"] * tw_b
+                sign = np.sign(diff) * (-1 if tr else 1)
+                speed += weight * SPEED_BONUS * sign
+    return score + speed
+
+
 def pair_score(a: Member, b: Member, trick_room: bool = False, doubles: bool = True,
                weather: str | None = None) -> float:
     a_hits = hits_to_ko(best_attack(a, b, doubles, weather)[0])
@@ -192,10 +307,16 @@ def pair_score(a: Member, b: Member, trick_room: bool = False, doubles: bool = T
 
 def pair_matrix(yours: list[Member], theirs: list[Member], trick_room: bool = False,
                 doubles: bool = True, weather: str | None = None) -> pd.DataFrame:
-    return pd.DataFrame(
-        [[pair_score(a, b, trick_room, doubles, weather) for b in theirs] for a in yours],
-        index=[a.label for a in yours], columns=[b.label for b in theirs],
-    )
+    """Pair scores with both full sides' support applied. The raw parts ride along in
+    .attrs so best_bring can re-apply support for just the Pokemon it brings."""
+    parts = pair_parts(yours, theirs, doubles, weather)
+    theirs_support = side_support(theirs)
+    matrix = pd.DataFrame(scores_from_parts(parts, side_support(yours), theirs_support, trick_room),
+                          index=[a.label for a in yours], columns=[b.label for b in theirs])
+    matrix.attrs.update(parts=parts, row_support=[member_support(a) for a in yours],
+                        theirs_support=theirs_support, trick_room=trick_room,
+                        check=(tuple(matrix.index), tuple(matrix.columns), float(matrix.values.sum())))
+    return matrix
 
 
 def team_score(matrix: pd.DataFrame) -> float:
@@ -207,16 +328,32 @@ def team_score(matrix: pd.DataFrame) -> float:
     return float(yours_answer_theirs - theirs_answer_yours)
 
 
+def bring_matrix(matrix: pd.DataFrame, rows: list[int]) -> pd.DataFrame:
+    """The matrix for just these of your Pokemon, with only *their* support applied."""
+    a = matrix.attrs
+    # pandas copies attrs onto derived frames (e.g. -matrix.T); only trust them on the original
+    if "parts" not in a or a.get("check") != (tuple(matrix.index), tuple(matrix.columns),
+                                               float(matrix.values.sum())):
+        return matrix.iloc[rows]
+    parts = {k: v[rows] for k, v in a["parts"].items()}
+    ours = side_support([])
+    for i in rows:
+        ours = ours | a["row_support"][i]
+    return pd.DataFrame(scores_from_parts(parts, ours, a["theirs_support"], a["trick_room"]),
+                        index=matrix.index[rows], columns=matrix.columns)
+
+
 def best_bring(matrix: pd.DataFrame, n: int) -> tuple[list[str], float]:
-    """The n members whose best answers cover their team best (ties: better average)."""
+    """The n members whose best answers cover their team best, counting the support they
+    bring for each other (ties: better average)."""
     if len(matrix.index) <= n:
         return list(matrix.index), team_score(matrix)
     best, best_key = None, None
-    for combo in combinations(matrix.index, n):
-        sub = matrix.loc[list(combo)]
+    for combo in combinations(range(len(matrix.index)), n):
+        sub = bring_matrix(matrix, list(combo))
         key = (team_score(sub), float(sub.values.mean()))
         if best_key is None or key > best_key:
-            best, best_key = list(combo), key
+            best, best_key = list(sub.index), key
     return best, best_key[0]
 
 

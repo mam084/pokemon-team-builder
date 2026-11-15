@@ -201,15 +201,15 @@ scored against each other, a win-chance curve is fitted on the older
 
 | model | picks the winner | log loss |
 |---|---|---|
-| team vs team (all 6) | 51.9% | 0.6911 |
-| team vs team (bring 4) | 51.8% | 0.6912 |
-| score vs the meta | 51.8% | 0.6924 |
+| team vs team (all 6) | 51.8% | 0.6912 |
+| team vs team (bring 4) | 52.4% | 0.6912 |
+| score vs the meta | 51.3% | 0.6923 |
 | more popular team | 51.0% | 0.6918 |
 | coin flip | 50.0% | 0.6931 |
 
 Split into fifths by score, the side the model favors most strongly won
 **56%** and the side it disfavors most strongly
-**48%**, close to the fitted curve
+**47%**, close to the fitted curve
 (55% / 45%).
 
 - **The signal is real but small.** One game is mostly play and luck, so the
@@ -221,6 +221,12 @@ Split into fifths by score, the side the model favors most strongly won
   fair test of team choice.
 - The pair score's Speed bonus (0.5) was checked against 0 and 1.0 on the
   older matches; 0.5 fit best, so it stays.
+- **Support** (screens, Intimidate, Tailwind, Trick Room) was tested as a
+  team-wide effect on every pairing. No version improved predictions:
+  Tailwind / Trick Room made them worse at every strength tried, so they don't
+  change the score; screens and Intimidate count at 0.2 strength, which costs
+  no measurable accuracy and lets a screens setter earn a bring slot in close
+  calls. Capturing support properly would take a turn-by-turn battle simulator.
 - Team lists don't publish stat points; each Pokémon gets its most common
   ladder spread (`usage.typical_spread`). Each side Mega Evolves its first stone.
 - `python -m src.validate` reproduces this; the monthly data refresh re-runs it.

@@ -67,6 +67,7 @@ def match_rows(regulation: str, dex: Dex, usage: UsageData, doubles: bool = True
             continue
         ma, mb = side(a), side(b)
         matrix = pair_matrix(ma, mb, doubles=doubles)
+        reverse = pair_matrix(mb, ma, doubles=doubles)
         won = int(m["winner"] == m["p1"])
 
         def skill(key, result):  # record in the player's *other* matches of that event
@@ -78,7 +79,7 @@ def match_rows(regulation: str, dex: Dex, usage: UsageData, doubles: bool = True
             "skill": skill(a, won) - skill(b, 1 - won),
             "tournament": m["tournament"], "date": teams[a]["date"],
             "h2h": team_score(matrix),
-            "bring": best_bring(matrix, bring)[1] - best_bring(-matrix.T, bring)[1],
+            "bring": best_bring(matrix, bring)[1] - best_bring(reverse, bring)[1],
             "meta": meta[a] - meta[b],
             "pop": float(np.mean([usage.species_usage(p.species, dex) for p in teams[a]["sets"]])
                          - np.mean([usage.species_usage(p.species, dex) for p in teams[b]["sets"]])),

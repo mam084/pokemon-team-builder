@@ -34,7 +34,8 @@ import pandas as pd
 from src.analysis import Member, build_members, mega_variants
 from src.dex import Dex, to_id
 from src.plan import team_plans
-from src.matchup import Archetype, _set_key, best_attack, opponent_members, pair_score
+from src.matchup import (Archetype, Support, _set_key, best_attack, opponent_members, pair_parts, pair_score,
+                         scores_from_parts, side_support)
 from src.recommend import _root
 from src.roles import job, plan_roles, set_roles
 from src.team import MAX_MEGAS, PokemonSet
@@ -54,25 +55,25 @@ class _Field:
     trick_room: bool
     weather: str | None
     weight: float
+    support: Support
 
 
 class SwapEngine:
     def __init__(self, archetypes: list[Archetype], usage: UsageData, dex: Dex, doubles: bool = True):
         self.usage, self.dex, self.doubles = usage, dex, doubles
         self.fields = [
-            _Field(opponent_members(a.members, usage, dex), a.trick_room, a.weather, a.popularity)
+            _Field(theirs, a.trick_room, a.weather, a.popularity, side_support(theirs))
             for a in archetypes
+            for theirs in [opponent_members(a.members, usage, dex)]
         ]
-        self._rows: dict[tuple, list[np.ndarray]] = {}
+        self._rows: dict[tuple, list[dict]] = {}
 
-    def rows(self, m: Member) -> list[np.ndarray]:
-        """Pair scores of one member against each meta team's members (cached by set)."""
+    def rows(self, m: Member) -> list[dict]:
+        """Raw pair parts of one member against each meta team's members (cached by set);
+        support is applied per team in overall(), since it depends on the teammates."""
         key = _set_key(m)
         if key not in self._rows:
-            self._rows[key] = [
-                np.array([pair_score(m, b, f.trick_room, self.doubles, f.weather) for b in f.theirs])
-                for f in self.fields
-            ]
+            self._rows[key] = [pair_parts([m], f.theirs, self.doubles, f.weather) for f in self.fields]
         return self._rows[key]
 
     def overall(self, team: list[PokemonSet] | list[Member]) -> float:
@@ -84,14 +85,15 @@ class SwapEngine:
             versions = [team]
         else:
             versions = [members for _, members in mega_variants(team, self.dex)]
-        version_rows = [[self.rows(m) for m in members] for members in versions]
+        version_rows = [([self.rows(m) for m in members], side_support(members)) for members in versions]
         total = weights = 0.0
         for i, f in enumerate(self.fields):
             if not f.theirs:
                 continue
             best = None
-            for all_rows in version_rows:
-                matrix = np.vstack([r[i] for r in all_rows])
+            for all_rows, ours in version_rows:
+                parts = {k: np.vstack([r[i][k] for r in all_rows]) for k in all_rows[0][i]}
+                matrix = scores_from_parts(parts, ours, f.support, f.trick_room)
                 score = matrix.max(axis=0).mean() - (-matrix).max(axis=1).mean()
                 best = score if best is None else max(best, score)
             total += best * f.weight
