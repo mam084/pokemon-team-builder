@@ -6,8 +6,11 @@ Limitless tournament platform's public API (play.limitlesstcg.com/api) and
 saves them to data/tournaments/<regulation>.json.
 
 These are used to *evaluate* the recommender against teams real players
-brought (see src/evaluate.py), so they are kept separate from the Smogon
-ladder stats the recommender itself is built on.
+brought (see src/evaluate.py), and the match results (pairings) to check that
+the team-vs-team matchup score predicts who wins (src/validate.py).
+
+Writes data/tournaments/<regulation>.json (teams, with player id, placing and
+record) and data/tournaments/<regulation>_matches.json (one row per match).
 
 Usage:
     python scripts/fetch_tournaments.py                  # every regulation in REGULATIONS
@@ -87,7 +90,7 @@ def main() -> int:
 
     for reg, fmt in REGULATIONS.items():
         tournaments = list_tournaments(fmt, args.min_players, args.max_tournaments)
-        teams = []
+        teams, matches = [], []
         for n, t in enumerate(tournaments, 1):
             if n % 25 == 0:
                 print(f"  {reg}: {n}/{len(tournaments)} tournaments, {len(teams)} teams so far", flush=True)
@@ -103,12 +106,29 @@ def main() -> int:
                 record = row.get("record") or {}
                 teams.append({
                     "tournament": t["id"],
+                    "player": str(row.get("player") or row.get("name") or ""),
                     "date": (t.get("date") or "")[:10],
                     "players": t.get("players"),
                     "placing": row.get("placing"),
                     "wins": record.get("wins"),
                     "losses": record.get("losses"),
                     "team": team,
+                })
+            try:
+                pairings = get(f"/tournaments/{t['id']}/pairings")
+            except requests.HTTPError as err:
+                print(f"  no pairings for {t['id']}: {err}")
+                pairings = []
+            for m in pairings or []:
+                p1, p2 = m.get("player1"), m.get("player2")
+                if not p1 or not p2:
+                    continue  # byes
+                matches.append({
+                    "tournament": t["id"],
+                    "round": m.get("round"),
+                    "phase": m.get("phase"),
+                    "p1": str(p1), "p2": str(p2),
+                    "winner": str(m.get("winner")) if m.get("winner") not in (None, "") else "",
                 })
         teams.sort(key=lambda r: (r["date"], r["tournament"], r["placing"] or 9999))
         out = OUT_DIR / f"{reg}.json"
@@ -119,6 +139,11 @@ def main() -> int:
             "teams": teams,
         }, separators=(",", ":")))
         print(f"{reg} ({fmt}): {len(tournaments)} tournaments, {len(teams)} team lists -> {out.relative_to(ROOT)}")
+        if matches:
+            mout = OUT_DIR / f"{reg}_matches.json"
+            mout.write_text(json.dumps({"source": "play.limitlesstcg.com", "format": fmt, "matches": matches},
+                                       separators=(",", ":")))
+            print(f"  {len(matches)} matches -> {mout.relative_to(ROOT)}")
     return 0
 
 
