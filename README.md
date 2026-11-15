@@ -306,6 +306,14 @@ replays are saved publicly each day.
 choices on the newest replays (rates and model fitted on older ones):
 
 <!-- generated:bring -->
+37,381 replays; tested on 14,932 team previews.
+
+| | bring-4 | lead pair |
+|---|---|---|
+| learned bring / lead model | 72.2% | 43.3% |
+| players' usual picks (bring / lead rates) | 70.7% | 43.6% |
+| damage-calc game plan | 68.2% | 34.7% |
+| random | 66.5% | 33.4% |
 <!-- /generated:bring -->
 
 The damage-calc plan barely beats random: real choices depend on more than
