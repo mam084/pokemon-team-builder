@@ -44,7 +44,9 @@ from src.usage import UsageData
 # (src/evaluate.py, results in data/evaluation/regmc.json). Offense and roles got
 # zero weight: they didn't help predict what players actually bring, so they
 # only shape the "why" text unless you raise them in the app.
-DEFAULT_WEIGHTS = {"synergy": 0.54, "defense": 0.14, "offense": 0.0, "roles": 0.0, "meta": 0.27, "plan": 0.05}
+# Tuned with tournament pairings in the synergy signal (pairings from the oldest teams, tuned
+# on the next, tested on the newest 30%: MRR 0.556, top-10 76.9%; ladder-only synergy: 0.539).
+DEFAULT_WEIGHTS = {"synergy": 0.8, "defense": 0.0, "offense": 0.0, "roles": 0.0, "meta": 0.2, "plan": 0.0}
 # The plan signal (weather / Trick Room / Tailwind / terrain fit, src/plan.py) only helps a
 # little at a small weight and hurts beyond it (MRR falls from ~0.48 to 0.44 at 0.3):
 # tournament players mostly bring proven meta Pokemon. So it gets the small tuned weight in

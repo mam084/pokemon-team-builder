@@ -38,6 +38,7 @@ from src.analysis import build_members
 from src.dex import Dex, to_id
 from src.recommend import _root, recommend
 from src.team import PokemonSet
+from src.cooccurrence import Cooccurrence
 from src.usage import UsageData, typical_spread
 
 TOURNAMENT_DIR = Path(__file__).resolve().parent.parent / "data" / "tournaments"
@@ -205,8 +206,17 @@ def evaluate(regulation: str, dex: Dex, usage: UsageData, doubles: bool = True,
     if max_teams:
         teams = teams[-max_teams:]
     train, test = split_by_date(teams)
-    train_q = build_queries(train, dex, usage, doubles)
-    test_q = build_queries(test, dex, usage, doubles)
+    # Synergy also learns from tournament pairings (src/cooccurrence.py). To keep the test
+    # honest, those pairings come only from the oldest tournaments; the weights are tuned on
+    # the next ones and tested on the newest - never on teams the pairings saw.
+    pairs_from, train = split_by_date(train, 0.4) if usage.cooc is not None else ([], train)
+    saved_cooc = usage.cooc
+    usage.cooc = Cooccurrence([t["sets"] for t in pairs_from], dex) if pairs_from else None
+    try:
+        train_q = build_queries(train, dex, usage, doubles)
+        test_q = build_queries(test, dex, usage, doubles)
+    finally:
+        usage.cooc = saved_cooc
     pool = int(np.median([q.table["root"].nunique() for q in test_q])) if test_q else 0
 
     tuned, train_metrics = tune(train_q)
@@ -224,7 +234,7 @@ def evaluate(regulation: str, dex: Dex, usage: UsageData, doubles: bool = True,
         "regulation": regulation,
         "usage_month": usage.info.get("month"),
         "teams": len(teams),
-        "train_teams": len(train), "test_teams": len(test),
+        "pairing_teams": len(pairs_from), "train_teams": len(train), "test_teams": len(test),
         "train_tournaments": len({t["tournament"] for t in train}),
         "test_tournaments": len({t["tournament"] for t in test}),
         "test_dates": [min((t["date"] for t in test), default=""), max((t["date"] for t in test), default="")],

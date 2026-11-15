@@ -202,8 +202,11 @@ def accuracy_note(fmt) -> None:
             f"Tested on {report['test_teams']:,} teams from {report['test_tournaments']} Limitless tournaments "
             f"({report['test_dates'][0]} to {report['test_dates'][1]}): hide one member of a real team, give the "
             "other five to the recommender, and see where the hidden Pokémon ranks among about "
-            f"{report['candidate_pool']} candidates. Weights were tuned on {report['train_teams']:,} older teams "
-            "only, so these numbers are a forward-in-time test."
+            f"{report['candidate_pool']} candidates. "
+            + (f"Synergy learned pairings from the {report['pairing_teams']:,} oldest teams and the weights were "
+               f"tuned on the next {report['train_teams']:,}" if report.get("pairing_teams") else
+               f"Weights were tuned on {report['train_teams']:,} older teams")
+            + " only, so these numbers are a forward-in-time test."
         )
         rows = [{"model": name, "top 1": m["hit@1"], "top 5": m["hit@5"], "top 10": m["hit@10"], "MRR": m["mrr"]}
                 for name, m in report["results"].items()]
