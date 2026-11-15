@@ -165,7 +165,7 @@ def coverage_vs_meta(members: list[Member], dex: Dex, usage: UsageData, n: int =
             continue
         best, hitters = _best_hit(members, [t.lower() for t in form.types], ability)
         rows.append({
-            "pokemon": form.name, "usage %": pct, "types": "/".join(form.types),
+            "pokemon": form.name, "usage %": round(pct, 1), "types": "/".join(form.types),
             "best hit": best, "super effective from": ", ".join(hitters[:3]) or "—",
         })
     return pd.DataFrame(rows)

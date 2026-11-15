@@ -186,6 +186,10 @@ def best_attack(a: Member, b: Member, doubles: bool = True, weather: str | None 
         for mv in a.damaging_moves:
             result = calculate(a.battler, b.battler, mv, f)
             avg = 100 * sum(result.rolls) / len(result.rolls) / result.defender_hp if result.rolls else 0.0
+            if mv["id"] == "saltcure" and avg > 0:
+                # Salt Cure's real damage is the residual it leaves: 1/8 max HP a turn (1/4 to
+                # Water and Steel), so count it as part of each turn's damage
+                avg += 25.0 if {"Water", "Steel"} & set(b.form.types) else 12.5
             if avg > best[0]:
                 best = (avg, mv["name"])
     if len(_CALC_CACHE) > 200_000:
@@ -435,7 +439,7 @@ def counter_picks(theirs: list[Member], usage: UsageData, dex: Dex, exclude: set
         beats = [b.label for b, s in zip(theirs, scores) if s >= 1]
         loses = [b.label for b, s in zip(theirs, scores) if s <= -1]
         rows.append({
-            "pokemon": cand.label, "usage %": pct, "avg matchup": round(sum(scores) / len(scores), 2),
+            "pokemon": cand.label, "usage %": round(pct, 1), "avg matchup": round(sum(scores) / len(scores), 2),
             "beats": ", ".join(beats) or "—", "loses to": ", ".join(loses) or "—",
         })
     df = pd.DataFrame(rows)
@@ -474,7 +478,7 @@ def threat_report(members: list[Member], usage: UsageData, dex: Dex, n: int = 30
                 answers.append(f"{m.label} ({taken_move} {taken:.0f}%)")
         key_calcs.sort(reverse=True)
         rows.append({
-            "pokemon": threat.label, "usage %": pct,
+            "pokemon": threat.label, "usage %": round(pct, 1),
             "2HKOs": len(pressured), "hardest hits": "; ".join(c for _, c in key_calcs[:2]) or "—",
             "answers": ", ".join(answers) or "none",
             "threat score": round(pct * (len(pressured) + 1) / (len(answers) + 1), 1),

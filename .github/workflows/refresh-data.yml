@@ -83,11 +83,15 @@ jobs:
         timeout-minutes: 60
         continue-on-error: true
 
+      - name: Update the README's result tables
+        run: python scripts/update_readme.py
+        continue-on-error: true
+
       - name: Commit changes
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/
+          git add data/ README.md
           if git diff --cached --quiet; then
             echo "Data already up to date."
           else

@@ -145,24 +145,23 @@ member, give the other five to the recommender, and see where the hidden
 Pokémon ranks** among about 68 candidates. This is repeated
 for every member of every team.
 
-Tournaments are split by date. The five signal weights were tuned by grid
-search on 3,841 teams from the older tournaments. Every number
-below comes from 1,523 teams in the 36 newest
-tournaments (2026-11-07 to 2026-11-13), which the tuning
-never saw.
+<!-- generated:recommender -->
+Tournaments are split by date. Synergy learned tournament pairings from the 2,549 oldest teams and the weights were tuned by grid search on the next 1,286. Every number below comes from
+1,754 teams in the 36 newest tournaments (2026-11-09 to
+2026-11-15), which neither ever saw.
 
 | model | top 1 | top 5 | top 10 | MRR |
 |---|---|---|---|---|
-| tuned weights | 37.7% | 65.9% | 75.0% | 0.507 |
-| hand-set weights | 23.8% | 51.6% | 63.4% | 0.370 |
-| synergy only | 22.6% | 51.7% | 62.8% | 0.365 |
-| popularity only | 6.5% | 36.4% | 49.9% | 0.208 |
+| tuned weights | 46.3% | 70.4% | 78.3% | 0.572 |
+| hand-set weights | 27.3% | 53.8% | 65.6% | 0.401 |
+| synergy only | 35.2% | 62.2% | 71.0% | 0.477 |
+| popularity only | 6.5% | 36.0% | 49.9% | 0.206 |
 | random | 1.5% | 7.3% | 14.7% | 0.071 |
 
-- The tuned weights find the missing Pokémon **first try 38% of the
-  time** and in the top 10 75% of the time. That's
-  37% better MRR than the
+- The tuned weights find the missing Pokémon **first try 46% of the
+  time** and in the top 10 78% of the time: 43% better MRR than the
   weights the recommender originally shipped with.
+<!-- /generated:recommender -->
 - **Two Mega Stones are normal**: 81% of these tournament teams carry two (you
   choose which Mega Evolves at team preview). Removing the old "second Mega"
   penalty raised test MRR from 0.475 to 0.507 on the same data. The matchup engine now scores a
@@ -193,24 +192,26 @@ never saw.
 ## Does the matchup score predict wins?
 
 The Matchups tab scores your team against others with damage calcs and Speed.
-`src/validate.py` checks that score against **12,168 real Limitless
+<!-- generated:validation -->
+`src/validate.py` checks that score against **12,359 real Limitless
 matches** where both players' team lists are known: each pair of teams is
 scored against each other, a win-chance curve is fitted on the older
-8,383 matches, and it's judged on the newest 3,785
-(2026-11-09 to 2026-11-14).
+8,448 matches, and it's judged on the newest 3,911
+(2026-11-09 to 2026-11-15).
 
 | model | picks the winner | log loss |
 |---|---|---|
-| team vs team (all 6) | 51.8% | 0.6912 |
-| team vs team (bring 4) | 52.4% | 0.6912 |
-| score vs the meta | 51.3% | 0.6923 |
-| more popular team | 51.0% | 0.6918 |
+| team vs team (bring 4) | 52.2% | 0.6917 |
+| team vs team (all 6) | 51.9% | 0.6915 |
+| score vs the meta | 51.8% | 0.6918 |
+| popularity | 50.4% | 0.6925 |
 | coin flip | 50.0% | 0.6931 |
 
 Split into fifths by score, the side the model favors most strongly won
 **56%** and the side it disfavors most strongly
-**47%**, close to the fitted curve
+**48%**, close to the fitted curve
 (55% / 45%).
+<!-- /generated:validation -->
 
 - **The signal is real but small.** One game is mostly play and luck, so the
   app shows matchups as a calibrated win chance ("about 48% to win") rather
@@ -249,21 +250,23 @@ Each match becomes a row of differences (player 1 minus player 2):
 
 An L2-regularized logistic regression is fitted on both orientations of every
 match (so swapping the players exactly flips the prediction). Its settings are
-chosen by forward-chaining cross-validation inside the older 8,383
-matches, and it's tested once on the newest 3,785
-(2026-11-09 to 2026-11-14):
+<!-- generated:learned -->
+chosen by forward-chaining cross-validation inside the older 8,604
+matches, and it's tested once on the newest 3,755
+(2026-11-09 to 2026-11-15):
 
 | model | picks the winner | log loss | AUC |
 |---|---|---|---|
-| learned: skill + team | 59.8% | 0.6661 | 0.628 |
-| player skill (Elo) only | 58.6% | 0.6698 | 0.617 |
-| team features only | 54.0% | 0.6892 | 0.552 |
-| damage-calc matchup score | 52.0% | 0.6912 | 0.531 |
-| more popular team | 51.1% | 0.6918 | 0.526 |
+| learned model (skill + team) | 59.4% | 0.6664 | 0.628 |
+| player skill only | 58.9% | 0.6698 | 0.618 |
+| team only | 53.8% | 0.6889 | 0.552 |
+| damage-calc matchup score | 51.9% | 0.6913 | 0.530 |
+| popularity only | 50.7% | 0.6922 | 0.522 |
 | coin flip | 50.0% | 0.6931 | 0.500 |
 
 - **Who's playing matters most**, but the team adds real signal on top: log-loss
-  gain +0.0008 to +0.0066 over ratings alone (95% paired bootstrap).
+  gain +0.0006 to +0.0062 over ratings alone (95% paired bootstrap).
+<!-- /generated:learned -->
 - **Per-Pokémon effects were mostly player skill.** Without ratings they helped
   (e.g. "Alakazam teams win 3 points more than their calcs say"); with ratings in
   the model they no longer improved cross-validated predictions, so they're out.

@@ -27,6 +27,9 @@ out and roles are judged from the full learnset instead of common moves.
 
 from __future__ import annotations
 
+import json
+from pathlib import Path
+
 import math
 from dataclasses import dataclass
 
@@ -47,6 +50,20 @@ from src.usage import UsageData
 # Tuned with tournament pairings in the synergy signal (pairings from the oldest teams, tuned
 # on the next, tested on the newest 30%: MRR 0.556, top-10 76.9%; ladder-only synergy: 0.539).
 DEFAULT_WEIGHTS = {"synergy": 0.8, "defense": 0.0, "offense": 0.0, "roles": 0.0, "meta": 0.2, "plan": 0.0}
+
+
+def _tuned_weights() -> dict:
+    """The weights the latest evaluation tuned (data/evaluation/regmc.json, refreshed monthly),
+    so Popular picks follows the newest data; the constants above are the fallback."""
+    path = Path(__file__).resolve().parent.parent / "data" / "evaluation" / "regmc.json"
+    try:
+        tuned = json.loads(path.read_text())["tuned_weights"]
+    except (OSError, ValueError, KeyError):
+        return DEFAULT_WEIGHTS
+    return {k: float(tuned.get(k, 0.0)) for k in DEFAULT_WEIGHTS}
+
+
+DEFAULT_WEIGHTS = _tuned_weights()
 # The plan signal (weather / Trick Room / Tailwind / terrain fit, src/plan.py) only helps a
 # little at a small weight and hurts beyond it (MRR falls from ~0.48 to 0.44 at 0.3):
 # tournament players mostly bring proven meta Pokemon. So it gets the small tuned weight in

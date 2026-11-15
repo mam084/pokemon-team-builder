@@ -115,8 +115,9 @@ def sidebar() -> tuple[str, Dex, UsageData | None]:
             st.divider()
             st.subheader("Share")
             st.caption("This page's address always holds your current team, so a refresh or a bookmark "
-                       "keeps it. Copy the link below to send it to someone.")
-            st.code(share_link(team, fmt_id), language=None, wrap_lines=True)
+                       "keeps it.")
+            with st.expander("Copy a link to this team"):  # the link is long: keep it out of the way
+                st.code(share_link(team, fmt_id), language=None, wrap_lines=True)
         if st.button("Clear team", width="stretch", type="secondary"):
             load_team([])
             st.rerun()
