@@ -74,7 +74,7 @@ def main() -> None:
     with tabs[4]:
         recommendations_tab(team, members, dex, usage, fmt)
     with tabs[5]:
-        meta_tab(dex, usage, len(team))
+        meta_tab(dex, usage, len(team), fmt.regulation)
 
     # Keep the address bar in step with the team (read again: tab buttons may have changed it).
     sync_url(current_team(), fmt_id)

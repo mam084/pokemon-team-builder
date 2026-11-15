@@ -1,0 +1,1889 @@
+{
+ "regulation": "regmc",
+ "matches": 12168,
+ "train_matches": 8383,
+ "test_matches": 3785,
+ "test_dates": [
+  "2026-11-09",
+  "2026-11-14"
+ ],
+ "settings": {
+  "min_sheets": 40,
+  "C": 0.0003,
+  "shrink": 0.5,
+  "cv_log_loss": 0.68939
+ },
+ "test": {
+  "learned model": {
+   "accuracy": 0.5456,
+   "log_loss": 0.6881,
+   "brier": 0.2475,
+   "auc": 0.5569
+  },
+  "learned, no Pok\u00e9mon effects": {
+   "accuracy": 0.5403,
+   "log_loss": 0.6892,
+   "brier": 0.248,
+   "auc": 0.5522
+  },
+  "matchup score only": {
+   "accuracy": 0.5199,
+   "log_loss": 0.6915,
+   "brier": 0.2492,
+   "auc": 0.5314
+  },
+  "popularity only": {
+   "accuracy": 0.5107,
+   "log_loss": 0.692,
+   "brier": 0.2494,
+   "auc": 0.5258
+  },
+  "coin flip": {
+   "accuracy": 0.5,
+   "log_loss": 0.6931,
+   "brier": 0.25,
+   "auc": 0.5
+  }
+ },
+ "log_loss_gain_vs_matchup_score_ci95": [
+  0.00128,
+  0.00544
+ ],
+ "calibration": [
+  {
+   "predicted": 0.44,
+   "actual": 0.47,
+   "matches": 757
+  },
+  {
+   "predicted": 0.478,
+   "actual": 0.47,
+   "matches": 757
+  },
+  {
+   "predicted": 0.5,
+   "actual": 0.506,
+   "matches": 757
+  },
+  {
+   "predicted": 0.522,
+   "actual": 0.523,
+   "matches": 757
+  },
+  {
+   "predicted": 0.558,
+   "actual": 0.605,
+   "matches": 757
+  }
+ ],
+ "model": {
+  "features": [
+   "matchup score",
+   "bring-4 score",
+   "best damage (mean %)",
+   "OHKOs",
+   "2HKOs",
+   "outspeeds (share)",
+   "score vs meta",
+   "popularity",
+   "base speed (mean)",
+   "bulk (mean)",
+   "has Mega",
+   "tool: Fake Out",
+   "tool: Intimidate",
+   "tool: Tailwind",
+   "tool: Trick Room",
+   "tool: Reflect",
+   "tool: Light Screen",
+   "tool: Redirection",
+   "tool: Wide Guard",
+   "tool: Sleep",
+   "tool: Taunt",
+   "tool: Encore",
+   "tool: Helping Hand",
+   "tool: Speed drops",
+   "tool: Paralysis",
+   "tool: Burn",
+   "tool: Priority attack",
+   "tool: Weather",
+   "tool: Terrain",
+   "tool: Setup",
+   "tool: Recovery",
+   "Trick Room x slow team",
+   "Tailwind x fast team"
+  ],
+  "species": [
+   "abomasnow",
+   "absol",
+   "aegislash",
+   "aerodactyl",
+   "aggron",
+   "alakazam",
+   "alcremie",
+   "altaria",
+   "annihilape",
+   "araquanid",
+   "arcanine",
+   "arcaninehisui",
+   "archaludon",
+   "armarouge",
+   "audino",
+   "barbaracle",
+   "basculegion",
+   "baxcalibur",
+   "beedrill",
+   "blastoise",
+   "blaziken",
+   "camerupt",
+   "castform",
+   "ceruledge",
+   "chandelure",
+   "charizard",
+   "chesnaught",
+   "cinderace",
+   "clefable",
+   "conkeldurr",
+   "corviknight",
+   "decidueyehisui",
+   "delphox",
+   "ditto",
+   "dragalge",
+   "dragapult",
+   "dragonite",
+   "drampa",
+   "eelektross",
+   "empoleon",
+   "espathra",
+   "excadrill",
+   "farigiraf",
+   "feraligatr",
+   "floetteeternal",
+   "froslass",
+   "gallade",
+   "garchomp",
+   "gardevoir",
+   "gengar",
+   "gholdengo",
+   "glaceon",
+   "glimmora",
+   "gliscor",
+   "golisopod",
+   "golurk",
+   "goodrahisui",
+   "gourgeist",
+   "grapploct",
+   "greninja",
+   "grimmsnarl",
+   "gyarados",
+   "hatterene",
+   "hawlucha",
+   "heracross",
+   "hippowdon",
+   "houndoom",
+   "houndstone",
+   "hydreigon",
+   "incineroar",
+   "indeedee",
+   "infernape",
+   "inteleon",
+   "kangaskhan",
+   "kingambit",
+   "kleavor",
+   "kommoo",
+   "krookodile",
+   "leafeon",
+   "lopunny",
+   "lucario",
+   "lycanrocdusk",
+   "malamar",
+   "mamoswine",
+   "manectric",
+   "maushold",
+   "mawile",
+   "meganium",
+   "meowscarada",
+   "meowstic",
+   "metagross",
+   "milotic",
+   "mimikyu",
+   "mrmime",
+   "mudsdale",
+   "ninetalesalola",
+   "noivern",
+   "oranguru",
+   "orthworm",
+   "overqwil",
+   "palafin",
+   "pawmot",
+   "pelipper",
+   "persianalola",
+   "politoed",
+   "primarina",
+   "pyroar",
+   "raichu",
+   "rillaboom",
+   "rotomheat",
+   "rotomwash",
+   "sableye",
+   "salamence",
+   "salazzle",
+   "samurotthisui",
+   "sceptile",
+   "scizor",
+   "scolipede",
+   "scovillain",
+   "scrafty",
+   "sharpedo",
+   "sinistcha",
+   "slowbro",
+   "sneasler",
+   "snorlax",
+   "staraptor",
+   "starmie",
+   "swampert",
+   "sylveon",
+   "talonflame",
+   "tinkaton",
+   "torkoal",
+   "toxapex",
+   "toxicroak",
+   "toxtricity",
+   "tsareena",
+   "typhlosionhisui",
+   "tyranitar",
+   "vanilluxe",
+   "venusaur",
+   "vileplume",
+   "vivillon",
+   "volcarona",
+   "weavile",
+   "whimsicott",
+   "zoroark",
+   "zoroarkhisui"
+  ],
+  "coef": [
+   0.050836,
+   0.028875,
+   0.077443,
+   0.033851,
+   0.032735,
+   0.070716,
+   0.040498,
+   0.041334,
+   -8.5e-05,
+   0.119215,
+   0.245242,
+   -0.011256,
+   0.009363,
+   -0.020093,
+   0.010127,
+   0.0118,
+   -0.012368,
+   0.017258,
+   0.051228,
+   0.016487,
+   -0.021541,
+   0.039246,
+   0.002024,
+   0.029094,
+   -0.374902,
+   -0.014722,
+   0.010213,
+   0.002651,
+   -0.029978,
+   0.032506,
+   -0.057483,
+   -0.081894,
+   -0.007511,
+   0.025518,
+   0.007608,
+   0.038798,
+   0.032924,
+   -0.032063,
+   0.126587,
+   -0.130117,
+   -0.043705,
+   0.055099,
+   0.052418,
+   0.018702,
+   0.02445,
+   -0.001066,
+   -0.01879,
+   -0.180382,
+   -0.00601,
+   0.013479,
+   -0.116378,
+   -0.010039,
+   -0.003778,
+   0.009637,
+   0.039859,
+   -0.183265,
+   -0.009529,
+   0.009459,
+   0.025781,
+   -0.061985,
+   -0.03857,
+   0.059323,
+   -0.080245,
+   0.017975,
+   0.045476,
+   0.011051,
+   -0.074837,
+   -0.067921,
+   0.020079,
+   0.004105,
+   0.101557,
+   -0.003227,
+   -0.039639,
+   0.012468,
+   0.023557,
+   0.015965,
+   -0.037824,
+   0.027819,
+   0.029523,
+   -0.087139,
+   -0.022139,
+   -0.008123,
+   -0.006833,
+   -0.011476,
+   0.014545,
+   0.007106,
+   -0.111653,
+   -0.024894,
+   -0.051121,
+   -0.161861,
+   -0.1485,
+   -0.003971,
+   -0.245548,
+   -0.007137,
+   -0.048372,
+   -0.037409,
+   0.046154,
+   -0.142288,
+   0.017917,
+   -0.120462,
+   -0.013385,
+   -0.018128,
+   0.004266,
+   -0.006721,
+   -0.168207,
+   -0.064968,
+   -0.125206,
+   0.01747,
+   0.018881,
+   0.054776,
+   -0.01663,
+   0.166203,
+   0.026236,
+   -0.037783,
+   -0.005767,
+   -0.08313,
+   0.011694,
+   -0.022127,
+   -0.028229,
+   0.018906,
+   0.007011,
+   -0.068194,
+   -0.030148,
+   -0.000378,
+   0.012594,
+   -0.081689,
+   -0.034734,
+   -0.0637,
+   -0.035758,
+   -0.322662,
+   -0.071357,
+   -0.093877,
+   -0.110915,
+   0.050151,
+   -0.045272,
+   -0.011279,
+   -0.018534,
+   -0.020296,
+   0.000693,
+   -0.037171,
+   0.004748,
+   -0.008616,
+   -0.000137,
+   -0.018632,
+   -0.07195,
+   -0.002856,
+   -0.086466,
+   0.082056,
+   -0.085365,
+   -0.012788,
+   0.03965,
+   0.020547,
+   -9e-05,
+   0.044396,
+   0.026014,
+   0.029683,
+   0.002068,
+   -0.013642,
+   -0.006964,
+   -0.00145,
+   0.003593,
+   0.003978,
+   -0.047664,
+   -0.065551,
+   -0.037726,
+   0.006538,
+   -0.053434,
+   0.038574,
+   -0.047449,
+   -0.029306,
+   0.013304,
+   0.037539,
+   0.024753,
+   -0.250261,
+   0.007914,
+   -0.019691,
+   -9.4e-05,
+   0.012092,
+   -0.088087,
+   -0.020468
+  ]
+ },
+ "effects": [
+  {
+   "feature": "matchup score",
+   "coef": 0.05084,
+   "lo90": 0.0305,
+   "hi90": 0.0705,
+   "points": 1.27,
+   "differs_in": 0.9902
+  },
+  {
+   "feature": "bring-4 score",
+   "coef": 0.02887,
+   "lo90": 0.01671,
+   "hi90": 0.04119,
+   "points": 0.72,
+   "differs_in": 0.997
+  },
+  {
+   "feature": "best damage (mean %)",
+   "coef": 0.07744,
+   "lo90": -0.00931,
+   "hi90": 0.17287,
+   "points": 1.94,
+   "differs_in": 0.997
+  },
+  {
+   "feature": "OHKOs",
+   "coef": 0.03385,
+   "lo90": 0.0013,
+   "hi90": 0.06293,
+   "points": 0.85,
+   "differs_in": 0.8987
+  },
+  {
+   "feature": "2HKOs",
+   "coef": 0.03274,
+   "lo90": 0.01438,
+   "hi90": 0.05249,
+   "points": 0.82,
+   "differs_in": 0.9205
+  },
+  {
+   "feature": "outspeeds (share)",
+   "coef": 0.07072,
+   "lo90": 0.04248,
+   "hi90": 0.1008,
+   "points": 1.77,
+   "differs_in": 0.9606
+  },
+  {
+   "feature": "score vs meta",
+   "coef": 0.0405,
+   "lo90": 0.00465,
+   "hi90": 0.07128,
+   "points": 1.01,
+   "differs_in": 0.9984
+  },
+  {
+   "feature": "popularity",
+   "coef": 0.04133,
+   "lo90": 0.02406,
+   "hi90": 0.05857,
+   "points": 1.03,
+   "differs_in": 0.9945
+  },
+  {
+   "feature": "base speed (mean)",
+   "coef": -8e-05,
+   "lo90": -0.00079,
+   "hi90": 0.0007,
+   "points": -0.0,
+   "differs_in": 0.9892
+  },
+  {
+   "feature": "bulk (mean)",
+   "coef": 0.11921,
+   "lo90": 0.06398,
+   "hi90": 0.1775,
+   "points": 2.98,
+   "differs_in": 0.996
+  },
+  {
+   "feature": "has Mega",
+   "coef": 0.24524,
+   "lo90": 0.04817,
+   "hi90": 0.52299,
+   "points": 6.13,
+   "differs_in": 0.0053
+  },
+  {
+   "feature": "tool: Fake Out",
+   "coef": -0.01126,
+   "lo90": -0.02238,
+   "hi90": -0.00034,
+   "points": -0.28,
+   "differs_in": 0.6972
+  },
+  {
+   "feature": "tool: Intimidate",
+   "coef": 0.00936,
+   "lo90": -0.01721,
+   "hi90": 0.02962,
+   "points": 0.23,
+   "differs_in": 0.5037
+  },
+  {
+   "feature": "tool: Tailwind",
+   "coef": -0.02009,
+   "lo90": -0.04199,
+   "hi90": 0.00171,
+   "points": -0.5,
+   "differs_in": 0.5073
+  },
+  {
+   "feature": "tool: Trick Room",
+   "coef": 0.01013,
+   "lo90": -0.01532,
+   "hi90": 0.03378,
+   "points": 0.25,
+   "differs_in": 0.4507
+  },
+  {
+   "feature": "tool: Reflect",
+   "coef": 0.0118,
+   "lo90": -0.0108,
+   "hi90": 0.0359,
+   "points": 0.29,
+   "differs_in": 0.2759
+  },
+  {
+   "feature": "tool: Light Screen",
+   "coef": -0.01237,
+   "lo90": -0.03434,
+   "hi90": 0.01092,
+   "points": -0.31,
+   "differs_in": 0.287
+  },
+  {
+   "feature": "tool: Redirection",
+   "coef": 0.01726,
+   "lo90": -0.00538,
+   "hi90": 0.04008,
+   "points": 0.43,
+   "differs_in": 0.5096
+  },
+  {
+   "feature": "tool: Wide Guard",
+   "coef": 0.05123,
+   "lo90": 0.01846,
+   "hi90": 0.08019,
+   "points": 1.28,
+   "differs_in": 0.2959
+  },
+  {
+   "feature": "tool: Sleep",
+   "coef": 0.01649,
+   "lo90": -0.01562,
+   "hi90": 0.04846,
+   "points": 0.41,
+   "differs_in": 0.2419
+  },
+  {
+   "feature": "tool: Taunt",
+   "coef": -0.02154,
+   "lo90": -0.08758,
+   "hi90": 0.05285,
+   "points": -0.54,
+   "differs_in": 0.0633
+  },
+  {
+   "feature": "tool: Encore",
+   "coef": 0.03925,
+   "lo90": 0.00981,
+   "hi90": 0.07262,
+   "points": 0.98,
+   "differs_in": 0.3157
+  },
+  {
+   "feature": "tool: Helping Hand",
+   "coef": 0.00202,
+   "lo90": -0.02436,
+   "hi90": 0.02634,
+   "points": 0.05,
+   "differs_in": 0.4082
+  },
+  {
+   "feature": "tool: Speed drops",
+   "coef": 0.02909,
+   "lo90": -0.00586,
+   "hi90": 0.06023,
+   "points": 0.73,
+   "differs_in": 0.2796
+  },
+  {
+   "feature": "tool: Paralysis",
+   "coef": -0.3749,
+   "lo90": -0.55209,
+   "hi90": -0.23154,
+   "points": -9.37,
+   "differs_in": 0.0078
+  },
+  {
+   "feature": "tool: Burn",
+   "coef": -0.01472,
+   "lo90": -0.11813,
+   "hi90": 0.05791,
+   "points": -0.37,
+   "differs_in": 0.0746
+  },
+  {
+   "feature": "tool: Priority attack",
+   "coef": 0.01021,
+   "lo90": -0.00264,
+   "hi90": 0.02289,
+   "points": 0.26,
+   "differs_in": 0.6433
+  },
+  {
+   "feature": "tool: Weather",
+   "coef": 0.00265,
+   "lo90": -0.02054,
+   "hi90": 0.0247,
+   "points": 0.07,
+   "differs_in": 0.5479
+  },
+  {
+   "feature": "tool: Terrain",
+   "coef": -0.02998,
+   "lo90": -0.05786,
+   "hi90": -0.00327,
+   "points": -0.75,
+   "differs_in": 0.4827
+  },
+  {
+   "feature": "tool: Setup",
+   "coef": 0.03251,
+   "lo90": 0.01998,
+   "hi90": 0.04559,
+   "points": 0.81,
+   "differs_in": 0.6524
+  },
+  {
+   "feature": "tool: Recovery",
+   "coef": -0.05748,
+   "lo90": -0.08731,
+   "hi90": -0.02265,
+   "points": -1.44,
+   "differs_in": 0.2142
+  },
+  {
+   "feature": "Trick Room x slow team",
+   "coef": -0.08189,
+   "lo90": -0.12683,
+   "hi90": -0.03878,
+   "points": -2.05,
+   "differs_in": 0.4439
+  },
+  {
+   "feature": "Tailwind x fast team",
+   "coef": -0.00751,
+   "lo90": -0.03012,
+   "hi90": 0.01595,
+   "points": -0.19,
+   "differs_in": 0.775
+  },
+  {
+   "feature": "species: abomasnow",
+   "coef": 0.02552,
+   "lo90": -0.05271,
+   "hi90": 0.08101,
+   "points": 0.64,
+   "differs_in": 0.0041
+  },
+  {
+   "feature": "species: absol",
+   "coef": 0.00761,
+   "lo90": -0.04874,
+   "hi90": 0.08075,
+   "points": 0.19,
+   "differs_in": 0.0285
+  },
+  {
+   "feature": "species: aegislash",
+   "coef": 0.0388,
+   "lo90": -0.04092,
+   "hi90": 0.10481,
+   "points": 0.97,
+   "differs_in": 0.0141
+  },
+  {
+   "feature": "species: aerodactyl",
+   "coef": 0.03292,
+   "lo90": 0.00302,
+   "hi90": 0.07363,
+   "points": 0.82,
+   "differs_in": 0.0692
+  },
+  {
+   "feature": "species: aggron",
+   "coef": -0.03206,
+   "lo90": -0.1222,
+   "hi90": 0.04082,
+   "points": -0.8,
+   "differs_in": 0.0071
+  },
+  {
+   "feature": "species: alakazam",
+   "coef": 0.12659,
+   "lo90": 0.06244,
+   "hi90": 0.18304,
+   "points": 3.16,
+   "differs_in": 0.0099
+  },
+  {
+   "feature": "species: alcremie",
+   "coef": -0.13012,
+   "lo90": -0.20532,
+   "hi90": -0.0508,
+   "points": -3.25,
+   "differs_in": 0.0082
+  },
+  {
+   "feature": "species: altaria",
+   "coef": -0.04371,
+   "lo90": -0.12819,
+   "hi90": 0.06825,
+   "points": -1.09,
+   "differs_in": 0.0073
+  },
+  {
+   "feature": "species: annihilape",
+   "coef": 0.0551,
+   "lo90": 0.02493,
+   "hi90": 0.08308,
+   "points": 1.38,
+   "differs_in": 0.0787
+  },
+  {
+   "feature": "species: araquanid",
+   "coef": 0.05242,
+   "lo90": -0.03015,
+   "hi90": 0.09497,
+   "points": 1.31,
+   "differs_in": 0.0132
+  },
+  {
+   "feature": "species: arcanine",
+   "coef": 0.0187,
+   "lo90": -0.13095,
+   "hi90": 0.13309,
+   "points": 0.47,
+   "differs_in": 0.0059
+  },
+  {
+   "feature": "species: arcaninehisui",
+   "coef": 0.02445,
+   "lo90": -0.00112,
+   "hi90": 0.04735,
+   "points": 0.61,
+   "differs_in": 0.119
+  },
+  {
+   "feature": "species: archaludon",
+   "coef": -0.00107,
+   "lo90": -0.0118,
+   "hi90": 0.01216,
+   "points": -0.03,
+   "differs_in": 0.2548
+  },
+  {
+   "feature": "species: armarouge",
+   "coef": -0.01879,
+   "lo90": -0.05761,
+   "hi90": 0.01111,
+   "points": -0.47,
+   "differs_in": 0.0679
+  },
+  {
+   "feature": "species: audino",
+   "coef": -0.18038,
+   "lo90": -0.32215,
+   "hi90": -0.05092,
+   "points": -4.51,
+   "differs_in": 0.0048
+  },
+  {
+   "feature": "species: barbaracle",
+   "coef": -0.00601,
+   "lo90": -0.17096,
+   "hi90": 0.27916,
+   "points": -0.15,
+   "differs_in": 0.0034
+  },
+  {
+   "feature": "species: basculegion",
+   "coef": 0.01348,
+   "lo90": 0.00057,
+   "hi90": 0.02892,
+   "points": 0.34,
+   "differs_in": 0.3506
+  },
+  {
+   "feature": "species: baxcalibur",
+   "coef": -0.11638,
+   "lo90": -0.21651,
+   "hi90": -0.03233,
+   "points": -2.91,
+   "differs_in": 0.0125
+  },
+  {
+   "feature": "species: beedrill",
+   "coef": -0.01004,
+   "lo90": -0.13941,
+   "hi90": 0.08694,
+   "points": -0.25,
+   "differs_in": 0.0051
+  },
+  {
+   "feature": "species: blastoise",
+   "coef": -0.00378,
+   "lo90": -0.05479,
+   "hi90": 0.05141,
+   "points": -0.09,
+   "differs_in": 0.0362
+  },
+  {
+   "feature": "species: blaziken",
+   "coef": 0.00964,
+   "lo90": -0.02701,
+   "hi90": 0.04972,
+   "points": 0.24,
+   "differs_in": 0.05
+  },
+  {
+   "feature": "species: camerupt",
+   "coef": 0.03986,
+   "lo90": 0.0127,
+   "hi90": 0.06793,
+   "points": 1.0,
+   "differs_in": 0.0773
+  },
+  {
+   "feature": "species: castform",
+   "coef": -0.18326,
+   "lo90": -0.61186,
+   "hi90": 0.0,
+   "points": -4.58,
+   "differs_in": 0.0052
+  },
+  {
+   "feature": "species: ceruledge",
+   "coef": -0.00953,
+   "lo90": -0.07233,
+   "hi90": 0.07091,
+   "points": -0.24,
+   "differs_in": 0.02
+  },
+  {
+   "feature": "species: chandelure",
+   "coef": 0.00946,
+   "lo90": -0.05078,
+   "hi90": 0.07093,
+   "points": 0.24,
+   "differs_in": 0.0174
+  },
+  {
+   "feature": "species: charizard",
+   "coef": 0.02578,
+   "lo90": 0.01722,
+   "hi90": 0.03687,
+   "points": 0.64,
+   "differs_in": 0.3496
+  },
+  {
+   "feature": "species: chesnaught",
+   "coef": -0.06198,
+   "lo90": -0.1409,
+   "hi90": 0.01058,
+   "points": -1.55,
+   "differs_in": 0.011
+  },
+  {
+   "feature": "species: cinderace",
+   "coef": -0.03857,
+   "lo90": -0.14928,
+   "hi90": 0.06072,
+   "points": -0.96,
+   "differs_in": 0.0059
+  },
+  {
+   "feature": "species: clefable",
+   "coef": 0.05932,
+   "lo90": -0.04866,
+   "hi90": 0.13512,
+   "points": 1.48,
+   "differs_in": 0.015
+  },
+  {
+   "feature": "species: conkeldurr",
+   "coef": -0.08025,
+   "lo90": -0.18353,
+   "hi90": 0.00187,
+   "points": -2.01,
+   "differs_in": 0.0058
+  },
+  {
+   "feature": "species: corviknight",
+   "coef": 0.01797,
+   "lo90": -0.03364,
+   "hi90": 0.05436,
+   "points": 0.45,
+   "differs_in": 0.0496
+  },
+  {
+   "feature": "species: decidueyehisui",
+   "coef": 0.04548,
+   "lo90": -0.032,
+   "hi90": 0.1168,
+   "points": 1.14,
+   "differs_in": 0.0069
+  },
+  {
+   "feature": "species: delphox",
+   "coef": 0.01105,
+   "lo90": -0.01279,
+   "hi90": 0.03338,
+   "points": 0.28,
+   "differs_in": 0.1207
+  },
+  {
+   "feature": "species: ditto",
+   "coef": -0.07484,
+   "lo90": -0.3175,
+   "hi90": 0.09268,
+   "points": -1.87,
+   "differs_in": 0.0033
+  },
+  {
+   "feature": "species: dragalge",
+   "coef": -0.06792,
+   "lo90": -0.20603,
+   "hi90": 0.03096,
+   "points": -1.7,
+   "differs_in": 0.0043
+  },
+  {
+   "feature": "species: dragapult",
+   "coef": 0.02008,
+   "lo90": -0.03218,
+   "hi90": 0.09009,
+   "points": 0.5,
+   "differs_in": 0.0242
+  },
+  {
+   "feature": "species: dragonite",
+   "coef": 0.00411,
+   "lo90": -0.02449,
+   "hi90": 0.02998,
+   "points": 0.1,
+   "differs_in": 0.097
+  },
+  {
+   "feature": "species: drampa",
+   "coef": 0.10156,
+   "lo90": 0.03798,
+   "hi90": 0.15061,
+   "points": 2.54,
+   "differs_in": 0.0222
+  },
+  {
+   "feature": "species: eelektross",
+   "coef": -0.00323,
+   "lo90": -0.11195,
+   "hi90": 0.09908,
+   "points": -0.08,
+   "differs_in": 0.0104
+  },
+  {
+   "feature": "species: empoleon",
+   "coef": -0.03964,
+   "lo90": -0.14399,
+   "hi90": 0.03463,
+   "points": -0.99,
+   "differs_in": 0.0053
+  },
+  {
+   "feature": "species: espathra",
+   "coef": 0.01247,
+   "lo90": -0.04078,
+   "hi90": 0.07336,
+   "points": 0.31,
+   "differs_in": 0.0138
+  },
+  {
+   "feature": "species: excadrill",
+   "coef": 0.02356,
+   "lo90": 0.00232,
+   "hi90": 0.04112,
+   "points": 0.59,
+   "differs_in": 0.1464
+  },
+  {
+   "feature": "species: farigiraf",
+   "coef": 0.01597,
+   "lo90": -0.00037,
+   "hi90": 0.02967,
+   "points": 0.4,
+   "differs_in": 0.2276
+  },
+  {
+   "feature": "species: feraligatr",
+   "coef": -0.03782,
+   "lo90": -0.13552,
+   "hi90": 0.06017,
+   "points": -0.95,
+   "differs_in": 0.0038
+  },
+  {
+   "feature": "species: floetteeternal",
+   "coef": 0.02782,
+   "lo90": 0.01575,
+   "hi90": 0.04087,
+   "points": 0.7,
+   "differs_in": 0.2461
+  },
+  {
+   "feature": "species: froslass",
+   "coef": 0.02952,
+   "lo90": 0.01016,
+   "hi90": 0.04405,
+   "points": 0.74,
+   "differs_in": 0.1421
+  },
+  {
+   "feature": "species: gallade",
+   "coef": -0.08714,
+   "lo90": -0.1446,
+   "hi90": -0.02094,
+   "points": -2.18,
+   "differs_in": 0.0145
+  },
+  {
+   "feature": "species: garchomp",
+   "coef": -0.02214,
+   "lo90": -0.03175,
+   "hi90": -0.01164,
+   "points": -0.55,
+   "differs_in": 0.4134
+  },
+  {
+   "feature": "species: gardevoir",
+   "coef": -0.00812,
+   "lo90": -0.04016,
+   "hi90": 0.02188,
+   "points": -0.2,
+   "differs_in": 0.0786
+  },
+  {
+   "feature": "species: gengar",
+   "coef": -0.00683,
+   "lo90": -0.03283,
+   "hi90": 0.01454,
+   "points": -0.17,
+   "differs_in": 0.1008
+  },
+  {
+   "feature": "species: gholdengo",
+   "coef": -0.01148,
+   "lo90": -0.02455,
+   "hi90": 0.00314,
+   "points": -0.29,
+   "differs_in": 0.2582
+  },
+  {
+   "feature": "species: glaceon",
+   "coef": 0.01454,
+   "lo90": -0.17822,
+   "hi90": 0.10202,
+   "points": 0.36,
+   "differs_in": 0.0039
+  },
+  {
+   "feature": "species: glimmora",
+   "coef": 0.00711,
+   "lo90": -0.02022,
+   "hi90": 0.02804,
+   "points": 0.18,
+   "differs_in": 0.1112
+  },
+  {
+   "feature": "species: gliscor",
+   "coef": -0.11165,
+   "lo90": -0.18782,
+   "hi90": -0.03687,
+   "points": -2.79,
+   "differs_in": 0.0151
+  },
+  {
+   "feature": "species: golisopod",
+   "coef": -0.02489,
+   "lo90": -0.04048,
+   "hi90": -0.00909,
+   "points": -0.62,
+   "differs_in": 0.1632
+  },
+  {
+   "feature": "species: golurk",
+   "coef": -0.05112,
+   "lo90": -0.13734,
+   "hi90": 0.0225,
+   "points": -1.28,
+   "differs_in": 0.0069
+  },
+  {
+   "feature": "species: goodrahisui",
+   "coef": -0.16186,
+   "lo90": -0.27126,
+   "hi90": -0.05859,
+   "points": -4.05,
+   "differs_in": 0.0063
+  },
+  {
+   "feature": "species: gourgeist",
+   "coef": -0.1485,
+   "lo90": -0.30068,
+   "hi90": -0.06425,
+   "points": -3.71,
+   "differs_in": 0.0041
+  },
+  {
+   "feature": "species: grapploct",
+   "coef": -0.00397,
+   "lo90": -0.08555,
+   "hi90": 0.0803,
+   "points": -0.1,
+   "differs_in": 0.011
+  },
+  {
+   "feature": "species: greninja",
+   "coef": -0.24555,
+   "lo90": -0.34147,
+   "hi90": -0.14294,
+   "points": -6.14,
+   "differs_in": 0.0069
+  },
+  {
+   "feature": "species: grimmsnarl",
+   "coef": -0.00714,
+   "lo90": -0.02239,
+   "hi90": 0.00915,
+   "points": -0.18,
+   "differs_in": 0.1313
+  },
+  {
+   "feature": "species: gyarados",
+   "coef": -0.04837,
+   "lo90": -0.24435,
+   "hi90": 0.05792,
+   "points": -1.21,
+   "differs_in": 0.0067
+  },
+  {
+   "feature": "species: hatterene",
+   "coef": -0.03741,
+   "lo90": -0.07918,
+   "hi90": 0.00067,
+   "points": -0.94,
+   "differs_in": 0.0318
+  },
+  {
+   "feature": "species: hawlucha",
+   "coef": 0.04615,
+   "lo90": -0.02561,
+   "hi90": 0.1084,
+   "points": 1.15,
+   "differs_in": 0.0119
+  },
+  {
+   "feature": "species: heracross",
+   "coef": -0.14229,
+   "lo90": -0.25965,
+   "hi90": -0.04755,
+   "points": -3.56,
+   "differs_in": 0.0061
+  },
+  {
+   "feature": "species: hippowdon",
+   "coef": 0.01792,
+   "lo90": -0.04106,
+   "hi90": 0.06947,
+   "points": 0.45,
+   "differs_in": 0.0242
+  },
+  {
+   "feature": "species: houndoom",
+   "coef": -0.12046,
+   "lo90": -0.18641,
+   "hi90": -0.01481,
+   "points": -3.01,
+   "differs_in": 0.0053
+  },
+  {
+   "feature": "species: houndstone",
+   "coef": -0.01338,
+   "lo90": -0.14771,
+   "hi90": 0.05453,
+   "points": -0.33,
+   "differs_in": 0.0144
+  },
+  {
+   "feature": "species: hydreigon",
+   "coef": -0.01813,
+   "lo90": -0.10637,
+   "hi90": 0.03151,
+   "points": -0.45,
+   "differs_in": 0.0341
+  },
+  {
+   "feature": "species: incineroar",
+   "coef": 0.00427,
+   "lo90": -0.00384,
+   "hi90": 0.01204,
+   "points": 0.11,
+   "differs_in": 0.3841
+  },
+  {
+   "feature": "species: indeedee",
+   "coef": -0.00672,
+   "lo90": -0.01654,
+   "hi90": 0.00318,
+   "points": -0.17,
+   "differs_in": 0.2313
+  },
+  {
+   "feature": "species: infernape",
+   "coef": -0.16821,
+   "lo90": -0.34545,
+   "hi90": -0.05268,
+   "points": -4.21,
+   "differs_in": 0.0041
+  },
+  {
+   "feature": "species: inteleon",
+   "coef": -0.06497,
+   "lo90": -0.16897,
+   "hi90": 0.03866,
+   "points": -1.62,
+   "differs_in": 0.0043
+  },
+  {
+   "feature": "species: kangaskhan",
+   "coef": -0.12521,
+   "lo90": -0.17408,
+   "hi90": -0.07909,
+   "points": -3.13,
+   "differs_in": 0.0217
+  },
+  {
+   "feature": "species: kingambit",
+   "coef": 0.01747,
+   "lo90": 0.00719,
+   "hi90": 0.02682,
+   "points": 0.44,
+   "differs_in": 0.3973
+  },
+  {
+   "feature": "species: kleavor",
+   "coef": 0.01888,
+   "lo90": -0.07068,
+   "hi90": 0.10409,
+   "points": 0.47,
+   "differs_in": 0.0071
+  },
+  {
+   "feature": "species: kommoo",
+   "coef": 0.05478,
+   "lo90": 0.0182,
+   "hi90": 0.09032,
+   "points": 1.37,
+   "differs_in": 0.0625
+  },
+  {
+   "feature": "species: krookodile",
+   "coef": -0.01663,
+   "lo90": -0.17165,
+   "hi90": 0.01358,
+   "points": -0.42,
+   "differs_in": 0.0134
+  },
+  {
+   "feature": "species: leafeon",
+   "coef": 0.1662,
+   "lo90": -0.1186,
+   "hi90": 0.4295,
+   "points": 4.16,
+   "differs_in": 0.0035
+  },
+  {
+   "feature": "species: lopunny",
+   "coef": 0.02624,
+   "lo90": -0.04095,
+   "hi90": 0.1105,
+   "points": 0.66,
+   "differs_in": 0.0115
+  },
+  {
+   "feature": "species: lucario",
+   "coef": -0.03778,
+   "lo90": -0.09814,
+   "hi90": 0.03823,
+   "points": -0.94,
+   "differs_in": 0.0191
+  },
+  {
+   "feature": "species: lycanrocdusk",
+   "coef": -0.00577,
+   "lo90": -0.07068,
+   "hi90": 0.04911,
+   "points": -0.14,
+   "differs_in": 0.0198
+  },
+  {
+   "feature": "species: malamar",
+   "coef": -0.08313,
+   "lo90": -0.24981,
+   "hi90": 0.00653,
+   "points": -2.08,
+   "differs_in": 0.0071
+  },
+  {
+   "feature": "species: mamoswine",
+   "coef": 0.01169,
+   "lo90": -0.09009,
+   "hi90": 0.1129,
+   "points": 0.29,
+   "differs_in": 0.0101
+  },
+  {
+   "feature": "species: manectric",
+   "coef": -0.02213,
+   "lo90": -0.15961,
+   "hi90": 0.11883,
+   "points": -0.55,
+   "differs_in": 0.0035
+  },
+  {
+   "feature": "species: maushold",
+   "coef": -0.02823,
+   "lo90": -0.08432,
+   "hi90": 0.0133,
+   "points": -0.71,
+   "differs_in": 0.031
+  },
+  {
+   "feature": "species: mawile",
+   "coef": 0.01891,
+   "lo90": -0.04279,
+   "hi90": 0.04839,
+   "points": 0.47,
+   "differs_in": 0.0317
+  },
+  {
+   "feature": "species: meganium",
+   "coef": 0.00701,
+   "lo90": -0.04609,
+   "hi90": 0.06475,
+   "points": 0.18,
+   "differs_in": 0.0151
+  },
+  {
+   "feature": "species: meowscarada",
+   "coef": -0.06819,
+   "lo90": -0.16363,
+   "hi90": 0.01527,
+   "points": -1.7,
+   "differs_in": 0.0096
+  },
+  {
+   "feature": "species: meowstic",
+   "coef": -0.03015,
+   "lo90": -0.14443,
+   "hi90": 0.03768,
+   "points": -0.75,
+   "differs_in": 0.0092
+  },
+  {
+   "feature": "species: metagross",
+   "coef": -0.00038,
+   "lo90": -0.05035,
+   "hi90": 0.04265,
+   "points": -0.01,
+   "differs_in": 0.0505
+  },
+  {
+   "feature": "species: milotic",
+   "coef": 0.01259,
+   "lo90": -0.01041,
+   "hi90": 0.02992,
+   "points": 0.31,
+   "differs_in": 0.1586
+  },
+  {
+   "feature": "species: mimikyu",
+   "coef": -0.08169,
+   "lo90": -0.17048,
+   "hi90": -0.02719,
+   "points": -2.04,
+   "differs_in": 0.0171
+  },
+  {
+   "feature": "species: mrmime",
+   "coef": -0.03473,
+   "lo90": -0.28659,
+   "hi90": 0.12442,
+   "points": -0.87,
+   "differs_in": 0.0038
+  },
+  {
+   "feature": "species: mudsdale",
+   "coef": -0.0637,
+   "lo90": -0.18192,
+   "hi90": 0.0623,
+   "points": -1.59,
+   "differs_in": 0.0058
+  },
+  {
+   "feature": "species: ninetalesalola",
+   "coef": -0.03576,
+   "lo90": -0.07435,
+   "hi90": -0.00024,
+   "points": -0.89,
+   "differs_in": 0.0367
+  },
+  {
+   "feature": "species: noivern",
+   "coef": -0.32266,
+   "lo90": -0.5472,
+   "hi90": -0.18871,
+   "points": -8.07,
+   "differs_in": 0.0034
+  },
+  {
+   "feature": "species: oranguru",
+   "coef": -0.07136,
+   "lo90": -0.17527,
+   "hi90": 0.04094,
+   "points": -1.78,
+   "differs_in": 0.0061
+  },
+  {
+   "feature": "species: orthworm",
+   "coef": -0.09388,
+   "lo90": -0.2115,
+   "hi90": 0.0021,
+   "points": -2.35,
+   "differs_in": 0.0049
+  },
+  {
+   "feature": "species: overqwil",
+   "coef": -0.11092,
+   "lo90": -0.22661,
+   "hi90": -0.03089,
+   "points": -2.77,
+   "differs_in": 0.0058
+  },
+  {
+   "feature": "species: palafin",
+   "coef": 0.05015,
+   "lo90": -0.06229,
+   "hi90": 0.15546,
+   "points": 1.25,
+   "differs_in": 0.0045
+  },
+  {
+   "feature": "species: pawmot",
+   "coef": -0.04527,
+   "lo90": -0.12212,
+   "hi90": 0.02842,
+   "points": -1.13,
+   "differs_in": 0.0138
+  },
+  {
+   "feature": "species: pelipper",
+   "coef": -0.01128,
+   "lo90": -0.02461,
+   "hi90": 0.00275,
+   "points": -0.28,
+   "differs_in": 0.2296
+  },
+  {
+   "feature": "species: persianalola",
+   "coef": -0.01853,
+   "lo90": -0.10719,
+   "hi90": 0.02813,
+   "points": -0.46,
+   "differs_in": 0.0067
+  },
+  {
+   "feature": "species: politoed",
+   "coef": -0.0203,
+   "lo90": -0.0551,
+   "hi90": 0.01438,
+   "points": -0.51,
+   "differs_in": 0.0686
+  },
+  {
+   "feature": "species: primarina",
+   "coef": 0.00069,
+   "lo90": -0.0204,
+   "hi90": 0.02186,
+   "points": 0.02,
+   "differs_in": 0.1496
+  },
+  {
+   "feature": "species: pyroar",
+   "coef": -0.03717,
+   "lo90": -0.12486,
+   "hi90": 0.04013,
+   "points": -0.93,
+   "differs_in": 0.0108
+  },
+  {
+   "feature": "species: raichu",
+   "coef": 0.00475,
+   "lo90": -0.00712,
+   "hi90": 0.01629,
+   "points": 0.12,
+   "differs_in": 0.3538
+  },
+  {
+   "feature": "species: rillaboom",
+   "coef": -0.00862,
+   "lo90": -0.016,
+   "hi90": -0.0012,
+   "points": -0.22,
+   "differs_in": 0.4237
+  },
+  {
+   "feature": "species: rotomheat",
+   "coef": -0.00014,
+   "lo90": -0.09228,
+   "hi90": 0.07382,
+   "points": -0.0,
+   "differs_in": 0.015
+  },
+  {
+   "feature": "species: rotomwash",
+   "coef": -0.01863,
+   "lo90": -0.08363,
+   "hi90": 0.00691,
+   "points": -0.47,
+   "differs_in": 0.0274
+  },
+  {
+   "feature": "species: sableye",
+   "coef": -0.07195,
+   "lo90": -0.13613,
+   "hi90": -0.0234,
+   "points": -1.8,
+   "differs_in": 0.0353
+  },
+  {
+   "feature": "species: salamence",
+   "coef": -0.00286,
+   "lo90": -0.02106,
+   "hi90": 0.01464,
+   "points": -0.07,
+   "differs_in": 0.2029
+  },
+  {
+   "feature": "species: salazzle",
+   "coef": -0.08647,
+   "lo90": -0.4253,
+   "hi90": -0.00985,
+   "points": -2.16,
+   "differs_in": 0.0039
+  },
+  {
+   "feature": "species: samurotthisui",
+   "coef": 0.08206,
+   "lo90": -0.07175,
+   "hi90": 0.18171,
+   "points": 2.05,
+   "differs_in": 0.0056
+  },
+  {
+   "feature": "species: sceptile",
+   "coef": -0.08536,
+   "lo90": -0.1754,
+   "hi90": -0.01435,
+   "points": -2.13,
+   "differs_in": 0.0126
+  },
+  {
+   "feature": "species: scizor",
+   "coef": -0.01279,
+   "lo90": -0.07522,
+   "hi90": 0.06215,
+   "points": -0.32,
+   "differs_in": 0.0097
+  },
+  {
+   "feature": "species: scolipede",
+   "coef": 0.03965,
+   "lo90": -0.05871,
+   "hi90": 0.11325,
+   "points": 0.99,
+   "differs_in": 0.0071
+  },
+  {
+   "feature": "species: scovillain",
+   "coef": 0.02055,
+   "lo90": -0.0176,
+   "hi90": 0.04897,
+   "points": 0.51,
+   "differs_in": 0.0454
+  },
+  {
+   "feature": "species: scrafty",
+   "coef": -9e-05,
+   "lo90": -0.09997,
+   "hi90": 0.04243,
+   "points": -0.0,
+   "differs_in": 0.0301
+  },
+  {
+   "feature": "species: sharpedo",
+   "coef": 0.0444,
+   "lo90": -0.0075,
+   "hi90": 0.12463,
+   "points": 1.11,
+   "differs_in": 0.0067
+  },
+  {
+   "feature": "species: sinistcha",
+   "coef": 0.02601,
+   "lo90": 0.01167,
+   "hi90": 0.03906,
+   "points": 0.65,
+   "differs_in": 0.1995
+  },
+  {
+   "feature": "species: slowbro",
+   "coef": 0.02968,
+   "lo90": -0.04914,
+   "hi90": 0.11005,
+   "points": 0.74,
+   "differs_in": 0.0101
+  },
+  {
+   "feature": "species: sneasler",
+   "coef": 0.00207,
+   "lo90": -0.00848,
+   "hi90": 0.01069,
+   "points": 0.05,
+   "differs_in": 0.4379
+  },
+  {
+   "feature": "species: snorlax",
+   "coef": -0.01364,
+   "lo90": -0.09311,
+   "hi90": 0.05053,
+   "points": -0.34,
+   "differs_in": 0.0136
+  },
+  {
+   "feature": "species: staraptor",
+   "coef": -0.00696,
+   "lo90": -0.02639,
+   "hi90": 0.00875,
+   "points": -0.17,
+   "differs_in": 0.2186
+  },
+  {
+   "feature": "species: starmie",
+   "coef": -0.00145,
+   "lo90": -0.15175,
+   "hi90": 0.11889,
+   "points": -0.04,
+   "differs_in": 0.0085
+  },
+  {
+   "feature": "species: swampert",
+   "coef": 0.00359,
+   "lo90": -0.02772,
+   "hi90": 0.03068,
+   "points": 0.09,
+   "differs_in": 0.0713
+  },
+  {
+   "feature": "species: sylveon",
+   "coef": 0.00398,
+   "lo90": -0.01782,
+   "hi90": 0.02521,
+   "points": 0.1,
+   "differs_in": 0.1829
+  },
+  {
+   "feature": "species: talonflame",
+   "coef": -0.04766,
+   "lo90": -0.09769,
+   "hi90": -0.00608,
+   "points": -1.19,
+   "differs_in": 0.0307
+  },
+  {
+   "feature": "species: tinkaton",
+   "coef": -0.06555,
+   "lo90": -0.19015,
+   "hi90": 0.02346,
+   "points": -1.64,
+   "differs_in": 0.0059
+  },
+  {
+   "feature": "species: torkoal",
+   "coef": -0.03773,
+   "lo90": -0.06968,
+   "hi90": -0.00997,
+   "points": -0.94,
+   "differs_in": 0.0726
+  },
+  {
+   "feature": "species: toxapex",
+   "coef": 0.00654,
+   "lo90": -0.04183,
+   "hi90": 0.07421,
+   "points": 0.16,
+   "differs_in": 0.0269
+  },
+  {
+   "feature": "species: toxicroak",
+   "coef": -0.05343,
+   "lo90": -0.09517,
+   "hi90": 0.07904,
+   "points": -1.34,
+   "differs_in": 0.0035
+  },
+  {
+   "feature": "species: toxtricity",
+   "coef": 0.03857,
+   "lo90": -0.13421,
+   "hi90": 0.16532,
+   "points": 0.96,
+   "differs_in": 0.004
+  },
+  {
+   "feature": "species: tsareena",
+   "coef": -0.04745,
+   "lo90": -0.11497,
+   "hi90": 0.01468,
+   "points": -1.19,
+   "differs_in": 0.0185
+  },
+  {
+   "feature": "species: typhlosionhisui",
+   "coef": -0.02931,
+   "lo90": -0.11804,
+   "hi90": 0.04726,
+   "points": -0.73,
+   "differs_in": 0.0161
+  },
+  {
+   "feature": "species: tyranitar",
+   "coef": 0.0133,
+   "lo90": -0.00043,
+   "hi90": 0.02657,
+   "points": 0.33,
+   "differs_in": 0.19
+  },
+  {
+   "feature": "species: vanilluxe",
+   "coef": 0.03754,
+   "lo90": -0.13127,
+   "hi90": 0.12689,
+   "points": 0.94,
+   "differs_in": 0.0051
+  },
+  {
+   "feature": "species: venusaur",
+   "coef": 0.02475,
+   "lo90": 0.00737,
+   "hi90": 0.04134,
+   "points": 0.62,
+   "differs_in": 0.1501
+  },
+  {
+   "feature": "species: vileplume",
+   "coef": -0.25026,
+   "lo90": -0.34128,
+   "hi90": -0.17234,
+   "points": -6.26,
+   "differs_in": 0.0058
+  },
+  {
+   "feature": "species: vivillon",
+   "coef": 0.00791,
+   "lo90": -0.05409,
+   "hi90": 0.05596,
+   "points": 0.2,
+   "differs_in": 0.0367
+  },
+  {
+   "feature": "species: volcarona",
+   "coef": -0.01969,
+   "lo90": -0.04321,
+   "hi90": 0.00109,
+   "points": -0.49,
+   "differs_in": 0.1548
+  },
+  {
+   "feature": "species: weavile",
+   "coef": -9e-05,
+   "lo90": -0.19422,
+   "hi90": 0.16542,
+   "points": -0.0,
+   "differs_in": 0.0058
+  },
+  {
+   "feature": "species: whimsicott",
+   "coef": 0.01209,
+   "lo90": 0.002,
+   "hi90": 0.02254,
+   "points": 0.3,
+   "differs_in": 0.2649
+  },
+  {
+   "feature": "species: zoroark",
+   "coef": -0.08809,
+   "lo90": -0.27603,
+   "hi90": 0.06379,
+   "points": -2.2,
+   "differs_in": 0.0036
+  },
+  {
+   "feature": "species: zoroarkhisui",
+   "coef": -0.02047,
+   "lo90": -0.11417,
+   "hi90": 0.02733,
+   "points": -0.51,
+   "differs_in": 0.0142
+  }
+ ]
+}
