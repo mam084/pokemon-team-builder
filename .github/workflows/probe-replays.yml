@@ -1,13 +1,9 @@
 name: Probe Showdown replays
 
-# One-off: how much Champions replay data is public? Runs on demand or when the
-# probe script changes, and commits data/replays/probe.json to the same branch.
+# One-off: how much Champions replay data is public? Runs on demand (Actions tab ->
+# Run workflow) and commits data/replays/probe.json to the branch it ran on.
 on:
   workflow_dispatch:
-  push:
-    paths:
-      - scripts/probe_replays.py
-      - .github/workflows/probe-replays.yml
 
 permissions:
   contents: write

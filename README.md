@@ -234,17 +234,18 @@ Split into fifths by score, the side the model favors most strongly won
 ## A learned model of who wins
 
 Hand-weighting support made match predictions worse, so `src/match_model.py`
-learns what matters instead, from the same 12,168 real matches. Each match
-becomes a row of differences (player 1 minus player 2):
+learns what matters instead, from 12,168 real matches with both team lists.
+Each match becomes a row of differences (player 1 minus player 2):
 
+- **player skill**: each player's Elo *before* the match (`src/ratings.py`,
+  updated match by match over all 13,000 Limitless results, K tuned on the older
+  tournaments) and games played, so a team doesn't get credit for its pilot
 - **matchup**: the damage-calc team score, bring-4 score, mean best damage each
   way, OHKO / 2HKO counts, share of pairings won on Speed
 - **support tools**: how many Pokémon on each side carry Fake Out, Intimidate,
   Tailwind, Trick Room, screens, redirection, Wide Guard, sleep, Encore, setup,
   recovery, priority, weather, terrain and more
 - **context**: bulk, score against the meta, popularity, Trick Room on a slow team
-- **Pokémon**: which species each side has, so it can learn "X wins more than its
-  calcs say" (penalized much harder than the other features)
 
 An L2-regularized logistic regression is fitted on both orientations of every
 match (so swapping the players exactly flips the prediction). Its settings are
@@ -254,32 +255,48 @@ matches, and it's tested once on the newest 3,785
 
 | model | picks the winner | log loss | AUC |
 |---|---|---|---|
-| learned model | 54.6% | 0.6881 | 0.557 |
-| learned, no per-Pokémon effects | 54.0% | 0.6892 | 0.552 |
-| damage-calc matchup score | 52.0% | 0.6915 | 0.531 |
-| more popular team | 51.1% | 0.6920 | 0.526 |
+| learned: skill + team | 59.8% | 0.6661 | 0.628 |
+| player skill (Elo) only | 58.6% | 0.6698 | 0.617 |
+| team features only | 54.0% | 0.6892 | 0.552 |
+| damage-calc matchup score | 52.0% | 0.6912 | 0.531 |
+| more popular team | 51.1% | 0.6918 | 0.526 |
 | coin flip | 50.0% | 0.6931 | 0.500 |
 
-The log-loss gain over the damage-calc score is
-+0.0013 to +0.0054 (95% paired bootstrap),
-so it's real. Calibration holds: in the fifth of test matches where it gave a side its best odds
-(56% predicted), that side won 60%. Gradient-boosted trees did no better
-than the logistic model, so the interpretable one ships.
+- **Who's playing matters most**, but the team adds real signal on top: log-loss
+  gain +0.0008 to +0.0066 over ratings alone (95% paired bootstrap).
+- **Per-Pokémon effects were mostly player skill.** Without ratings they helped
+  (e.g. "Alakazam teams win 3 points more than their calcs say"); with ratings in
+  the model they no longer improved cross-validated predictions, so they're out.
+- Calibrated: where it gave a side its best odds (66%) that side won
+  67%; its worst (35%), 38%. Boosted trees did no better.
 
-**What it learned** (win-chance points per extra Pokémon with the tool, 90% tournament-bootstrap range):
+**What it learned** (win-chance points per extra Pokémon with the tool, between
+equally rated players, 90% tournament-bootstrap range):
 
-- clearly positive: Wide Guard +1.3 (+0.5 to +2.0), Encore +1.0 (+0.2 to +1.8),
-  setup moves +0.8 (+0.5 to +1.1); the damage calcs, OHKOs, outspeeding and bulk all
-  count too
-- no clear effect: Reflect +0.3 (-0.3 to +0.9), Light Screen -0.3 (-0.9 to +0.3),
-  Intimidate +0.2 (-0.4 to +0.7), Tailwind -0.5 (-1.0 to +0.0)
-- negative: recovery -1.4 (-2.2 to -0.6), Trick Room on a slow team -2.0 (-3.2 to -1.0)
+- clearly positive: Wide Guard +1.9 (+0.4 to +3.3), Encore +1.6 (+0.2 to +3.1),
+  setup moves +1.6 (+1.0 to +2.3), Trick Room +1.6 (+0.4 to +2.8) (but a slow
+  team leaning on it: -4.9 (-8.7 to -1.8)); outspeeding, bulk and
+  2HKOs count too
+- no clear effect: Reflect +1.6 (-0.4 to +3.5), Light Screen -1.1 (-3.1 to +0.8),
+  Intimidate +1.0 (-0.3 to +2.1), Tailwind -1.4 (-2.9 to +0.1)
+- negative: Fake Out -1.1 (-1.8 to -0.4), recovery -1.9 (-3.3 to -0.2)
 
-These are associations in real results, not proof of cause (a tool can look good
-because strong players use it). The app shows win chances from this model on the
-Matchups tab, explains each one ("for you: Wide Guard +1..."), judges swaps by
-win chance, and lists what it learned under **What wins games** on the Meta tab.
-`python -m src.match_model` reproduces it; the monthly refresh retrains it.
+Accounting for skill barely moves these tool effects (at equal regularization,
+e.g. Wide Guard +2.1 to +1.9, Encore +2.2 to +1.7), so they aren't just "strong
+players use them". They're still associations, not proof of cause. The app
+predicts with both players rated equal, so win chances compare *teams*.
+`python -m src.ratings` and `python -m src.match_model` reproduce this; the
+monthly refresh retrains it.
+
+## Battle replays (next)
+
+`scripts/probe_replays.py` (run by hand from the Actions tab) checks how much
+Showdown replay data exists. The November 2026 probe found the 6,000-replay cap
+covered only the last ~4.5 days of Reg M-C doubles (about 1,300 public replays a day),
+77% with ladder ratings, each with team preview, every move and switch; the
+Bo3 format's replays also carry open team sheets. That's enough to learn what
+real players bring and lead, how games unfold, and eventually to drive
+simulations with realistic play.
 
 ## Data
 
@@ -379,7 +396,8 @@ The tests check:
 │   ├── cooccurrence.py       tournament team pairings as a second synergy source
 │   ├── evaluate.py           hide-one-member evaluation on real tournament teams
 │   ├── validate.py           does the matchup score predict real match winners?
-│   └── match_model.py        learned win-chance model from real matches
+│   ├── match_model.py        learned win-chance model from real matches
+│   └── ratings.py            leak-free Elo ratings for tournament players
 ├── scripts/
 │   ├── export_dex.js         Showdown → data/dex
 │   ├── fetch_usage.py        Smogon → data/usage

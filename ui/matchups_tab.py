@@ -133,20 +133,31 @@ def reliability_box(check: dict | None, learned: dict | None = None) -> None:
         cal = learned["calibration"]
         with st.expander(f"How reliable are these win chances? Tested on {learned['test_matches']:,} real "
                          "tournament matches"):
-            st.markdown(
+            main = t.get("learned model (skill + team)", t.get("learned model", {}))
+            skill = t.get("player skill only")
+            team_only = t.get("team only", t.get("learned, no Pokémon effects"))
+            calc = t.get("damage-calc matchup score", t.get("matchup score only", {}))
+            lines = [
                 f"Win chances come from a model **learned from {learned['matches']:,} real Limitless matches** "
-                "where both team lists are known. It combines the damage-calc matchup with Speed, bulk, each "
-                "side's support tools and which Pokémon each side has. It was fitted on older tournaments and "
-                f"tested on the newest {learned['test_matches']:,} matches ({learned['test_dates'][0]} to "
-                f"{learned['test_dates'][1]}), which it never saw.\n\n"
-                f"- It picks the winner **{t['learned model']['accuracy']:.1%}** of the time. The damage-calc "
-                f"score alone gets {t['matchup score only']['accuracy']:.1%}, the more popular team "
-                f"{t['popularity only']['accuracy']:.1%}, a coin flip 50%.\n"
+                "where both team lists are known. It weighs the damage-calc matchup, Speed, bulk and each side's "
+                "support tools by how much they mattered in real results"
+                + (", **between equally rated players**: each player's skill rating going into the match is in "
+                   "the model too, so a team doesn't get credit for its pilot. Here it compares teams, so both "
+                   "players count as equal." if skill else ".")
+                + f" It was fitted on older tournaments and tested on the newest {learned['test_matches']:,} "
+                f"matches ({learned['test_dates'][0]} to {learned['test_dates'][1]}), which it never saw.\n",
+                f"- With both players' ratings it picks the winner **{main['accuracy']:.1%}** of the time; "
+                + (f"ratings alone {skill['accuracy']:.1%}, so the teams add real signal on top of skill. "
+                   if skill else "")
+                + (f"From the teams alone: {team_only['accuracy']:.1%}. " if team_only else "")
+                + f"The damage-calc score alone gets {calc['accuracy']:.1%}; a coin flip 50%.",
                 f"- When it gave one side its best odds, that side won **{cal[-1]['actual']:.0%}**; "
-                f"its worst odds, **{cal[0]['actual']:.0%}**.\n\n"
-                "One game is mostly decided by play and luck, so treat these as a few percentage points of "
-                "edge, not a sure thing. See **What wins games** on the Meta tab for what the model learned."
-            )
+                f"its worst odds, **{cal[0]['actual']:.0%}**.\n",
+                "Who's playing matters more than the team, and luck matters a lot, so a team win chance is a few "
+                "points of edge, not a sure thing. See **What wins games** on the Meta tab for what the model "
+                "learned.",
+            ]
+            st.markdown("\n".join(lines))
             st.dataframe(pd.DataFrame(cal).rename(columns={"predicted": "predicted win %",
                                                            "actual": "actual win %"}),
                          hide_index=True, width="stretch",
@@ -221,8 +232,8 @@ def matchups_tab(fmt_id, team, members, dex, usage, fmt) -> None:
         "- **Team score** is how well you answer them minus how well they answer you, so 0 is even. "
         "With two Mega Stones, each matchup uses whichever Mega Evolves best.\n"
         "- **Win chance** comes from a model learned on real tournament matches. It weighs the calcs above "
-        "together with Speed, bulk, each side's support tools (Wide Guard, Encore, Fake Out...) and which "
-        "Pokémon each side has, by how much each actually mattered in real results.",
+        "together with Speed, bulk and each side's support tools (Wide Guard, Encore, Fake Out...), by how much "
+        "each actually mattered in real results between equally rated players.",
         "How matchups are scored")
     if not members:
         st.info("Add Pokémon on the **Team** tab to see how you match up. The meta teams are listed below.")
@@ -443,7 +454,8 @@ def swaps_section(team, dex, usage, fmt, threats: pd.DataFrame) -> None:
                                      "only uses the top 80.") or "neutral"
     how_it_works(
         f"Candidates follow the **{MODES[mode]}** style. Each swap is judged by your team's **win chance against "
-        "the meta teams** from the learned model (damage calcs, Speed, bulk, support tools and Pokémon picks), "
+        "the meta teams** from the learned model (damage calcs, Speed, bulk and support tools, between equal "
+        "players), "
         "using the newcomer's popular set (keeping Item Clause and at most two Mega Stones). In Best swaps, a "
         "swap that costs more than half a point of win chance is never shown. Each Pokémon is suggested as the "
         "best upgrade for one member at most.",
