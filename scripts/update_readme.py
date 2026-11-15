@@ -82,6 +82,15 @@ matches, and it's tested once on the newest {r['test_matches']:,}
   gain {g['team beyond skill'][0]:+.4f} to {g['team beyond skill'][1]:+.4f} over ratings alone (95% paired bootstrap)."""
 
 
+def bring(r: dict) -> str:
+    res = r["results"]
+    names = {"learned": "learned bring / lead model", "usual picks": "players' usual picks (bring / lead rates)",
+             "damage calcs": "damage-calc game plan", "random": "random"}
+    rows = "\n".join(f"| {label} | {res['bring'][k][0]:.1%} | {res['lead'][k][0]:.1%} |" for k, label in names.items())
+    return (f"{r['replays']:,} replays; tested on {r['test_sides']:,} team previews.\n\n"
+            "| | bring-4 | lead pair |\n|---|---|---|\n" + rows)
+
+
 def replace(text: str, name: str, body: str) -> str:
     pattern = re.compile(rf"(<!-- generated:{name} -->\n).*?(\n<!-- /generated:{name} -->)", re.S)
     if not pattern.search(text):
@@ -94,7 +103,8 @@ def main() -> None:
     text = README.read_text()
     for name, fn, file in (("recommender", recommender, "regmc.json"),
                            ("validation", validation, "regmc_matches.json"),
-                           ("learned", learned, "regmc_match_model.json")):
+                           ("learned", learned, "regmc_match_model.json"),
+                           ("bring", bring, "regmc_bring_model.json")):
         data = load(file)
         if data:
             text = replace(text, name, fn(data))

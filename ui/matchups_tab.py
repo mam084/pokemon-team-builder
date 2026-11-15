@@ -15,6 +15,8 @@ from src.formats import FORMATS
 from src.analysis import build_members, mega_variants
 from src.matchup import (best_attack, best_variant, build_archetypes, counter_picks, meta_matchups,
                          opponent_members, side_support, team_score, threat_report, verdict)
+from src.bring_model import load_model as load_bring_model
+from src.bring_model import pick as bring_pick
 from src.gameplan import game_plan
 from src.match_model import explain, load_model, predict_match, team_side
 from src.recommend import MODES
@@ -89,6 +91,16 @@ def match_check(regulation: str) -> dict | None:
     """data/evaluation/<reg>_matches.json from src/validate.py, if it exists."""
     path = VALIDATION_DIR / f"{regulation}_matches.json"
     return json.loads(path.read_text()) if path.exists() else None
+
+
+@st.cache_data(show_spinner=False, ttl=3600)
+def bring_model_for(regulation: str) -> dict | None:
+    """The replay-learned bring model, only if it beat both baselines on held-out games."""
+    model = load_bring_model(regulation)
+    if not model:
+        return None
+    r = model["results"]["bring"]
+    return model if r["learned"][0] > max(r["usual picks"][0], r["damage calcs"][0]) else None
 
 
 @st.cache_data(show_spinner=False, ttl=3600)
@@ -385,8 +397,16 @@ def matchups_tab(fmt_id, team, members, dex, usage, fmt) -> None:
                     "key calc": f"{move} {pct:.0f}%" if col.max() >= 0.5 and move else "—",
                 })
             st.dataframe(pd.DataFrame(answers), hide_index=True, width="stretch")
-        plan = game_plan(members_now, theirs, matrix, picks, dex, doubles, arch.trick_room, arch.weather)
-        plan.support_note = support_note(members_now, theirs, picks)
+        # The bring-4 comes from the replay-learned model when it predicts real choices better
+        # than both the calcs and players' usual picks (data/evaluation/<reg>_bring_model.json).
+        plan_picks, bring_source = picks, "calcs"
+        bring_model = bring_model_for(fmt.regulation)
+        if bring_model and fmt.pick == 4 and len(members_now) > 4:
+            plan_picks = bring_pick(bring_model, members_now, theirs, matrix, dex)[0]
+            bring_source = "replays"
+        plan = game_plan(members_now, theirs, matrix, plan_picks, dex, doubles, arch.trick_room, arch.weather)
+        plan.bring_source = bring_source
+        plan.support_note = support_note(members_now, theirs, plan_picks)
         summary = replay_summary(fmt_id)
         if summary:
             label = {p.species: m.label for p, m in zip(team, members_now)}
@@ -398,6 +418,13 @@ def matchups_tab(fmt_id, team, members, dex, usage, fmt) -> None:
             _, their_lead = usual_picks(summary, [p.species for p in their_sets])
             plan.their_leads = [their_label.get(s, s) for s in their_lead]
             plan.their_leads_source = "replays"
+            if bring_source == "replays":
+                # leads: players' usual leads among the four (they predict real leads best)
+                _, lead_species = usual_picks(summary, [p.species for p, m in zip(team, members_now)
+                                                        if m.label in plan_picks])
+                plan.lead = [label.get(s, s) for s in lead_species]
+                plan.back = [b for b in plan.bring if b not in plan.lead]
+                plan.lead_why = "The pair ladder players lead with most often among these four."
         game_plan_box(plan, who if len(variants) > 1 else None)
 
     st.markdown(f"**Counter picks for {pick}**: meta Pokémon (popular sets) with the best average pairing "
@@ -429,7 +456,8 @@ def support_note(members, theirs, picks) -> str:
 def game_plan_box(plan, mega: str | None) -> None:
     with st.container(border=True):
         st.markdown("**Game plan**")
-        lines = [f"**Bring:** {', '.join(plan.bring)}" + (f" (Mega Evolve {mega})" if mega else ""),
+        lines = [f"**Bring:** {', '.join(plan.bring)}" + (f" (Mega Evolve {mega})" if mega else "")
+                 + (" (what a model of real players' choices picks)" if plan.bring_source == "replays" else ""),
                  f"**Lead:** {' + '.join(plan.lead)}. {plan.lead_why}",
                  f"**In the back:** {', '.join(plan.back)}" if plan.back else "",
                  f"**Expect them to lead:** {' + '.join(plan.their_leads)}"
