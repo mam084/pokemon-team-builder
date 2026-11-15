@@ -588,6 +588,14 @@ class TestPlanBuilderSwaps(unittest.TestCase):
         for _, row in swaps.iterrows():
             self.assertEqual(row["out job"], row["in job"], row["swap in"])
 
+    def test_swaps_per_member(self):
+        team, _ = parse_paste(GARGANACL_TEAM, self.dex)
+        engine = SwapEngine(build_archetypes(self.usage, self.dex, keep=4), self.usage, self.dex)
+        alts = suggest_swaps(team, self.dex, self.usage, engine, per_member=2)
+        self.assertEqual(set(alts["slot"]), set(range(len(team))))  # every member gets alternatives
+        self.assertTrue((alts.groupby("slot").size() <= 2).all())
+        self.assertEqual(set(alts["pick"]), {"Best upgrade", "Most similar"})
+
     def test_job(self):
         from src.roles import RoleTag, job, plan_roles
         tags = [RoleTag("Tailwind setter", 100), RoleTag("Disruptor", 100), RoleTag("Special attacker", 100)]
