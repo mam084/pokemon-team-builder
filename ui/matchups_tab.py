@@ -13,7 +13,7 @@ from src.matchup import (best_attack, best_variant, build_archetypes, counter_pi
                          opponent_members, team_score, threat_report, verdict)
 from src.recommend import MODES
 from src.roles import meta_roles, role_text
-from src.swaps import SwapEngine, mode_pool, suggest_swaps
+from src.swaps import HIDDEN_SKIP, SwapEngine, mode_pool, suggest_swaps
 from src.usage import load_usage
 from ui.common import matchup_scale, sprite, type_badges
 from ui.state import write_slot
@@ -199,10 +199,14 @@ def swaps_section(team, dex, usage, fmt, threats: pd.DataFrame) -> None:
     if len(team) < 2:
         st.info("Swaps need at least two Pokémon on your team.")
         return
-    mode = st.session_state.get("rec_mode", "neutral")
     st.caption("Replace one member with a Pokémon that fixes a problem without hurting the overall matchup.")
+    if st.session_state.get("swap_mode") not in MODES:  # start from the Recommendations tab's style
+        st.session_state["swap_mode"] = st.session_state.get("rec_mode", "neutral")
+    mode = st.segmented_control("Candidates", list(MODES), format_func=MODES.get, key="swap_mode",
+                                help=f"Hidden gems leaves out the {HIDDEN_SKIP} most-used Pokémon. Popular picks "
+                                     "only uses the top 80.") or "neutral"
     how_it_works(
-        f"Candidates follow the **{MODES[mode]}** style chosen on the Recommendations tab. Each swap is scored "
+        f"Candidates follow the **{MODES[mode]}** style. Each swap is scored "
         "with the same damage calcs as above, using the newcomer's popular set (keeping Item Clause and at most "
         "two Mega Stones). Swaps that lower your overall score by more than 0.05 are never shown.",
         "How swaps are chosen")
@@ -221,7 +225,7 @@ def swaps_section(team, dex, usage, fmt, threats: pd.DataFrame) -> None:
     per_member = view == "For each member"
     with st.spinner("Trying swaps…"):
         swaps = suggest_swaps(team, dex, usage, swap_engine_for(fmt.id), focus=focus_name,
-                              pool=mode_pool(usage, mode), top_n=8, same_role=same_role,
+                              pool=mode_pool(usage, mode, dex), top_n=8, same_role=same_role,
                               per_member=2 if per_member else None)
     if per_member:
         member_alternatives(team, swaps, focus_name, same_role)
