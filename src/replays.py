@@ -169,3 +169,40 @@ def check_game_plans(records: list[dict], dex: Dex, usage, test_share: float = 0
                 totals[f"lead exact {name}"] += guess == real_lead
     n = totals.pop("games", 0)
     return {"games": n, **{k: round(v / n, 4) for k, v in totals.items()}} if n else {"games": 0}
+
+
+def load_summary(format_id: str) -> dict | None:
+    """Per-Pokemon replay stats for a format and its Bo3 twin, merged (weighted by previews),
+    keyed by species id. From scripts/summarize_replays.py."""
+    rows, games, days = {}, 0, []
+    for fmt in (format_id, format_id + "bo3"):
+        path = REPLAY_DIR / "summary" / f"{fmt}.json"
+        if not path.exists():
+            continue
+        data = json.loads(path.read_text())
+        games += data["games"]
+        days += [data["first_day"], data["last_day"]]
+        for r in data["pokemon"]:
+            key = to_id(r["pokemon"])
+            if key not in rows:
+                rows[key] = {**r}
+                continue
+            a, n_a, n_b = rows[key], rows[key]["previews"], r["previews"]
+            for k in ("brought %", "leads %", "mega %"):
+                a[k] = (a[k] * n_a + r[k] * n_b) / (n_a + n_b)
+            if r.get("win % when brought") is not None and a.get("win % when brought") is not None:
+                a["win % when brought"] = (a["win % when brought"] * n_a + r["win % when brought"] * n_b) / (n_a + n_b)
+            if n_b > n_a:
+                a["turn 1"] = r["turn 1"]
+            a["previews"] = n_a + n_b
+    if not rows:
+        return None
+    return {"games": games, "from": min(days), "to": max(days), "pokemon": rows}
+
+
+def usual_picks(summary: dict, species: list[str]) -> tuple[list[str], list[str]]:
+    """The four players bring most and the two they lead with most, among these Pokemon."""
+    rate = lambda s, k: summary["pokemon"].get(to_id(s), {}).get(k, 0.0)  # noqa: E731
+    bring = sorted(species, key=lambda s: -rate(s, "brought %"))[:4]
+    lead = sorted(bring, key=lambda s: -rate(s, "leads %"))[:2]
+    return bring, lead

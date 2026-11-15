@@ -41,6 +41,9 @@ jobs:
           FLAG=""; [ "$MODE" = "backfill" ] && FLAG="--backfill"
           MIN="${{ github.event.inputs.minutes || '50' }}"; SAMPLES="${{ github.event.inputs.samples || '0' }}"
           python scripts/fetch_replays.py $FLAG --minutes "$MIN" --samples "$SAMPLES"
+      - name: Summarize per-Pokémon replay stats for the app
+        run: python scripts/summarize_replays.py
+
       - name: Commit
         run: |
           git config user.name "github-actions[bot]"

@@ -288,15 +288,32 @@ predicts with both players rated equal, so win chances compare *teams*.
 `python -m src.ratings` and `python -m src.match_model` reproduce this; the
 monthly refresh retrains it.
 
-## Battle replays (next)
+## Battle replays
 
-`scripts/probe_replays.py` (run by hand from the Actions tab) checks how much
-Showdown replay data exists. The November 2026 probe found the 6,000-replay cap
-covered only the last ~4.5 days of Reg M-C doubles (about 1,300 public replays a day),
-77% with ladder ratings, each with team preview, every move and switch; the
-Bo3 format's replays also carry open team sheets. That's enough to learn what
-real players bring and lead, how games unfold, and eventually to drive
-simulations with realistic play.
+A daily GitHub Action (`scripts/fetch_replays.py`, **Fetch replays** workflow)
+downloads public Showdown replays for Reg M-C (ladder and Bo3) and parses each
+(`src/replay_parse.py`) into a compact record: team preview, the Pokémon
+brought, leads, Mega, every move used, turn-1 choices, faints, the winner and
+both ladder ratings; Bo3 games add open team sheets. Records live in
+`data/replays/<format>/<day>.jsonl.gz` (about 0.5 MB a day); a `backfill` run
+fetches older replays and resumes where it stopped. About 1,300 Reg M-C ladder
+replays are saved publicly each day.
+
+**Does the game plan predict what players do?** (`src/replays.check_game_plans`,
+first ~1,700 games). Overlap of predicted with real choices on the newest games:
+
+| | bring-4 | lead pair |
+|---|---|---|
+| learned bring / lead model (`src/bring_model.py`) | 70% | 41% |
+| players' usual picks (bring / lead rates) | 70% | 44% |
+| damage-calc game plan | 67% | 35% |
+| random | 66% | 32% |
+
+The calc-based plan barely beats random: real choices depend on more than
+damage. With this little data the learned model only ties players' usual picks,
+so the app shows those usual picks next to the calc plan ("What ladder players
+do"), and each Pokémon's Meta page shows its bring / lead / win rates and usual
+turn-1 moves. The monthly refresh retrains the bring model as replays pile up.
 
 ## Data
 
@@ -397,7 +414,10 @@ The tests check:
 │   ├── evaluate.py           hide-one-member evaluation on real tournament teams
 │   ├── validate.py           does the matchup score predict real match winners?
 │   ├── match_model.py        learned win-chance model from real matches
-│   └── ratings.py            leak-free Elo ratings for tournament players
+│   ├── ratings.py            leak-free Elo ratings for tournament players
+│   ├── replay_parse.py       Showdown battle log -> compact record
+│   ├── replays.py            replay stats; does the game plan match real choices?
+│   └── bring_model.py        learned bring-4 / lead model from replays
 ├── scripts/
 │   ├── export_dex.js         Showdown → data/dex
 │   ├── fetch_usage.py        Smogon → data/usage

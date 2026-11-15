@@ -43,6 +43,7 @@ class Plan:
     speed: list[dict] = field(default_factory=list)       # {pokemon, side, speed}
     speed_note: str = ""
     support_note: str = ""
+    usual: tuple | None = None   # (bring, lead, games) from replays, filled in by the UI
 
 
 def _tools(m: Member, dex: Dex, doubles: bool) -> list[str]:
