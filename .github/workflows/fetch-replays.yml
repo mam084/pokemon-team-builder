@@ -1,0 +1,51 @@
+name: Fetch replays
+
+# Daily: new public Showdown replays for Champions, parsed into compact records
+# (data/replays/<format>/<day>.jsonl.gz). Run by hand with "backfill" to fetch
+# older replays; each run stops before its time budget and resumes next time.
+on:
+  schedule:
+    - cron: "17 9 * * *"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "new or backfill"
+        default: "new"
+      minutes:
+        description: "time budget"
+        default: "50"
+      samples:
+        description: "raw logs to save per format (parser tests)"
+        default: "0"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fetch-replays-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 340
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install requests
+      - name: Fetch
+        run: |
+          MODE="${{ github.event.inputs.mode || 'new' }}"
+          FLAG=""; [ "$MODE" = "backfill" ] && FLAG="--backfill"
+          python scripts/fetch_replays.py $FLAG --minutes "${{ github.event.inputs.minutes || '50' }}" \
+            --samples "${{ github.event.inputs.samples || '0' }}"
+      - name: Commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/replays/
+          git diff --cached --quiet && exit 0
+          git commit -m "Replays: ${{ github.event.inputs.mode || 'new' }} ($(date -u +%Y-%m-%d))"
+          for i in 1 2 3; do git pull --rebase origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}" && break; sleep 10; done
