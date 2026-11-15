@@ -216,9 +216,16 @@ def swaps_section(team, dex, usage, fmt, threats: pd.DataFrame) -> None:
     same_role = st.toggle("Same role only", value=True, key="swap_same_role",
                           help="Swap a support for a support and an attacker for an attacker, and keep the "
                                "team's weather, terrain or Trick Room setter.")
+    view = st.segmented_control("Show", ["For each member", "Best swaps"], default="For each member",
+                                key="swap_view") or "For each member"
+    per_member = view == "For each member"
     with st.spinner("Trying swaps…"):
         swaps = suggest_swaps(team, dex, usage, swap_engine_for(fmt.id), focus=focus_name,
-                              pool=mode_pool(usage, mode), top_n=8, same_role=same_role)
+                              pool=mode_pool(usage, mode), top_n=8, same_role=same_role,
+                              per_member=2 if per_member else None)
+    if per_member:
+        member_alternatives(team, swaps, focus_name, same_role)
+        return
     if swaps.empty and same_role:
         st.info("No same-role swap helps here. Turn off **Same role only** to see swaps that change a "
                 "member's job.")
@@ -240,11 +247,47 @@ def swaps_section(team, dex, usage, fmt, threats: pd.DataFrame) -> None:
                 + f" · overall {row['overall']:+.2f} "
                 f"({row['overall change']:+.2f}){gain}"
             )
-            detail = row["set"]
-            if row["shared roles"]:
-                detail += f"  \nShared roles: {row['shared roles']}"
-            if row["key calc"]:
-                detail += f"  \n{row['key calc']}"
-            cols[0].caption(detail)
+            cols[0].caption(swap_detail(row))
             cols[1].button("Apply swap", key=f"swap_{i}_{row['swap in']}", width="stretch",
                            on_click=write_slot, args=(int(row["slot"]), row["_set"]))
+
+
+def swap_detail(row) -> str:
+    detail = row["set"]
+    if row["shared roles"]:
+        detail += f"  \nShared roles: {row['shared roles']}"
+    if row["key calc"]:
+        detail += f"  \n{row['key calc']}"
+    return detail
+
+
+def change_text(delta: float) -> str:
+    if abs(delta) < 0.02:
+        return "about the same"
+    return f"{delta:+.2f} {'better' if delta > 0 else 'worse'}"
+
+
+def member_alternatives(team, swaps: pd.DataFrame, focus_name: str | None, same_role: bool) -> None:
+    """The closest alternatives for every member, whether or not they improve the team."""
+    base = swaps.attrs.get("base_overall") if not swaps.empty else None
+    st.caption("Who else could fill each spot, with how the team's overall matchup would change"
+               + (f" (your team now: {base:+.2f}, {verdict(base)})." if base is not None else "."))
+    for slot, pset in enumerate(team):
+        rows = swaps[swaps["slot"] == slot] if not swaps.empty else swaps
+        with st.container(border=True):
+            job_txt = f" · {rows.iloc[0]['out job']}" if len(rows) else ""
+            st.markdown(f"**{pset.nickname or pset.species}**{job_txt}")
+            if rows.empty:
+                st.caption("No same-role alternative in the candidate pool. Turn off **Same role only** to "
+                           "see Pokémon that would change this spot's job." if same_role else
+                           "No alternative found in the candidate pool.")
+                continue
+            for i, row in rows.iterrows():
+                cols = st.columns([5, 2], vertical_alignment="center")
+                extra = f" · vs {focus_name} {row['vs threat']:+.1f}" if focus_name else ""
+                jobs = f" ({row['in job']})" if row["in job"] != row["out job"] else ""
+                cols[0].markdown(f"{row['pick']}: **{row['swap in']}**{jobs} · "
+                                 f"{change_text(row['overall change'])}{extra}")
+                cols[0].caption(swap_detail(row))
+                cols[1].button("Apply swap", key=f"alt_{slot}_{i}_{row['swap in']}", width="stretch",
+                               on_click=write_slot, args=(int(row["slot"]), row["_set"]))

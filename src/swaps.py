@@ -110,7 +110,12 @@ def _answer(members: list[Member], threat: Member, doubles: bool) -> tuple[float
 
 def suggest_swaps(team: list[PokemonSet], dex: Dex, usage: UsageData, engine: SwapEngine,
                   focus: str | None = None, pool: list[str] | None = None, top_n: int = 8,
-                  same_role: bool = False) -> pd.DataFrame:
+                  same_role: bool = False, per_member: int | None = None) -> pd.DataFrame:
+    """
+    With per_member=k, returns the k best alternatives for *every* member instead of
+    only swaps that improve the team: what else could do this Pokemon's job, and
+    how much better or worse the team would be with it.
+    """
     members = build_members(team, dex)
     # roles the team is actually built around (a Rain Dance nobody uses doesn't count)
     live_plans = {PLAN_ROLE[p.key] for p in team_plans(members, dex) if not p.needed and p.key in PLAN_ROLE}
@@ -157,20 +162,24 @@ def suggest_swaps(team: list[PokemonSet], dex: Dex, usage: UsageData, engine: Sw
                 continue
             new_members = rest_members[:i] + new_member + rest_members[i:]
             overall = engine.overall(rest[:i] + [pset] + rest[i:])
-            if overall < base_overall - MAX_OVERALL_LOSS:
+            if overall < base_overall - MAX_OVERALL_LOSS and not per_member:
                 continue
             focus_gain, key_calc = 0.0, ""
             if threat is not None:
                 new_focus, _ = _answer(new_members, threat, engine.doubles)
                 focus_gain = new_focus - base_focus
-                if focus_gain <= 0:
+                if focus_gain <= 0 and not per_member:
                     continue
                 pct, move = best_attack(new_member[0], threat, engine.doubles)
                 taken_pct, _ = best_attack(threat, new_member[0], engine.doubles)
                 key_calc = f"{move} {pct:.0f}% to {threat.label}; takes {taken_pct:.0f}%"
-            elif overall <= base_overall:
+            elif overall <= base_overall and not per_member:
                 continue
+            out_labels, in_labels = {t.label for t in out_tags}, {t.label for t in in_tags}
+            out_types = set(out_set.battle_form(dex).types)
+            similarity = len(out_labels & in_labels) + 0.5 * len(out_types & set(pset.battle_form(dex).types))
             rows.append({
+                "similarity": similarity,
                 "swap out": out_set.nickname or out_set.species,
                 "swap in": pset.species,
                 "out job": out_job,
@@ -190,8 +199,17 @@ def suggest_swaps(team: list[PokemonSet], dex: Dex, usage: UsageData, engine: Sw
         return df
     sort = ["vs threat", "overall change"] if threat is not None else ["overall change"]
     df = df.sort_values(sort, ascending=False)
-    # one suggestion per incoming Pokemon (its best slot), then the best few
-    df = df.drop_duplicates("swap in").head(top_n).reset_index(drop=True)
+    if per_member:
+        # per member: the best upgrade, then the most similar Pokemon (shared roles and types)
+        picks = []
+        for _, group in df.groupby("slot", sort=True):
+            best = group.iloc[[0]].assign(pick="Best upgrade")
+            rest = group.iloc[1:].sort_values(["similarity"] + sort, ascending=False)
+            picks += [best, rest.head(per_member - 1).assign(pick="Most similar")]
+        df = pd.concat(picks).reset_index(drop=True)
+    else:
+        # one suggestion per incoming Pokemon (its best slot), then the best few
+        df = df.drop_duplicates("swap in").head(top_n).reset_index(drop=True)
     df.attrs["base_overall"] = base_overall
     df.attrs["base_focus"] = base_focus
     return df
