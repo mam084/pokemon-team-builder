@@ -651,6 +651,23 @@ class TestPlanBuilderSwaps(unittest.TestCase):
         self.assertGreater(with_screens.loc["Garchomp"].sum(), without.loc["Garchomp"].sum() - 1e-9)
         self.assertGreaterEqual(team_score(with_screens), team_score(without))
 
+    def test_match_model_is_antisymmetric(self):
+        from src.match_model import load_model, matchup_features, predict_match, side_profile, team_side
+        from src.matchup import pair_parts
+        a_sets, _ = parse_paste(GARGANACL_TEAM, self.dex)
+        b_sets = [self.usage.popular_set(n, self.dex) for n in ("Incineroar", "Sneasler", "Kingambit",
+                                                                 "Rillaboom", "Sinistcha", "Garchomp")]
+        a, b = build_members(a_sets, self.dex), build_members(b_sets, self.dex)
+        fa, fb = matchup_features(pair_parts(a, b)), matchup_features(pair_parts(b, a))
+        for k in fa:
+            self.assertAlmostEqual(fa[k], -fb[k], places=9, msg=k)
+        self.assertIn("tool: Fake Out", side_profile(a))
+        model = load_model("regmc")
+        if model is not None:
+            sa = team_side(a, a_sets, self.dex, self.usage, None)
+            sb = team_side(b, b_sets, self.dex, self.usage, None)
+            self.assertAlmostEqual(predict_match(model, sa, sb) + predict_match(model, sb, sa), 1.0, places=9)
+
     def test_job(self):
         from src.roles import RoleTag, job, plan_roles
         tags = [RoleTag("Tailwind setter", 100), RoleTag("Disruptor", 100), RoleTag("Special attacker", 100)]

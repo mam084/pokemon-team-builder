@@ -7,6 +7,7 @@ import plotly.graph_objects as go
 import streamlit as st
 
 from src.dex import Dex, to_id
+from src.match_model import load_model
 from src.paste import export_paste
 from src.presets import presets_for
 from src.roles import meta_roles, role_text
@@ -32,7 +33,76 @@ def bar_section(title: str, data: dict, dex: Dex, kind: str, n: int = 8) -> None
     st.plotly_chart(fig, width="stretch")
 
 
-def meta_tab(dex: Dex, usage: UsageData | None, team_size: int) -> None:
+@st.cache_data(show_spinner=False)
+def _model(regulation: str) -> dict | None:
+    return load_model(regulation)
+
+
+def _effect_text(e: dict) -> str:
+    lo, hi = 25 * e["lo90"], 25 * e["hi90"]
+    if lo > 0 or hi < 0:
+        return f"**{e['points']:+.1f}** win-chance points (90% range {lo:+.1f} to {hi:+.1f})"
+    return (f"{e['points']:+.1f} win-chance points, not clearly different from zero "
+            f"(90% range {lo:+.1f} to {hi:+.1f})")
+
+
+def species_effect(name: str, dex: Dex, regulation: str) -> str:
+    model = _model(regulation)
+    species = dex.get_species(name)
+    if model is None or species is None:
+        return ""
+    e = next((e for e in model["effects"] if e["feature"] == f"species: {dex.sheet_id(species)}"), None)
+    if e is None:
+        return ""
+    return (f"**Real tournament results:** beyond what its calcs, Speed and support moves explain, teams with "
+            f"{species.name.split('-Mega')[0]} did {_effect_text(e)}.")
+
+
+RARE = 0.05  # a tool that differs between the two teams in under 5% of matches is too rare to judge
+
+
+def what_wins_section(regulation: str, dex: Dex) -> None:
+    model = _model(regulation)
+    if model is None:
+        return
+    st.subheader("What wins games")
+    st.caption(f"Learned from {model['matches']:,} real Limitless matches with both team lists. Each number is "
+               "the change in win chance (percentage points, near a 50/50 match) for one more Pokémon with that "
+               "tool than the opponent, with everything else held equal. These are patterns in real results, not "
+               "proof of cause: a tool can look good because strong players use it.")
+    effects = {e["feature"]: e for e in model["effects"]}
+    tools = sorted((e for f, e in effects.items() if f.startswith("tool: ")), key=lambda e: -e["points"])
+    def verdict(e):
+        if e.get("differs_in", 1) < RARE:
+            return "too rare to tell"
+        return "yes" if e["lo90"] > 0 or e["hi90"] < 0 else "no"
+
+    rows = [{"support tool": e["feature"][6:], "win chance (points)": e["points"],
+             "90% range": f"{25 * e['lo90']:+.1f} to {25 * e['hi90']:+.1f}",
+             "clear?": verdict(e)} for e in tools]
+    rows.sort(key=lambda r: (r["clear?"] == "too rare to tell", -r["win chance (points)"]))
+    st.dataframe(pd.DataFrame(rows), hide_index=True, width="stretch",
+                 column_config={"win chance (points)": st.column_config.NumberColumn(format="%+.1f")})
+    species = [e for f, e in effects.items() if f.startswith("species: ") and (e["lo90"] > 0 or e["hi90"] < 0)]
+    if species:
+        best = sorted(species, key=lambda e: -e["points"])[:6]
+        worst = sorted(species, key=lambda e: e["points"])[:6]
+        def name(sheet_id: str) -> str:
+            sp = dex.get_species(sheet_id)
+            return sp.name if sp else sheet_id
+
+        def item(e) -> str:
+            rare = "*" if e.get("differs_in", 1) < RARE else ""
+            return f"{name(e['feature'][9:])}{rare} ({e['points']:+.1f})"
+
+        fmt_list = lambda es: ", ".join(item(e) for e in es)  # noqa: E731
+        st.markdown(f"**Pokémon that win more than their calcs say:** {fmt_list(e for e in best if e['points'] > 0)}  \n"
+                    f"**...and less:** {fmt_list(e for e in worst if e['points'] < 0)}")
+        st.caption("Shown only where the 90% range excludes zero. A Mega counts as its base Pokémon. "
+                   "\\* on few teams (in under 5% of matches), so its number rests on a small sample.")
+
+
+def meta_tab(dex: Dex, usage: UsageData | None, team_size: int, regulation: str = "") -> None:
     if usage is None:
         st.info("No usage stats for this format yet. Run `python scripts/fetch_usage.py` "
                 "or wait for the monthly data refresh.")
@@ -55,6 +125,9 @@ def meta_tab(dex: Dex, usage: UsageData | None, team_size: int) -> None:
             head[1].markdown(f"### {name}\n{type_badges(species.types)} · {usage.usage(name):.1f}% usage",
                              unsafe_allow_html=True)
             st.markdown("**Usually plays:** " + role_text(meta_roles(name, usage, dex, st.session_state.get("doubles", True)), 6, True))
+            learned = species_effect(name, dex, regulation)
+            if learned:
+                st.caption(learned)
             if team_size < SLOTS:
                 head[1].button(f"Add {name} with its popular set", on_click=add_to_team,
                                args=(name, dex, usage))
@@ -90,3 +163,4 @@ def meta_tab(dex: Dex, usage: UsageData | None, team_size: int) -> None:
             st.markdown("**Checks & counters** (how often each KOs or forces it out)")
             st.dataframe(pd.DataFrame(list(counters.items()), columns=["Pokémon", "% KO / switch"]),
                          hide_index=True, width="stretch")
+    what_wins_section(regulation, dex)

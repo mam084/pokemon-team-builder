@@ -231,6 +231,56 @@ Split into fifths by score, the side the model favors most strongly won
   ladder spread (`usage.typical_spread`). Each side Mega Evolves its first stone.
 - `python -m src.validate` reproduces this; the monthly data refresh re-runs it.
 
+## A learned model of who wins
+
+Hand-weighting support made match predictions worse, so `src/match_model.py`
+learns what matters instead, from the same 12,168 real matches. Each match
+becomes a row of differences (player 1 minus player 2):
+
+- **matchup**: the damage-calc team score, bring-4 score, mean best damage each
+  way, OHKO / 2HKO counts, share of pairings won on Speed
+- **support tools**: how many Pokémon on each side carry Fake Out, Intimidate,
+  Tailwind, Trick Room, screens, redirection, Wide Guard, sleep, Encore, setup,
+  recovery, priority, weather, terrain and more
+- **context**: bulk, score against the meta, popularity, Trick Room on a slow team
+- **Pokémon**: which species each side has, so it can learn "X wins more than its
+  calcs say" (penalized much harder than the other features)
+
+An L2-regularized logistic regression is fitted on both orientations of every
+match (so swapping the players exactly flips the prediction). Its settings are
+chosen by forward-chaining cross-validation inside the older 8,383
+matches, and it's tested once on the newest 3,785
+(2026-11-09 to 2026-11-14):
+
+| model | picks the winner | log loss | AUC |
+|---|---|---|---|
+| learned model | 54.6% | 0.6881 | 0.557 |
+| learned, no per-Pokémon effects | 54.0% | 0.6892 | 0.552 |
+| damage-calc matchup score | 52.0% | 0.6915 | 0.531 |
+| more popular team | 51.1% | 0.6920 | 0.526 |
+| coin flip | 50.0% | 0.6931 | 0.500 |
+
+The log-loss gain over the damage-calc score is
++0.0013 to +0.0054 (95% paired bootstrap),
+so it's real. Calibration holds: in the fifth of test matches where it gave a side its best odds
+(56% predicted), that side won 60%. Gradient-boosted trees did no better
+than the logistic model, so the interpretable one ships.
+
+**What it learned** (win-chance points per extra Pokémon with the tool, 90% tournament-bootstrap range):
+
+- clearly positive: Wide Guard +1.3 (+0.5 to +2.0), Encore +1.0 (+0.2 to +1.8),
+  setup moves +0.8 (+0.5 to +1.1); the damage calcs, OHKOs, outspeeding and bulk all
+  count too
+- no clear effect: Reflect +0.3 (-0.3 to +0.9), Light Screen -0.3 (-0.9 to +0.3),
+  Intimidate +0.2 (-0.4 to +0.7), Tailwind -0.5 (-1.0 to +0.0)
+- negative: recovery -1.4 (-2.2 to -0.6), Trick Room on a slow team -2.0 (-3.2 to -1.0)
+
+These are associations in real results, not proof of cause (a tool can look good
+because strong players use it). The app shows win chances from this model on the
+Matchups tab, explains each one ("for you: Wide Guard +1..."), judges swaps by
+win chance, and lists what it learned under **What wins games** on the Meta tab.
+`python -m src.match_model` reproduces it; the monthly refresh retrains it.
+
 ## Data
 
 | What | Source | How it gets here |
@@ -328,7 +378,8 @@ The tests check:
 │   ├── gameplan.py           per-matchup game plan: bring, leads, threats, Speed order
 │   ├── cooccurrence.py       tournament team pairings as a second synergy source
 │   ├── evaluate.py           hide-one-member evaluation on real tournament teams
-│   └── validate.py           does the matchup score predict real match winners?
+│   ├── validate.py           does the matchup score predict real match winners?
+│   └── match_model.py        learned win-chance model from real matches
 ├── scripts/
 │   ├── export_dex.js         Showdown → data/dex
 │   ├── fetch_usage.py        Smogon → data/usage
@@ -353,5 +404,6 @@ The tests check:
 - [x] Evaluation on real tournament teams, with tuned weights and baselines
 - [x] Matchup score validated on real match results, shown as a calibrated win chance
 - [x] Game plans per matchup; tournament pairings in the synergy signal
+- [x] Learned win-chance model (support tools, Pokémon effects) from 12,000 real matches
 - [ ] Stage 5: learned embeddings (e.g. word2vec on tournament team lists) as an extra synergy signal, measured with the same evaluation
 - [x] Deploy to Streamlit Community Cloud

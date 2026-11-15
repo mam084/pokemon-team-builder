@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
@@ -15,6 +16,7 @@ from src.analysis import build_members, mega_variants
 from src.matchup import (best_attack, best_variant, build_archetypes, counter_picks, meta_matchups,
                          opponent_members, side_support, team_score, threat_report, verdict)
 from src.gameplan import game_plan
+from src.match_model import explain, load_model, predict_match, team_side
 from src.recommend import MODES
 from src.roles import meta_roles, role_text
 from src.swaps import HIDDEN_SKIP, SwapEngine, mode_pool, suggest_swaps
@@ -88,6 +90,36 @@ def match_check(regulation: str) -> dict | None:
     return json.loads(path.read_text()) if path.exists() else None
 
 
+@st.cache_resource(show_spinner=False)
+def learned_meta_sides(fmt_id: str):
+    """The learned model and each meta team's side of it (None when there's no model)."""
+    fmt = FORMATS[fmt_id]
+    model = load_model(fmt.regulation)
+    if model is None:
+        return None, []
+    dex, usage = load_dex(fmt.regulation), load_usage(fmt_id)
+    engine = swap_engine_for(fmt_id)
+    sides = []
+    for arch in archetypes_for(fmt_id):
+        sets = [p for p in (usage.popular_set(m, dex) for m in arch.members) if p is not None]
+        sides.append(team_side(opponent_members(arch.members, usage, dex), sets, dex, usage, engine))
+    return model, sides
+
+
+@st.cache_data(show_spinner=False, max_entries=64)
+def learned_chances(fmt_id: str, key: str) -> list[float]:
+    """Learned win chance against each meta team (best Mega choice per opponent)."""
+    model, sides = learned_meta_sides(fmt_id)
+    if model is None:
+        return []
+    fmt = FORMATS[fmt_id]
+    dex, usage = load_dex(fmt.regulation), load_usage(fmt_id)
+    team = _unkey(key)
+    engine = swap_engine_for(fmt_id)
+    mine = [team_side(members, team, dex, usage, engine) for _, members in mega_variants(team, dex)]
+    return [max(predict_match(model, m, theirs) for m in mine) for theirs in sides]
+
+
 def win_text(score: float, check: dict | None, model: str) -> str:
     """'about 47% to win', from how real tournament matches with this score went."""
     if not check or model not in check["models"]:
@@ -95,7 +127,32 @@ def win_text(score: float, check: dict | None, model: str) -> str:
     return f"about {win_chance(score, check['models'][model]['k']):.0%} to win"
 
 
-def reliability_box(check: dict | None) -> None:
+def reliability_box(check: dict | None, learned: dict | None = None) -> None:
+    if learned:
+        t = learned["test"]
+        cal = learned["calibration"]
+        with st.expander(f"How reliable are these win chances? Tested on {learned['test_matches']:,} real "
+                         "tournament matches"):
+            st.markdown(
+                f"Win chances come from a model **learned from {learned['matches']:,} real Limitless matches** "
+                "where both team lists are known. It combines the damage-calc matchup with Speed, bulk, each "
+                "side's support tools and which Pokémon each side has. It was fitted on older tournaments and "
+                f"tested on the newest {learned['test_matches']:,} matches ({learned['test_dates'][0]} to "
+                f"{learned['test_dates'][1]}), which it never saw.\n\n"
+                f"- It picks the winner **{t['learned model']['accuracy']:.1%}** of the time. The damage-calc "
+                f"score alone gets {t['matchup score only']['accuracy']:.1%}, the more popular team "
+                f"{t['popularity only']['accuracy']:.1%}, a coin flip 50%.\n"
+                f"- When it gave one side its best odds, that side won **{cal[-1]['actual']:.0%}**; "
+                f"its worst odds, **{cal[0]['actual']:.0%}**.\n\n"
+                "One game is mostly decided by play and luck, so treat these as a few percentage points of "
+                "edge, not a sure thing. See **What wins games** on the Meta tab for what the model learned."
+            )
+            st.dataframe(pd.DataFrame(cal).rename(columns={"predicted": "predicted win %",
+                                                           "actual": "actual win %"}),
+                         hide_index=True, width="stretch",
+                         column_config={c: st.column_config.NumberColumn(format="percent")
+                                        for c in ["predicted win %", "actual win %"]})
+        return
     if not check:
         return
     m = check["models"]
@@ -162,7 +219,10 @@ def matchups_tab(fmt_id, team, members, dex, usage, fmt) -> None:
         "damage. Tailwind and Trick Room setters aren't credited: on real match results, adding them made "
         "predictions worse. Fake Out, redirection, status, boosts and switching aren't modeled.\n"
         "- **Team score** is how well you answer them minus how well they answer you, so 0 is even. "
-        "With two Mega Stones, each matchup uses whichever Mega Evolves best.",
+        "With two Mega Stones, each matchup uses whichever Mega Evolves best.\n"
+        "- **Win chance** comes from a model learned on real tournament matches. It weighs the calcs above "
+        "together with Speed, bulk, each side's support tools (Wide Guard, Encore, Fake Out...) and which "
+        "Pokémon each side has, by how much each actually mattered in real results.",
         "How matchups are scored")
     if not members:
         st.info("Add Pokémon on the **Team** tab to see how you match up. The meta teams are listed below.")
@@ -176,17 +236,24 @@ def matchups_tab(fmt_id, team, members, dex, usage, fmt) -> None:
         c = st.container(key="metric_row").columns(4)
         c[0].metric("Overall", f"{overall:+.2f}", help="Usage-weighted average of the team scores below")
         check = match_check(fmt.regulation)
+        chances = learned_chances(fmt_id, team_key(team))
         c[1].metric("Favorable", int((table["score"] >= 0.25).sum()))
         c[2].metric("Even", int(((table["score"] > -0.25) & (table["score"] < 0.25)).sum()))
         c[3].metric("Unfavorable", int((table["score"] <= -0.25).sum()))
-        st.caption(f"Overall: {verdict(overall).lower()}"
-                   + (f", {win_text(overall, check, 'score vs the meta')} against a typical meta team." if check
-                      else "."))
-        # score next to the name, so it's visible without scrolling sideways on a phone
-        if check:
-            k = check["models"]["team vs team (all 6)"]["k"]
-            table.insert(2, "win chance", [round(100 * win_chance(x, k)) for x in table["score"]])
-        first = ["archetype", "score"] + (["win chance"] if check else []) + ["verdict"]
+        if chances:
+            avg = float(np.average(chances, weights=weights))
+            st.caption(f"Overall: {verdict(overall).lower()} on the calcs; about {avg:.0%} to win against a "
+                       "typical meta team, from the learned model.")
+            table.insert(2, "win chance", [round(100 * p) for p in chances])
+        else:
+            st.caption(f"Overall: {verdict(overall).lower()}"
+                       + (f", {win_text(overall, check, 'score vs the meta')} against a typical meta team."
+                          if check else "."))
+            # score next to the name, so it's visible without scrolling sideways on a phone
+            if check:
+                k = check["models"]["team vs team (all 6)"]["k"]
+                table.insert(2, "win chance", [round(100 * win_chance(x, k)) for x in table["score"]])
+        first = ["archetype", "score"] + (["win chance"] if "win chance" in table else []) + ["verdict"]
         table = table[first + [c for c in table.columns if c not in first]]
         st.dataframe(
             table, hide_index=True, width="stretch",
@@ -195,13 +262,13 @@ def matchups_tab(fmt_id, team, members, dex, usage, fmt) -> None:
                 "popularity": st.column_config.NumberColumn("avg usage %", format="%.1f"),
                 "score": st.column_config.NumberColumn("score", format="%+.2f"),
                 "win chance": st.column_config.NumberColumn("win chance", format="%d%%",
-                                                            help="How often teams with this score won real "
-                                                                 "tournament matches"),
+                                                            help="From a model learned on real tournament "
+                                                                 "matches (see How reliable...)"),
                 "with bring": st.column_config.NumberColumn(f"score with bring {fmt.pick}", format="%+.2f"),
             },
         )
 
-    reliability_box(match_check(fmt.regulation))
+    reliability_box(match_check(fmt.regulation), learned_meta_sides(fmt_id)[0])
 
     st.subheader("Matchup detail")
     names = [a.name for a in archetypes]
@@ -237,9 +304,24 @@ def matchups_tab(fmt_id, team, members, dex, usage, fmt) -> None:
                        "(the other plays in its base forme).")
         left, right = st.columns([3, 2])
         with left:
-            chance = win_text(score, match_check(fmt.regulation), "team vs team (all 6)")
+            model, sides = learned_meta_sides(fmt_id)
+            why = ""
+            if model is not None:
+                mine = team_side(members_now, team, dex, usage, swap_engine_for(fmt_id))
+                theirs_side = sides[names.index(pick)]
+                chance = f"about {predict_match(model, mine, theirs_side):.0%} to win"
+                pros, cons = explain(model, mine, theirs_side)
+                fmt_pts = lambda items: ", ".join(f"{g} {v:+.0f}" for g, v in items)  # noqa: E731
+                why = ("Win-chance points: " + "; ".join(
+                    x for x in [f"for you: {fmt_pts(pros)}" if pros else "",
+                                f"against you: {fmt_pts(cons)}" if cons else ""] if x) + ".") \
+                    if pros or cons else ""
+            else:
+                chance = win_text(score, match_check(fmt.regulation), "team vs team (all 6)")
             st.markdown(f"**Your team vs {pick}: {score:+.2f} ({verdict(score)}"
                         + (f", {chance}" if chance else "") + ")**")
+            if why:
+                st.caption(why)
             st.plotly_chart(pair_heatmap(matrix), width="stretch")
             st.caption("Blue = your Pokémon (row) wins that pairing, red = theirs (column) does.")
         with right:
@@ -343,7 +425,9 @@ def threats_section(fmt_id: str, team, members, dex, usage, doubles: bool) -> pd
 @st.cache_resource(show_spinner=False)
 def swap_engine_for(fmt_id: str) -> SwapEngine:
     fmt = FORMATS[fmt_id]
-    return SwapEngine(archetypes_for(fmt_id), load_usage(fmt_id), load_dex(fmt.regulation), fmt.is_doubles)
+    engine = SwapEngine(archetypes_for(fmt_id), load_usage(fmt_id), load_dex(fmt.regulation), fmt.is_doubles)
+    engine.attach_model(load_model(fmt.regulation))  # swaps judged on learned win chance when available
+    return engine
 
 
 def swaps_section(team, dex, usage, fmt, threats: pd.DataFrame) -> None:
@@ -358,9 +442,11 @@ def swaps_section(team, dex, usage, fmt, threats: pd.DataFrame) -> None:
                                 help=f"Hidden gems leaves out the {HIDDEN_SKIP} most-used Pokémon. Popular picks "
                                      "only uses the top 80.") or "neutral"
     how_it_works(
-        f"Candidates follow the **{MODES[mode]}** style. Each swap is scored "
-        "with the same damage calcs as above, using the newcomer's popular set (keeping Item Clause and at most "
-        "two Mega Stones). Swaps that lower your overall score by more than 0.05 are never shown.",
+        f"Candidates follow the **{MODES[mode]}** style. Each swap is judged by your team's **win chance against "
+        "the meta teams** from the learned model (damage calcs, Speed, bulk, support tools and Pokémon picks), "
+        "using the newcomer's popular set (keeping Item Clause and at most two Mega Stones). In Best swaps, a "
+        "swap that costs more than half a point of win chance is never shown. Each Pokémon is suggested as the "
+        "best upgrade for one member at most.",
         "How swaps are chosen")
     threat_names = list(threats["pokemon"].head(10)) if not threats.empty else []
     others = [n for n, _ in usage.ranked(60) if n not in threat_names]
@@ -389,8 +475,7 @@ def swaps_section(team, dex, usage, fmt, threats: pd.DataFrame) -> None:
                    "handles it about as well as one change can." if focus_name else
                    "No single swap improves the overall matchup.")
         return
-    base = swaps.attrs.get("base_overall", 0.0)
-    st.caption(f"Your team now: {base:+.2f} vs the meta ({verdict(base)}).")
+    st.caption(base_text(swaps))
     for i, row in swaps.iterrows():
         with st.container(border=True):
             cols = st.columns([5, 2])
@@ -398,8 +483,7 @@ def swaps_section(team, dex, usage, fmt, threats: pd.DataFrame) -> None:
             cols[0].markdown(
                 f"**{row['swap out']} → {row['swap in']}** · {row['out job']}"
                 + (f" → {row['in job']}" if row['in job'] != row['out job'] else "")
-                + f" · overall {row['overall']:+.2f} "
-                f"({row['overall change']:+.2f}){gain}"
+                + f" · {change_text(row)}{gain}"
             )
             cols[0].caption(swap_detail(row))
             cols[1].button("Apply swap", key=f"swap_{i}_{row['swap in']}", width="stretch",
@@ -415,17 +499,30 @@ def swap_detail(row) -> str:
     return detail
 
 
-def change_text(delta: float) -> str:
+def change_text(row) -> str:
+    """'+2.3 points of win chance' (learned model) or '+0.12 score' (calcs only)."""
+    win = row.get("win change")
+    if win is not None and not pd.isna(win):
+        if abs(win) < 0.2:
+            return "about the same win chance"
+        return f"{win:+.1f} points of win chance"
+    delta = row["overall change"]
     if abs(delta) < 0.02:
         return "about the same"
     return f"{delta:+.2f} {'better' if delta > 0 else 'worse'}"
 
 
+def base_text(swaps: pd.DataFrame) -> str:
+    win, base = swaps.attrs.get("base_win"), swaps.attrs.get("base_overall")
+    if win is not None:
+        return f"Your team now: about {win:.0%} to win against the meta teams."
+    return f"Your team now: {base:+.2f} vs the meta ({verdict(base)})." if base is not None else ""
+
+
 def member_alternatives(team, swaps: pd.DataFrame, focus_name: str | None, same_role: bool) -> None:
     """The closest alternatives for every member, whether or not they improve the team."""
-    base = swaps.attrs.get("base_overall") if not swaps.empty else None
-    st.caption("Who else could fill each spot, with how the team's overall matchup would change"
-               + (f" (your team now: {base:+.2f}, {verdict(base)})." if base is not None else "."))
+    st.caption("Who else could fill each spot, and how your win chance against the meta would change. "
+               + (base_text(swaps) if not swaps.empty else ""))
     for slot, pset in enumerate(team):
         rows = swaps[swaps["slot"] == slot] if not swaps.empty else swaps
         with st.container(border=True):
@@ -441,7 +538,7 @@ def member_alternatives(team, swaps: pd.DataFrame, focus_name: str | None, same_
                 extra = f" · vs {focus_name} {row['vs threat']:+.1f}" if focus_name else ""
                 jobs = f" ({row['in job']})" if row["in job"] != row["out job"] else ""
                 cols[0].markdown(f"{row['pick']}: **{row['swap in']}**{jobs} · "
-                                 f"{change_text(row['overall change'])}{extra}")
+                                 f"{change_text(row)}{extra}")
                 cols[0].caption(swap_detail(row))
                 cols[1].button("Apply swap", key=f"alt_{slot}_{i}_{row['swap in']}", width="stretch",
                                on_click=write_slot, args=(int(row["slot"]), row["_set"]))

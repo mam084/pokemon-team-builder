@@ -14,3 +14,4 @@ env/
 
 # Streamlit
 .streamlit/secrets.toml
+.cache/

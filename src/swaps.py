@@ -42,6 +42,7 @@ from src.team import MAX_MEGAS, PokemonSet
 from src.usage import UsageData
 
 MAX_OVERALL_LOSS = 0.05
+MAX_WIN_LOSS = 0.5  # win-chance points a threat fix may cost overall
 
 
 PLAN_ROLE = {"rain": "Rain setter", "sun": "Sun setter", "sand": "Sand setter", "snow": "Snow setter",
@@ -75,6 +76,34 @@ class SwapEngine:
         if key not in self._rows:
             self._rows[key] = [pair_parts([m], f.theirs, self.doubles, f.weather) for f in self.fields]
         return self._rows[key]
+
+    def attach_model(self, model: dict | None) -> None:
+        """Use the learned match model (src/match_model.py) for win chances vs the meta teams."""
+        from src.match_model import team_side
+        self.model = model
+        self.sides = [] if model is None else [
+            team_side(f.theirs, [m.pset for m in f.theirs if m.pset is not None], self.dex, self.usage, self)
+            for f in self.fields]
+
+    def win_chance(self, team: list[PokemonSet], meta: float | None = None) -> float | None:
+        """Usage-weighted learned win chance against the meta teams (best Mega per opponent)."""
+        if getattr(self, "model", None) is None or not team:
+            return None
+        from src.match_model import predict_match, team_side
+        versions = [members for _, members in mega_variants(team, self.dex)]
+        meta = self.overall(team) if meta is None else meta
+        mine = [(team_side(members, team, self.dex, self.usage, self, meta=meta), [self.rows(m) for m in members])
+                for members in versions]
+        total = weights = 0.0
+        for i, (f, theirs) in enumerate(zip(self.fields, self.sides)):
+            if not f.theirs:
+                continue
+            best = max(predict_match(self.model, side,
+                                     theirs, {k: np.vstack([r[i][k] for r in rows]) for k in rows[0][i]})
+                       for side, rows in mine)
+            total += best * f.weight
+            weights += f.weight
+        return total / weights if weights else None
 
     def overall(self, team: list[PokemonSet] | list[Member]) -> float:
         """Usage-weighted score vs the meta teams. Given PokemonSets, a team with two Mega
@@ -124,6 +153,7 @@ def suggest_swaps(team: list[PokemonSet], dex: Dex, usage: UsageData, engine: Sw
     if len(members) < 2:
         return pd.DataFrame()
     base_overall = engine.overall(team)
+    base_win = engine.win_chance(team, meta=base_overall)  # None without a learned model
     threat = None
     if focus:
         opp = opponent_members([focus], usage, dex)
@@ -163,8 +193,12 @@ def suggest_swaps(team: list[PokemonSet], dex: Dex, usage: UsageData, engine: Sw
             if not new_member:
                 continue
             new_members = rest_members[:i] + new_member + rest_members[i:]
-            overall = engine.overall(rest[:i] + [pset] + rest[i:])
-            if overall < base_overall - MAX_OVERALL_LOSS and not per_member:
+            new_team = rest[:i] + [pset] + rest[i:]
+            overall = engine.overall(new_team)
+            win = engine.win_chance(new_team, meta=overall) if base_win is not None else None
+            # judged on the learned win chance when there is one, else on the calc score
+            change = (win - base_win) * 100 if win is not None else overall - base_overall
+            if change < -(MAX_WIN_LOSS if win is not None else MAX_OVERALL_LOSS) and not per_member:
                 continue
             focus_gain, key_calc = 0.0, ""
             if threat is not None:
@@ -175,7 +209,7 @@ def suggest_swaps(team: list[PokemonSet], dex: Dex, usage: UsageData, engine: Sw
                 pct, move = best_attack(new_member[0], threat, engine.doubles)
                 taken_pct, _ = best_attack(threat, new_member[0], engine.doubles)
                 key_calc = f"{move} {pct:.0f}% to {threat.label}; takes {taken_pct:.0f}%"
-            elif overall <= base_overall and not per_member:
+            elif change <= 0 and not per_member:
                 continue
             out_labels, in_labels = {t.label for t in out_tags}, {t.label for t in in_tags}
             out_types = set(out_set.battle_form(dex).types)
@@ -191,6 +225,8 @@ def suggest_swaps(team: list[PokemonSet], dex: Dex, usage: UsageData, engine: Sw
                 "slot": i,
                 "overall": round(overall, 2),
                 "overall change": round(overall - base_overall, 2),
+                "win chance": round(win, 4) if win is not None else None,
+                "win change": round(change, 2) if win is not None else None,
                 "vs threat": round(focus_gain, 1) if threat is not None else None,
                 "key calc": key_calc,
                 "set": f"{pset.item or 'no item'} · {', '.join(pset.moves)}",
@@ -199,20 +235,34 @@ def suggest_swaps(team: list[PokemonSet], dex: Dex, usage: UsageData, engine: Sw
     df = pd.DataFrame(rows)
     if df.empty:
         return df
-    sort = ["vs threat", "overall change"] if threat is not None else ["overall change"]
+    main = "win change" if base_win is not None else "overall change"
+    sort = ["vs threat", main] if threat is not None else [main]
     df = df.sort_values(sort, ascending=False)
     if per_member:
         # per member: the best upgrade, then the most similar Pokemon (shared roles and types)
+        # A Pokemon that would improve any slot (one the model rates highly on its own) is
+        # suggested once, for the slot where it gains most - so every member gets its own idea.
+        groups = {slot: g for slot, g in df.groupby("slot", sort=True)}
+        order = sorted(groups, key=lambda slot: -groups[slot].iloc[0][sort[0]])
+        used, best_rows = set(), {}
+        for slot in order:
+            g = groups[slot]
+            fresh = g[~g["swap in"].isin(used)]
+            row = (fresh if not fresh.empty else g).iloc[[0]]
+            used.add(row["swap in"].iloc[0])
+            best_rows[slot] = row.assign(pick="Best upgrade")
         picks = []
-        for _, group in df.groupby("slot", sort=True):
-            best = group.iloc[[0]].assign(pick="Best upgrade")
-            rest = group.iloc[1:].sort_values(["similarity"] + sort, ascending=False)
+        for slot in sorted(groups):
+            best = best_rows[slot]
+            rest = groups[slot][groups[slot]["swap in"] != best["swap in"].iloc[0]]
+            rest = rest.sort_values(["similarity"] + sort, ascending=False)
             picks += [best, rest.head(per_member - 1).assign(pick="Most similar")]
         df = pd.concat(picks).reset_index(drop=True)
     else:
         # one suggestion per incoming Pokemon (its best slot), then the best few
         df = df.drop_duplicates("swap in").head(top_n).reset_index(drop=True)
     df.attrs["base_overall"] = base_overall
+    df.attrs["base_win"] = base_win
     df.attrs["base_focus"] = base_focus
     return df
 
