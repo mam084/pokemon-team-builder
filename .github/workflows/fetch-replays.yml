@@ -6,6 +6,9 @@ name: Fetch replays
 on:
   schedule:
     - cron: "17 9 * * *"
+  push:  # TEMPORARY: lets the pipeline branch test itself before the workflow is on main
+    branches: [replay-pipeline]
+    paths: [scripts/fetch_replays.py, src/replay_parse.py, .github/workflows/fetch-replays.yml]
   workflow_dispatch:
     inputs:
       mode:
@@ -39,8 +42,9 @@ jobs:
         run: |
           MODE="${{ github.event.inputs.mode || 'new' }}"
           FLAG=""; [ "$MODE" = "backfill" ] && FLAG="--backfill"
-          python scripts/fetch_replays.py $FLAG --minutes "${{ github.event.inputs.minutes || '50' }}" \
-            --samples "${{ github.event.inputs.samples || '0' }}"
+          MIN="${{ github.event.inputs.minutes || '50' }}"; SAMPLES="${{ github.event.inputs.samples || '0' }}"
+          if [ "${{ github.event_name }}" = "push" ]; then MIN=15; SAMPLES=4; fi
+          python scripts/fetch_replays.py $FLAG --minutes "$MIN" --samples "$SAMPLES"
       - name: Commit
         run: |
           git config user.name "github-actions[bot]"
