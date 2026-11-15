@@ -410,6 +410,9 @@ def calculate(att: Battler, dfn: Battler, move: dict, f: Field | None = None) ->
         notes.append(f"hits {multihit[0]}-{multihit[1]} times; shown per hit")
     if move.get("variablePower"):
         notes.append("power changes during battle; shown at base power")
+    if move["id"] == "saltcure":
+        extra = "1/4" if {"Water", "Steel"} & set(dfn.types) else "1/8"
+        notes.append(f"plus {extra} of max HP at the end of every turn (not in the % shown)")
     return DamageResult(rolls, hp, hits, notes)
 
 

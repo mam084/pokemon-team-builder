@@ -126,6 +126,21 @@ def learned_chances(fmt_id: str, key: str) -> list[float]:
     return [max(predict_match(model, m, theirs) for m in mine) for theirs in sides]
 
 
+FAVORED = 0.53  # a matchup counts as favorable at 53%+ to win (unfavorable at 47% or less)
+
+
+def chance_verdict(p: float) -> str:
+    if p >= 0.56:
+        return "Favorable"
+    if p >= FAVORED:
+        return "Slightly favorable"
+    if p > 1 - FAVORED:
+        return "Even"
+    if p > 0.44:
+        return "Slightly unfavorable"
+    return "Unfavorable"
+
+
 def win_text(score: float, check: dict | None, model: str) -> str:
     """'about 47% to win', from how real tournament matches with this score went."""
     if not check or model not in check["models"]:
@@ -251,18 +266,26 @@ def matchups_tab(fmt_id, team, members, dex, usage, fmt) -> None:
         weights = table["popularity"]
         overall = float((table["score"] * weights).sum() / weights.sum()) if len(table) else 0.0
         c = st.container(key="metric_row").columns(4)
-        c[0].metric("Overall", f"{overall:+.2f}", help="Usage-weighted average of the team scores below")
         check = match_check(fmt.regulation)
         chances = learned_chances(fmt_id, team_key(team))
-        c[1].metric("Favorable", int((table["score"] >= 0.25).sum()))
-        c[2].metric("Even", int(((table["score"] > -0.25) & (table["score"] < 0.25)).sum()))
-        c[3].metric("Unfavorable", int((table["score"] <= -0.25).sum()))
         if chances:
+            # one yardstick everywhere: the learned win chance (the calc score stays as a column)
             avg = float(np.average(chances, weights=weights))
-            st.caption(f"Overall: {verdict(overall).lower()} on the calcs; about {avg:.0%} to win against a "
-                       "typical meta team, from the learned model.")
+            c[0].metric("Win chance", f"{avg:.0%}", help="Usage-weighted average win chance against the meta "
+                                                         "teams below, from the learned model (equal players)")
+            c[1].metric("Favorable", sum(p >= FAVORED for p in chances), help=f"{FAVORED:.0%}+ to win")
+            c[2].metric("Even", sum(1 - FAVORED < p < FAVORED for p in chances))
+            c[3].metric("Unfavorable", sum(p <= 1 - FAVORED for p in chances), help=f"{1 - FAVORED:.0%} or less")
+            st.caption(f"About {avg:.0%} to win against a typical meta team ({chance_verdict(avg).lower()}). "
+                       f"On damage calcs alone: {overall:+.2f} ({verdict(overall).lower()}).")
             table.insert(2, "win chance", [round(100 * p) for p in chances])
+            table["verdict"] = [chance_verdict(p) for p in chances]
+            table = table.rename(columns={"score": "calc score"})
         else:
+            c[0].metric("Overall", f"{overall:+.2f}", help="Usage-weighted average of the team scores below")
+            c[1].metric("Favorable", int((table["score"] >= 0.25).sum()))
+            c[2].metric("Even", int(((table["score"] > -0.25) & (table["score"] < 0.25)).sum()))
+            c[3].metric("Unfavorable", int((table["score"] <= -0.25).sum()))
             st.caption(f"Overall: {verdict(overall).lower()}"
                        + (f", {win_text(overall, check, 'score vs the meta')} against a typical meta team."
                           if check else "."))
@@ -270,7 +293,8 @@ def matchups_tab(fmt_id, team, members, dex, usage, fmt) -> None:
             if check:
                 k = check["models"]["team vs team (all 6)"]["k"]
                 table.insert(2, "win chance", [round(100 * win_chance(x, k)) for x in table["score"]])
-        first = ["archetype", "score"] + (["win chance"] if "win chance" in table else []) + ["verdict"]
+        score_col = "calc score" if "calc score" in table else "score"
+        first = ["archetype"] + (["win chance"] if "win chance" in table else []) + ["verdict", score_col]
         table = table[first + [c for c in table.columns if c not in first]]
         st.dataframe(
             table, hide_index=True, width="stretch",
@@ -278,6 +302,8 @@ def matchups_tab(fmt_id, team, members, dex, usage, fmt) -> None:
                 "archetype": st.column_config.TextColumn("meta team", width="medium"),
                 "popularity": st.column_config.NumberColumn("avg usage %", format="%.1f"),
                 "score": st.column_config.NumberColumn("score", format="%+.2f"),
+                "calc score": st.column_config.NumberColumn("calc score", format="%+.2f",
+                                                            help="Damage calcs and Speed only (0 = even)"),
                 "win chance": st.column_config.NumberColumn("win chance", format="%d%%",
                                                             help="From a model learned on real tournament "
                                                                  "matches (see How reliable...)"),
@@ -326,7 +352,8 @@ def matchups_tab(fmt_id, team, members, dex, usage, fmt) -> None:
             if model is not None:
                 mine = team_side(members_now, team, dex, usage, swap_engine_for(fmt_id))
                 theirs_side = sides[names.index(pick)]
-                chance = f"about {predict_match(model, mine, theirs_side):.0%} to win"
+                p_win = predict_match(model, mine, theirs_side)
+                chance = f"about {p_win:.0%} to win, {chance_verdict(p_win).lower()}"
                 pros, cons = explain(model, mine, theirs_side)
                 fmt_pts = lambda items: ", ".join(f"{g} {v:+.0f}" for g, v in items)  # noqa: E731
                 why = ("Win-chance points: " + "; ".join(
@@ -335,8 +362,11 @@ def matchups_tab(fmt_id, team, members, dex, usage, fmt) -> None:
                     if pros or cons else ""
             else:
                 chance = win_text(score, match_check(fmt.regulation), "team vs team (all 6)")
-            st.markdown(f"**Your team vs {pick}: {score:+.2f} ({verdict(score)}"
-                        + (f", {chance}" if chance else "") + ")**")
+            if model is not None:
+                st.markdown(f"**Your team vs {pick}: {chance}** (calc score {score:+.2f})")
+            else:
+                st.markdown(f"**Your team vs {pick}: {score:+.2f} ({verdict(score)}"
+                            + (f", {chance}" if chance else "") + ")**")
             if why:
                 st.caption(why)
             st.plotly_chart(pair_heatmap(matrix), width="stretch")
@@ -362,6 +392,12 @@ def matchups_tab(fmt_id, team, members, dex, usage, fmt) -> None:
             label = {p.species: m.label for p, m in zip(team, members_now)}
             bring, lead = usual_picks(summary, [p.species for p in team])
             plan.usual = ([label.get(s, s) for s in bring], [label.get(s, s) for s in lead], summary["games"])
+            # their likely leads: what ladder players lead with (beats the calc guess on replays)
+            their_sets = [o.pset for o in theirs if o.pset is not None]
+            their_label = {p.species: o.label for p, o in zip(their_sets, [o for o in theirs if o.pset])}
+            _, their_lead = usual_picks(summary, [p.species for p in their_sets])
+            plan.their_leads = [their_label.get(s, s) for s in their_lead]
+            plan.their_leads_source = "replays"
         game_plan_box(plan, who if len(variants) > 1 else None)
 
     st.markdown(f"**Counter picks for {pick}**: meta Pokémon (popular sets) with the best average pairing "
@@ -396,7 +432,8 @@ def game_plan_box(plan, mega: str | None) -> None:
         lines = [f"**Bring:** {', '.join(plan.bring)}" + (f" (Mega Evolve {mega})" if mega else ""),
                  f"**Lead:** {' + '.join(plan.lead)}. {plan.lead_why}",
                  f"**In the back:** {', '.join(plan.back)}" if plan.back else "",
-                 f"**Expect them to lead:** {' + '.join(plan.their_leads)}",
+                 f"**Expect them to lead:** {' + '.join(plan.their_leads)}"
+                 + (" (their usual leads in ladder replays)" if plan.their_leads_source == "replays" else ""),
                  f"**Your strongest piece:** {plan.strongest} ({plan.strongest_why})" if plan.strongest else ""]
         st.markdown("  \n".join(line for line in lines if line))
         if plan.support_note:

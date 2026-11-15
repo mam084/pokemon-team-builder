@@ -44,6 +44,7 @@ class Plan:
     speed_note: str = ""
     support_note: str = ""
     usual: tuple | None = None   # (bring, lead, games) from replays, filled in by the UI
+    their_leads_source: str = "calcs"
 
 
 def _tools(m: Member, dex: Dex, doubles: bool) -> list[str]:
