@@ -18,6 +18,7 @@ from src.matchup import (best_attack, best_variant, build_archetypes, counter_pi
 from src.gameplan import game_plan
 from src.match_model import explain, load_model, predict_match, team_side
 from src.recommend import MODES
+from src.replays import load_summary, usual_picks
 from src.roles import meta_roles, role_text
 from src.swaps import HIDDEN_SKIP, SwapEngine, mode_pool, suggest_swaps
 from src.team import PokemonSet
@@ -88,6 +89,11 @@ def match_check(regulation: str) -> dict | None:
     """data/evaluation/<reg>_matches.json from src/validate.py, if it exists."""
     path = VALIDATION_DIR / f"{regulation}_matches.json"
     return json.loads(path.read_text()) if path.exists() else None
+
+
+@st.cache_data(show_spinner=False, ttl=3600)
+def replay_summary(fmt_id: str) -> dict | None:
+    return load_summary(fmt_id)
 
 
 @st.cache_resource(show_spinner=False)
@@ -351,6 +357,11 @@ def matchups_tab(fmt_id, team, members, dex, usage, fmt) -> None:
             st.dataframe(pd.DataFrame(answers), hide_index=True, width="stretch")
         plan = game_plan(members_now, theirs, matrix, picks, dex, doubles, arch.trick_room, arch.weather)
         plan.support_note = support_note(members_now, theirs, picks)
+        summary = replay_summary(fmt_id)
+        if summary:
+            label = {p.species: m.label for p, m in zip(team, members_now)}
+            bring, lead = usual_picks(summary, [p.species for p in team])
+            plan.usual = ([label.get(s, s) for s in bring], [label.get(s, s) for s in lead], summary["games"])
         game_plan_box(plan, who if len(variants) > 1 else None)
 
     st.markdown(f"**Counter picks for {pick}**: meta Pokémon (popular sets) with the best average pairing "
@@ -390,6 +401,13 @@ def game_plan_box(plan, mega: str | None) -> None:
         st.markdown("  \n".join(line for line in lines if line))
         if plan.support_note:
             st.caption(plan.support_note)
+        if plan.usual:
+            bring, lead, games = plan.usual
+            st.markdown(f"**What ladder players do:** with these Pokémon they most often bring {', '.join(bring)} "
+                        f"and lead {' + '.join(lead)}.")
+            st.caption(f"From {games:,} Showdown replays: how often each Pokémon is brought and leads when it's on "
+                       "team preview, against any opponent. The calc-based plan above beats picking at random only "
+                       "slightly; players' usual choices match real games a bit better.")
         if plan.watch_out:
             st.markdown("**Watch out for**  \n" + "  \n".join(
                 f"- **{w['pokemon']}**: {w['hit']}; {w['your best']}." for w in plan.watch_out))

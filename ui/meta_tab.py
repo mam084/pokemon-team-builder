@@ -8,6 +8,7 @@ import streamlit as st
 
 from src.dex import Dex, to_id
 from src.match_model import load_model
+from src.replays import load_summary
 from src.paste import export_paste
 from src.presets import presets_for
 from src.roles import meta_roles, role_text
@@ -61,6 +62,35 @@ def species_effect(name: str, dex: Dex, regulation: str) -> str:
 RARE = 0.05  # a tool that differs between the two teams in under 5% of matches is too rare to judge
 
 
+@st.cache_data(show_spinner=False, ttl=3600)
+def _summary(format_id: str) -> dict | None:
+    return load_summary(format_id)
+
+
+def replay_line(name: str, dex: Dex, format_id: str) -> str:
+    """'In 12,000 ladder replays: brought 64% of the time it's on team preview, ...'"""
+    summary = _summary(format_id) if format_id else None
+    species = dex.get_species(name)
+    if not summary or species is None:
+        return ""
+    base = species.battle_only[0] if species.battle_only else (
+        species.base_species if species.is_mega else species.name)
+    row = summary["pokemon"].get(to_id(base))
+    if row is None:
+        return ""
+    win = row.get("win % when brought")
+    parts = [f"brought **{row['brought %']:.0%}** of the time it's on team preview",
+             f"leads **{row['leads %']:.0%}**"]
+    if win is not None:
+        parts.append(f"wins **{win:.0%}** of games it's brought to")
+    if row.get("mega %"):
+        parts.append(f"Mega Evolves in {row['mega %']:.0%} of them")
+    text = f"**In {summary['games']:,} Showdown replays** ({summary['from']} to {summary['to']}): " + ", ".join(parts) + "."
+    if row.get("turn 1"):
+        text += f"  \nTurn 1: {row['turn 1']}."
+    return text
+
+
 def what_wins_section(regulation: str, dex: Dex) -> None:
     model = _model(regulation)
     if model is None:
@@ -110,7 +140,7 @@ def what_wins_section(regulation: str, dex: Dex) -> None:
                    "\\* on few teams (in under 5% of matches), so its number rests on a small sample.")
 
 
-def meta_tab(dex: Dex, usage: UsageData | None, team_size: int, regulation: str = "") -> None:
+def meta_tab(dex: Dex, usage: UsageData | None, team_size: int, regulation: str = "", format_id: str = "") -> None:
     if usage is None:
         st.info("No usage stats for this format yet. Run `python scripts/fetch_usage.py` "
                 "or wait for the monthly data refresh.")
@@ -136,6 +166,9 @@ def meta_tab(dex: Dex, usage: UsageData | None, team_size: int, regulation: str 
             learned = species_effect(name, dex, regulation)
             if learned:
                 st.caption(learned)
+            replay = replay_line(name, dex, format_id)
+            if replay:
+                st.markdown(replay)
             if team_size < SLOTS:
                 head[1].button(f"Add {name} with its popular set", on_click=add_to_team,
                                args=(name, dex, usage))

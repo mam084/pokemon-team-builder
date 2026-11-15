@@ -1,0 +1,486 @@
+{
+"format": "gen9championsvgc2026regmc",
+"games": 850,
+"games_1300_plus": 454,
+"first_day": "2026-11-15",
+"last_day": "2026-11-15",
+"pokemon": [
+{
+"pokemon": "Sneasler",
+"previews": 524,
+"brought %": 0.5553,
+"leads %": 0.3359,
+"win % when brought": 0.4467,
+"mega %": 0.0,
+"turn 1": "Close Combat 27%, Fake Out 27%, Dire Claw 14%"
+},
+{
+"pokemon": "Gholdengo",
+"previews": 485,
+"brought %": 0.6825,
+"leads %": 0.2825,
+"win % when brought": 0.5468,
+"mega %": 0.0,
+"turn 1": "Shadow Ball 41%, Nasty Plot 26%, Protect 14%"
+},
+{
+"pokemon": "Tyranitar",
+"previews": 481,
+"brought %": 0.8254,
+"leads %": 0.3534,
+"win % when brought": 0.534,
+"mega %": 0.4912,
+"turn 1": "Knock Off 44%, Protect 28%, Rock Slide 22%"
+},
+{
+"pokemon": "Salamence",
+"previews": 468,
+"brought %": 0.6368,
+"leads %": 0.3205,
+"win % when brought": 0.5336,
+"mega %": 0.6477,
+"turn 1": "Tailwind 33%, Hyper Voice 31%, Protect 24%"
+},
+{
+"pokemon": "Excadrill",
+"previews": 449,
+"brought %": 0.735,
+"leads %": 0.4566,
+"win % when brought": 0.5061,
+"mega %": 0.003,
+"turn 1": "Protect 33%, High Horsepower 30%, Swords Dance 21%"
+},
+{
+"pokemon": "Sinistcha",
+"previews": 445,
+"brought %": 0.3933,
+"leads %": 0.1101,
+"win % when brought": 0.56,
+"mega %": 0.0,
+"turn 1": "Matcha Gotcha 56%, Trick Room 28%, Protect 9%"
+},
+{
+"pokemon": "Primarina",
+"previews": 388,
+"brought %": 0.5515,
+"leads %": 0.3531,
+"win % when brought": 0.5467,
+"mega %": 0.0,
+"turn 1": "Moonblast 31%, Hyper Voice 28%, Dazzling Gleam 24%"
+},
+{
+"pokemon": "Pelipper",
+"previews": 367,
+"brought %": 0.861,
+"leads %": 0.5068,
+"win % when brought": 0.4968,
+"mega %": 0.0,
+"turn 1": "Hurricane 47%, Weather Ball 16%, Tailwind 12%"
+},
+{
+"pokemon": "Archaludon",
+"previews": 362,
+"brought %": 0.8425,
+"leads %": 0.2818,
+"win % when brought": 0.482,
+"mega %": 0.0,
+"turn 1": "Snarl 32%, Electro Shot 27%, Protect 17%"
+},
+{
+"pokemon": "Garchomp",
+"previews": 343,
+"brought %": 0.6297,
+"leads %": 0.4257,
+"win % when brought": 0.3935,
+"mega %": 0.0231,
+"turn 1": "Earthquake 47%, Dragon Claw 13%, Stomping Tantrum 13%"
+},
+{
+"pokemon": "Rillaboom",
+"previews": 329,
+"brought %": 0.6292,
+"leads %": 0.2644,
+"win % when brought": 0.4106,
+"mega %": 0.0,
+"turn 1": "Fake Out 63%, Wood Hammer 17%, Grassy Glide 12%"
+},
+{
+"pokemon": "Charizard",
+"previews": 294,
+"brought %": 0.7381,
+"leads %": 0.3503,
+"win % when brought": 0.3641,
+"mega %": 0.894,
+"turn 1": "Heat Wave 61%, Protect 15%, Weather Ball 13%"
+},
+{
+"pokemon": "Incineroar",
+"previews": 284,
+"brought %": 0.7007,
+"leads %": 0.3803,
+"win % when brought": 0.4824,
+"mega %": 0.0,
+"turn 1": "Fake Out 54%, Flare Blitz 16%, Parting Shot 15%"
+},
+{
+"pokemon": "Kingambit",
+"previews": 254,
+"brought %": 0.6496,
+"leads %": 0.3504,
+"win % when brought": 0.5212,
+"mega %": 0.0,
+"turn 1": "Kowtow Cleave 64%, Swords Dance 12%, Protect 11%"
+},
+{
+"pokemon": "Golisopod",
+"previews": 229,
+"brought %": 0.7249,
+"leads %": 0.262,
+"win % when brought": 0.5,
+"mega %": 0.9157,
+"turn 1": "Leech Life 54%, Sucker Punch 10%, Iron Head 10%"
+},
+{
+"pokemon": "Raichu",
+"previews": 217,
+"brought %": 0.424,
+"leads %": 0.3318,
+"win % when brought": 0.4022,
+"mega %": 0.7826,
+"turn 1": "Fake Out 49%, Zap Cannon 13%, Protect 10%"
+},
+{
+"pokemon": "Basculegion",
+"previews": 187,
+"brought %": 0.6524,
+"leads %": 0.139,
+"win % when brought": 0.4016,
+"mega %": 0.0,
+"turn 1": "Wave Crash 35%, Zen Headbutt 26%, Flip Turn 17%"
+},
+{
+"pokemon": "Indeedee-F",
+"previews": 185,
+"brought %": 0.7946,
+"leads %": 0.5027,
+"win % when brought": 0.4218,
+"mega %": 0.0,
+"turn 1": "Follow Me 45%, Trick Room 19%, Helping Hand 17%"
+},
+{
+"pokemon": "Basculegion-F",
+"previews": 163,
+"brought %": 0.816,
+"leads %": 0.5276,
+"win % when brought": 0.4662,
+"mega %": 0.0,
+"turn 1": "Muddy Water 62%, Protect 15%, Shadow Ball 13%"
+},
+{
+"pokemon": "Grimmsnarl",
+"previews": 161,
+"brought %": 0.4161,
+"leads %": 0.3416,
+"win % when brought": 0.5672,
+"mega %": 0.0,
+"turn 1": "Reflect 50%, Light Screen 28%, Fake Out 13%"
+},
+{
+"pokemon": "Whimsicott",
+"previews": 158,
+"brought %": 0.6392,
+"leads %": 0.481,
+"win % when brought": 0.4851,
+"mega %": 0.0,
+"turn 1": "Tailwind 44%, Moonblast 21%, Protect 15%"
+},
+{
+"pokemon": "Venusaur",
+"previews": 155,
+"brought %": 0.2968,
+"leads %": 0.0774,
+"win % when brought": 0.4348,
+"mega %": 0.0652,
+"turn 1": "Sleep Powder 50%, Protect 30%, Sludge Bomb 20%"
+},
+{
+"pokemon": "Staraptor",
+"previews": 155,
+"brought %": 0.6516,
+"leads %": 0.4452,
+"win % when brought": 0.5446,
+"mega %": 0.8119,
+"turn 1": "Tailwind 45%, Close Combat 33%, Protect 14%"
+},
+{
+"pokemon": "Farigiraf",
+"previews": 138,
+"brought %": 0.587,
+"leads %": 0.4275,
+"win % when brought": 0.5062,
+"mega %": 0.0,
+"turn 1": "Trick Room 65%, Psychic 7%, Protect 5%"
+},
+{
+"pokemon": "Floette-Eternal",
+"previews": 125,
+"brought %": 0.472,
+"leads %": 0.344,
+"win % when brought": 0.5085,
+"mega %": 0.0,
+"turn 1": "Calm Mind 40%, Dazzling Gleam 30%, Moonblast 25%"
+},
+{
+"pokemon": "Milotic",
+"previews": 122,
+"brought %": 0.6148,
+"leads %": 0.4344,
+"win % when brought": 0.4533,
+"mega %": 0.0,
+"turn 1": "Scald 30%, Ice Beam 30%, Coil 14%"
+},
+{
+"pokemon": "Glimmora",
+"previews": 90,
+"brought %": 0.7556,
+"leads %": 0.3222,
+"win % when brought": 0.4559,
+"mega %": 0.4706,
+"turn 1": "Sludge Bomb 27%, Power Gem 27%, Spiky Shield 18%"
+},
+{
+"pokemon": "Sylveon",
+"previews": 76,
+"brought %": 0.5132,
+"leads %": 0.2368,
+"win % when brought": 0.3846,
+"mega %": 0.0,
+"turn 1": "Hyper Voice 38%, Protect 31%, Detect 15%"
+},
+{
+"pokemon": "Volcarona",
+"previews": 74,
+"brought %": 0.5676,
+"leads %": 0.3378,
+"win % when brought": 0.4524,
+"mega %": 0.0,
+"turn 1": "Tailwind 25%, Quiver Dance 25%, Bug Buzz 15%"
+},
+{
+"pokemon": "Froslass",
+"previews": 73,
+"brought %": 0.4658,
+"leads %": 0.3014,
+"win % when brought": 0.6176,
+"mega %": 0.8529,
+"turn 1": "Aurora Veil 45%, Protect 20%, Blizzard 15%"
+},
+{
+"pokemon": "Delphox",
+"previews": 72,
+"brought %": 0.3611,
+"leads %": 0.2778,
+"win % when brought": 0.4615,
+"mega %": 0.6538,
+"turn 1": "Protect 22%, Nasty Plot 22%, Heat Wave 17%"
+},
+{
+"pokemon": "Indeedee",
+"previews": 72,
+"brought %": 0.4861,
+"leads %": 0.3056,
+"win % when brought": 0.5714,
+"mega %": 0.0,
+"turn 1": "Expanding Force 45%, Hyper Voice 10%, Imprison 10%"
+},
+{
+"pokemon": "Gardevoir",
+"previews": 60,
+"brought %": 0.5167,
+"leads %": 0.3833,
+"win % when brought": 0.4194,
+"mega %": 0.7742,
+"turn 1": "Protect 40%, Hyper Voice 30%, Expanding Force 15%"
+},
+{
+"pokemon": "Gengar",
+"previews": 59,
+"brought %": 0.6271,
+"leads %": 0.4237,
+"win % when brought": 0.5405,
+"mega %": 0.9189,
+"turn 1": "Perish Song 30%, Protect 20%, Shadow Ball 15%"
+},
+{
+"pokemon": "Metagross",
+"previews": 55,
+"brought %": 0.4727,
+"leads %": 0.2727,
+"win % when brought": 0.5,
+"mega %": 0.7692,
+"turn 1": "Psychic Fangs 42%, Body Press 17%, Protect 8%"
+},
+{
+"pokemon": "Armarouge",
+"previews": 54,
+"brought %": 0.5185,
+"leads %": 0.2593,
+"win % when brought": 0.4643,
+"mega %": 0.0,
+"turn 1": "Armor Cannon 31%, Expanding Force 31%, Trick Room 23%"
+},
+{
+"pokemon": "Dragonite",
+"previews": 54,
+"brought %": 0.7963,
+"leads %": 0.6111,
+"win % when brought": 0.6279,
+"mega %": 0.814,
+"turn 1": "Tailwind 36%, Dragon Pulse 24%, Heat Wave 12%"
+},
+{
+"pokemon": "Arcanine-Hisui",
+"previews": 50,
+"brought %": 0.54,
+"leads %": 0.22,
+"win % when brought": 0.4444,
+"mega %": 0.0,
+"turn 1": "Flare Blitz 75%, Head Smash 25%"
+},
+{
+"pokemon": "Clefable",
+"previews": 47,
+"brought %": 0.6596,
+"leads %": 0.2553,
+"win % when brought": 0.4194,
+"mega %": 0.0645,
+"turn 1": "Moonblast 30%, Protect 20%, Icy Wind 20%"
+},
+{
+"pokemon": "Politoed",
+"previews": 44,
+"brought %": 0.7045,
+"leads %": 0.1818,
+"win % when brought": 0.5161,
+"mega %": 0.0,
+"turn 1": "Weather Ball 50%, Protect 25%, Ice Beam 25%"
+},
+{
+"pokemon": "Torkoal",
+"previews": 43,
+"brought %": 0.6512,
+"leads %": 0.093,
+"win % when brought": 0.3571,
+"mega %": 0.0,
+"turn 1": "Protect 67%, Eruption 33%"
+},
+{
+"pokemon": "Kommo-o",
+"previews": 41,
+"brought %": 0.5854,
+"leads %": 0.3902,
+"win % when brought": 0.4583,
+"mega %": 0.0,
+"turn 1": "Protect 36%, Clanging Scales 27%, Clangorous Soul 27%"
+},
+{
+"pokemon": "Lucario",
+"previews": 37,
+"brought %": 0.5405,
+"leads %": 0.2162,
+"win % when brought": 0.45,
+"mega %": 0.0,
+"turn 1": "Detect 57%, Aura Sphere 29%, Flash Cannon 14%"
+},
+{
+"pokemon": "Swampert",
+"previews": 36,
+"brought %": 0.6111,
+"leads %": 0.3611,
+"win % when brought": 0.5909,
+"mega %": 0.6364,
+"turn 1": "Protect 38%, Earthquake 15%, Bulk Up 8%"
+},
+{
+"pokemon": "Blastoise",
+"previews": 36,
+"brought %": 0.6111,
+"leads %": 0.4722,
+"win % when brought": 0.6364,
+"mega %": 0.8182,
+"turn 1": "Water Spout 35%, Shell Smash 24%, Fake Out 12%"
+},
+{
+"pokemon": "Camerupt",
+"previews": 35,
+"brought %": 0.6,
+"leads %": 0.1143,
+"win % when brought": 0.3333,
+"mega %": 0.9524,
+"turn 1": "Heat Wave 67%, Protect 33%"
+},
+{
+"pokemon": "Sableye",
+"previews": 35,
+"brought %": 0.6286,
+"leads %": 0.5143,
+"win % when brought": 0.7273,
+"mega %": 0.0909,
+"turn 1": "Gravity 22%, Fake Out 22%, Foul Play 11%"
+},
+{
+"pokemon": "Sinistcha-Masterpiece",
+"previews": 35,
+"brought %": 0.6571,
+"leads %": 0.1714,
+"win % when brought": 0.4783,
+"mega %": 0.0,
+"turn 1": "Imprison 20%, Protect 20%, Trick Room 20%"
+},
+{
+"pokemon": "Annihilape",
+"previews": 32,
+"brought %": 0.8438,
+"leads %": 0.625,
+"win % when brought": 0.5926,
+"mega %": 0.0,
+"turn 1": "Rock Slide 20%, Rage Fist 15%, Ice Punch 15%"
+},
+{
+"pokemon": "Absol",
+"previews": 30,
+"brought %": 0.4,
+"leads %": 0.1667,
+"win % when brought": 0.3333,
+"mega %": 0.0,
+"turn 1": "Protect 40%, Shadow Claw 20%, Night Slash 20%"
+},
+{
+"pokemon": "Pyroar",
+"previews": 30,
+"brought %": 0.5333,
+"leads %": 0.3667,
+"win % when brought": 0.5,
+"mega %": 0.9375,
+"turn 1": "Heat Wave 33%, Protect 33%, Taunt 11%"
+},
+{
+"pokemon": "Baxcalibur",
+"previews": 30,
+"brought %": 0.7,
+"leads %": 0.2667,
+"win % when brought": 0.619,
+"mega %": 0.4286,
+"turn 1": "High Horsepower 43%, Glaive Rush 29%, Icicle Crash 14%"
+},
+{
+"pokemon": "Drampa",
+"previews": 30,
+"brought %": 0.4333,
+"leads %": 0.0667,
+"win % when brought": 0.4615,
+"mega %": 0.2308,
+"turn 1": "Protect 100%"
+}
+]
+}
