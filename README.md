@@ -302,21 +302,18 @@ both ladder ratings; Bo3 games add open team sheets. Records live in
 fetches older replays and resumes where it stopped. About 1,300 Reg M-C ladder
 replays are saved publicly each day.
 
-**Does the game plan predict what players do?** (`src/replays.check_game_plans`,
-first ~1,700 games). Overlap of predicted with real choices on the newest games:
+**Does the game plan predict what players do?** Overlap of predicted with real
+choices on the newest replays (rates and model fitted on older ones):
 
-| | bring-4 | lead pair |
-|---|---|---|
-| learned bring / lead model (`src/bring_model.py`) | 70% | 41% |
-| players' usual picks (bring / lead rates) | 70% | 44% |
-| damage-calc game plan | 67% | 35% |
-| random | 66% | 32% |
+<!-- generated:bring -->
+<!-- /generated:bring -->
 
-The calc-based plan barely beats random: real choices depend on more than
-damage. With this little data the learned model only ties players' usual picks,
-so the app shows those usual picks next to the calc plan ("What ladder players
-do"), and each Pokémon's Meta page shows its bring / lead / win rates and usual
-turn-1 moves. The monthly refresh retrains the bring model as replays pile up.
+The damage-calc plan barely beats random: real choices depend on more than
+damage. The learned bring model (`src/bring_model.py`) does best for the
+bring-4, so the game plan's **Bring** comes from it (whenever its latest test beats
+both baselines), with players' usual leads among those four; each Pokémon's Meta
+page shows its bring / lead / win rates and usual turn-1 moves. The monthly
+refresh retrains the model as replays pile up.
 
 ## Data
 
