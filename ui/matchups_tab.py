@@ -355,7 +355,12 @@ def matchups_tab(fmt_id, team, members, dex, usage, fmt) -> None:
         # the Mega choice follows the bring, so the Pokémon told to Mega Evolve is always brought.
         bring_model = bring_model_for(fmt.regulation)
         use_model = bool(bring_model) and fmt.pick == 4 and len(members) > 4
-        picker = (lambda ms, mx: bring_pick(bring_model, ms, theirs, mx, dex)[0]) if use_model else None
+        def mega_of(ms):
+            return next((m.label for m in ms if m.form.is_mega), None)
+
+        # the Mega always comes (who Mega Evolves is chosen by calcs); the model picks the rest
+        picker = (lambda ms, mx: bring_pick(bring_model, ms, theirs, mx, dex, keep=mega_of(ms))[0]) \
+            if use_model else None
         who, matrix, picks, picked = best_variant(variants, theirs, arch.trick_room, doubles, arch.weather,
                                                   fmt.pick, picker)
         members_now = next(ms for _, ms in variants if [m.label for m in ms] == list(matrix.index))
@@ -421,7 +426,7 @@ def matchups_tab(fmt_id, team, members, dex, usage, fmt) -> None:
             if bring_source == "replays":
                 r = bring_model["results"]["lead"]
                 if r["learned"][0] > r["usual picks"][0]:  # the model's own leads test best
-                    plan.lead = bring_pick(bring_model, members_now, theirs, matrix, dex)[1]
+                    plan.lead = bring_pick(bring_model, members_now, theirs, matrix, dex, keep=mega_of(members_now))[1]
                     if not set(plan.lead) <= set(plan_picks):
                         plan.lead = [x for x in plan.lead if x in plan_picks][:2]
                     plan.lead_why = "The pair a model of real players' choices leads with."

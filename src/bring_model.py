@@ -205,13 +205,22 @@ def load_model(regulation: str) -> dict | None:
     return json.loads(path.read_text()) if path.exists() else None
 
 
-def pick(model: dict, members: list[Member], theirs: list[Member], matrix, dex: Dex) -> tuple[list, list, list]:
-    """(bring 4, lead 2, P(brought) per member) for the app's game plan."""
+def pick(model: dict, members: list[Member], theirs: list[Member], matrix, dex: Dex,
+         keep: str | None = None) -> tuple[list, list, list]:
+    """(bring 4, lead 2, P(brought) per member) for the app's game plan. `keep`: a member
+    (the one Mega Evolving) that comes no matter what; the model fills the other spots.
+    The model rates both holders of two Mega Stones alike, so the app decides which Mega
+    by calcs (src.matchup.best_variant) and only asks the model for the rest."""
     m = model["model"]
     names = [x.pset.species if x.pset is not None else x.label for x in members]
     feats = member_features(members, theirs, names, m["rates"], dex, matrix)
     pb, pl = predict(m["bring"], feats), predict(m["lead"], feats)
     order = sorted(range(len(members)), key=lambda i: -pb[i])
+    if keep is not None and keep in [x.label for x in members]:
+        k = [x.label for x in members].index(keep)
+        order = [k] + [i for i in order if i != k]
+        order = order[:4]
+        order.sort(key=lambda i: -pb[i])
     bring = [members[i].label for i in order[:4]]
     lead = [members[i].label for i in sorted(order[:4], key=lambda i: -pl[i])[:2]]
     return bring, lead, [float(v) for v in pb]
