@@ -398,8 +398,10 @@ def best_variant(variants, theirs: list[Member], trick_room: bool, doubles: bool
             picks, picked = list(chosen), team_score(bring_matrix(matrix, rows))
         mega = next((m.label for m in members if m.form.is_mega), None)
         evolves = who if mega is not None and mega in picks else None
-        # a version whose Mega actually comes along beats one where it stays home
-        key = (evolves is not None, picked, team_score(matrix))
+        # a version whose Mega actually comes along beats one where it stays home; ties go to
+        # the better bring overall, then to the Mega that does best against their whole team
+        own = float(matrix.loc[mega].mean()) if mega is not None else 0.0
+        key = (evolves is not None, round(picked, 6), round(team_score(matrix), 6), own)
         if best is None or key > best[0]:
             best = (key, evolves, matrix, picks, picked)
     _, who, matrix, picks, picked = best

@@ -674,6 +674,24 @@ class TestPlanBuilderSwaps(unittest.TestCase):
         who, _, picks, _ = best_variant(variants, theirs, arch.trick_room, True, arch.weather, 4, neither)
         self.assertIsNone(who)
 
+    def test_bring_model_keeps_the_mega(self):
+        from src.analysis import mega_variants
+        from src.bring_model import load_model, pick
+        from src.matchup import opponent_members, pair_matrix
+        model = load_model("regmc")
+        if not model:
+            self.skipTest("no bring model")
+        team, _ = parse_paste(GARGANACL_TEAM, self.dex)
+        arch = build_archetypes(self.usage, self.dex, keep=1)[0]
+        theirs = opponent_members(arch.members, self.usage, self.dex)
+        _, members = mega_variants(team, self.dex)[0]
+        matrix = pair_matrix(members, theirs)
+        for m in members:  # whoever must come is in the four, and the leads come from the four
+            bring, lead, _ = pick(model, members, theirs, matrix, self.dex, keep=m.label)
+            self.assertIn(m.label, bring)
+            self.assertEqual(len(bring), 4)
+            self.assertTrue(set(lead) <= set(bring))
+
     def test_win_chance_fit(self):
         import numpy as np
         from src.validate import fit_logistic, win_chance
