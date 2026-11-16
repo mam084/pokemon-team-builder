@@ -231,7 +231,7 @@ if __name__ == "__main__":
     from src.usage import load_usage
     # a sample keeps the monthly retrain to minutes once there are 100k+ replays
     from src.formats import DEFAULT_FORMAT, FORMATS
-    report = train_and_report(load_dex(FORMATS[DEFAULT_FORMAT].regulation), load_usage(DEFAULT_FORMAT),
+    report = train_and_report(load_dex(FORMATS[DEFAULT_FORMAT].regulation), load_usage(DEFAULT_FORMAT, recent=False),
                               max_games=12000)
     out = EVAL_DIR / "regmc_bring_model.json"
     out.write_text(json.dumps(report, indent=1))

@@ -129,7 +129,7 @@ def calibration(x: np.ndarray, y: np.ndarray, k: float, bins: int = 5) -> list[d
 
 def validate(regulation: str = CURRENT.regulation, format_id: str = CURRENT.id,
              max_matches: int | None = None) -> dict:
-    dex, usage = load_dex(regulation), load_usage(format_id)
+    dex, usage = load_dex(regulation), load_usage(format_id, recent=False)  # past games: no later data
     rows = match_rows(regulation, dex, usage, max_matches=max_matches)
     if not rows:
         return {}

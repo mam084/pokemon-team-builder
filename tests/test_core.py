@@ -830,3 +830,24 @@ class TestNewPokemon(unittest.TestCase):
         row = recs[recs["pokemon"] == "Kingambit"].iloc[0]
         self.assertEqual(row["synergy"], 0.5)  # no evidence: neutral, not buried at 0
         self.assertIn("too new or rare", row["why"])
+
+
+class TestRecentUsage(unittest.TestCase):
+    def test_recent_usage_rescales_and_keeps_sets(self):
+        from src.formats import DEFAULT_FORMAT, FORMATS
+        dex = load_dex(FORMATS[DEFAULT_FORMAT].regulation)
+        monthly = load_usage(DEFAULT_FORMAT, recent=False)
+        raw = json.loads((Path(__file__).resolve().parent.parent / "data" / "usage" /
+                          f"{DEFAULT_FORMAT}.json").read_text())
+        u, plain = UsageData(raw), UsageData(json.loads(json.dumps(raw)))
+        share = {"garchomp": 0.5, "incineroar": 0.1}
+        u.apply_recent({"share": share, "teams": 1000, "first_day": "a", "last_day": "b", "min_rating": 1300}, dex)
+        sheet = u.team_sheet_usage(dex)
+        self.assertAlmostEqual(sheet["Garchomp"], 50.0, delta=0.1)  # Megas + base add up to the new share
+        self.assertAlmostEqual(sheet["Incineroar"], 10.0, delta=0.1)
+        self.assertEqual(u.ranked(1)[0][0].split("-")[0], "Garchomp")
+        # sets and the pairing math still come from the monthly stats
+        self.assertEqual(u.popular_set("Incineroar", dex).moves, monthly.popular_set("Incineroar", dex).moves)
+        self.assertAlmostEqual(u.pair_lift("Incineroar", "Rillaboom")[0], plain.pair_lift("Incineroar", "Rillaboom")[0],
+                               places=6)
+        self.assertEqual(u.recent["teams"], 1000)

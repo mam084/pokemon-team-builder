@@ -146,7 +146,15 @@ def meta_tab(dex: Dex, usage: UsageData | None, team_size: int, regulation: str 
                 "or wait for the monthly data refresh.")
         return
     info = usage.info
-    st.caption(f"Smogon ladder stats for {info['month']}: {info['battles']:,} battles, players rated {info['cutoff']}+.")
+    if usage.recent:
+        r = usage.recent
+        from src.replays import day_range
+        st.caption(f"Usage: {r['teams']:,} teams from ladder and Bo3 replays, {day_range(r['first_day'], r['last_day'])}, "
+                   f"players rated {r['min_rating']}+ (updated twice a day). Sets, items and spreads: Smogon "
+                   f"ladder stats for {info['month']} ({info['battles']:,} battles rated {info['cutoff']}+).")
+    else:
+        st.caption(f"Smogon ladder stats for {info['month']}: {info['battles']:,} battles, players rated "
+                   f"{info['cutoff']}+.")
     left, right = st.columns([2, 3])
     with left:
         board = pd.DataFrame(usage.ranked(60), columns=["Pokémon", "usage %"])

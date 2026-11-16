@@ -98,7 +98,13 @@ def sidebar() -> tuple[str, Dex, UsageData | None]:
         st.caption(f"{fmt.active} · bring 6, pick {fmt.pick} · Level 50 · 66 Stat Points")
         if usage:
             info = usage.info
-            st.caption(f"Usage: Smogon {info['month']}, {info['battles']:,} battles rated {info['cutoff']}+")
+            if usage.recent:
+                r = usage.recent
+                from src.replays import day_range
+                st.caption(f"Usage: replays {day_range(r['first_day'], r['last_day'])} ({r['teams']:,} teams "
+                           f"rated {r['min_rating']}+); sets: Smogon {info['month']}")
+            else:
+                st.caption(f"Usage: Smogon {info['month']}, {info['battles']:,} battles rated {info['cutoff']}+")
         else:
             st.caption("No usage stats for this format yet - recommendations use type and role fit only.")
         st.toggle("Auto-fill popular sets", value=True, key="autofill",

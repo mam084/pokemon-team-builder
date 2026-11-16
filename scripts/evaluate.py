@@ -32,7 +32,7 @@ def main() -> int:
     args = parser.parse_args()
 
     fmt = FORMATS[args.format]
-    dex, usage = load_dex(fmt.regulation), load_usage(fmt.id)
+    dex, usage = load_dex(fmt.regulation), load_usage(fmt.id, recent=False)  # tests past periods: no later data
     if usage is None:
         print("No usage data for this format.")
         return 1

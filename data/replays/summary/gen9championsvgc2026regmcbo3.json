@@ -1383,15 +1383,6 @@
 "turn 1": "Fake Out 66%, Sunny Day 6%, Protect 4%"
 },
 {
-"pokemon": "Serperior",
-"previews": 140,
-"brought %": 0.5857,
-"leads %": 0.2286,
-"win % when brought": 0.4024,
-"mega %": 0.0,
-"turn 1": "Leaf Storm 52%, Protect 22%, Glare 15%"
-},
-{
 "pokemon": "Skeledirge",
 "previews": 140,
 "brought %": 0.65,
@@ -1399,6 +1390,15 @@
 "win % when brought": 0.3736,
 "mega %": 0.0,
 "turn 1": "Torch Song 75%, Protect 14%, Yawn 6%"
+},
+{
+"pokemon": "Serperior",
+"previews": 140,
+"brought %": 0.5857,
+"leads %": 0.2286,
+"win % when brought": 0.4024,
+"mega %": 0.0,
+"turn 1": "Leaf Storm 52%, Protect 22%, Glare 15%"
 },
 {
 "pokemon": "Toxicroak",

@@ -171,7 +171,7 @@ def build_dataset(regulation: str = CURRENT.regulation, format_id: str = CURRENT
     matches_path = TOURNAMENT_DIR / f"{regulation}_matches.json"
     if cache and path.exists() and path.stat().st_mtime > matches_path.stat().st_mtime:
         return pd.read_pickle(path)
-    dex, usage = load_dex(regulation), load_usage(format_id)
+    dex, usage = load_dex(regulation), load_usage(format_id, recent=False)  # past games: no later data
     teams = {(t["tournament"], t["player"]): t for t in load_tournament_teams(regulation, dex, usage=usage)}
     matches = json.loads(matches_path.read_text())["matches"]
     used = {(m["tournament"], p) for m in matches for p in (m["p1"], m["p2"])}
