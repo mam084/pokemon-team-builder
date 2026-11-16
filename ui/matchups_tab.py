@@ -22,7 +22,7 @@ from src.match_model import explain, load_model, predict_match, team_side
 from src.recommend import MODES
 from src.replays import load_summary, usual_picks
 from src.roles import meta_roles, role_text
-from src.swaps import HIDDEN_SKIP, SwapEngine, mode_pool, suggest_swaps
+from src.swaps import HIDDEN_MAX, SwapEngine, mode_pool, suggest_swaps
 from src.team import PokemonSet
 from src.usage import load_usage
 from src.validate import win_chance
@@ -533,7 +533,7 @@ def swaps_section(team, dex, usage, fmt, threats: pd.DataFrame) -> None:
     if st.session_state.get("swap_mode") not in MODES:  # start from the Recommendations tab's style
         st.session_state["swap_mode"] = st.session_state.get("rec_mode", "neutral")
     mode = st.segmented_control("Candidates", list(MODES), format_func=MODES.get, key="swap_mode",
-                                help=f"Hidden gems leaves out the {HIDDEN_SKIP} most-used Pokémon. Popular picks "
+                                help=f"Hidden gems only offers Pokémon on fewer than {HIDDEN_MAX:.0f}% of ladder teams. Popular picks "
                                      "only uses the top 80.") or "neutral"
     how_it_works(
         f"Candidates follow the **{MODES[mode]}** style. Each swap is judged by your team's **win chance against "
