@@ -350,11 +350,17 @@ def matchups_tab(fmt_id, team, members, dex, usage, fmt) -> None:
 
     if members:
         variants = mega_variants(team, dex)
+        # The bring-4 comes from the replay-learned model when it predicts real choices better
+        # than both the calcs and players' usual picks (data/evaluation/<reg>_bring_model.json);
+        # the Mega choice follows the bring, so the Pokémon told to Mega Evolve is always brought.
+        bring_model = bring_model_for(fmt.regulation)
+        use_model = bool(bring_model) and fmt.pick == 4 and len(members) > 4
+        picker = (lambda ms, mx: bring_pick(bring_model, ms, theirs, mx, dex)[0]) if use_model else None
         who, matrix, picks, picked = best_variant(variants, theirs, arch.trick_room, doubles, arch.weather,
-                                                  fmt.pick)
-        members_now = next(ms for w, ms in variants if w == who)
+                                                  fmt.pick, picker)
+        members_now = next(ms for _, ms in variants if [m.label for m in ms] == list(matrix.index))
         score = team_score(matrix)
-        if len(variants) > 1:
+        if len(variants) > 1 and who:
             st.caption(f"You carry {len(variants)} Mega Stones; against this team, **Mega Evolve {who}** "
                        "(the other plays in its base forme).")
         left, right = st.columns([3, 2])
@@ -397,13 +403,7 @@ def matchups_tab(fmt_id, team, members, dex, usage, fmt) -> None:
                     "key calc": f"{move} {pct:.0f}%" if col.max() >= 0.5 and move else "—",
                 })
             st.dataframe(pd.DataFrame(answers), hide_index=True, width="stretch")
-        # The bring-4 comes from the replay-learned model when it predicts real choices better
-        # than both the calcs and players' usual picks (data/evaluation/<reg>_bring_model.json).
-        plan_picks, bring_source = picks, "calcs"
-        bring_model = bring_model_for(fmt.regulation)
-        if bring_model and fmt.pick == 4 and len(members_now) > 4:
-            plan_picks = bring_pick(bring_model, members_now, theirs, matrix, dex)[0]
-            bring_source = "replays"
+        plan_picks, bring_source = picks, ("replays" if use_model else "calcs")
         plan = game_plan(members_now, theirs, matrix, plan_picks, dex, doubles, arch.trick_room, arch.weather)
         plan.bring_source = bring_source
         plan.support_note = support_note(members_now, theirs, plan_picks)
@@ -419,13 +419,19 @@ def matchups_tab(fmt_id, team, members, dex, usage, fmt) -> None:
             plan.their_leads = [their_label.get(s, s) for s in their_lead]
             plan.their_leads_source = "replays"
             if bring_source == "replays":
-                # leads: players' usual leads among the four (they predict real leads best)
-                _, lead_species = usual_picks(summary, [p.species for p, m in zip(team, members_now)
-                                                        if m.label in plan_picks])
-                plan.lead = [label.get(s, s) for s in lead_species]
+                r = bring_model["results"]["lead"]
+                if r["learned"][0] > r["usual picks"][0]:  # the model's own leads test best
+                    plan.lead = bring_pick(bring_model, members_now, theirs, matrix, dex)[1]
+                    if not set(plan.lead) <= set(plan_picks):
+                        plan.lead = [x for x in plan.lead if x in plan_picks][:2]
+                    plan.lead_why = "The pair a model of real players' choices leads with."
+                else:  # players' usual leads among the four
+                    _, lead_species = usual_picks(summary, [p.species for p, m in zip(team, members_now)
+                                                            if m.label in plan_picks])
+                    plan.lead = [label.get(s, s) for s in lead_species]
+                    plan.lead_why = "The pair ladder players lead with most often among these four."
                 plan.back = [b for b in plan.bring if b not in plan.lead]
-                plan.lead_why = "The pair ladder players lead with most often among these four."
-        game_plan_box(plan, who if len(variants) > 1 else None)
+        game_plan_box(plan, who if len(variants) > 1 else None)  # who is None unless brought
 
     st.markdown(f"**Counter picks for {pick}**: meta Pokémon (popular sets) with the best average pairing "
                 "against this team" + (", not counting your current team." if team else "."))

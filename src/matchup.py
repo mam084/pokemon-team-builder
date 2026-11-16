@@ -377,12 +377,14 @@ def verdict(score: float) -> str:
 # Team vs meta
 # --------------------------------------------------------------------------
 def best_variant(variants, theirs: list[Member], trick_room: bool, doubles: bool, weather: str | None,
-                 bring: int) -> tuple[str | None, pd.DataFrame, list[str], float]:
+                 bring: int, picker=None) -> tuple[str | None, pd.DataFrame, list[str], float]:
     """
     For a team with several Mega Stones, which one to Mega Evolve against this
     opponent: the version with the best bring-N score. `variants` is the output
     of analysis.mega_variants (or a plain member list, treated as one version).
-    Returns (who evolves, pair matrix, bring picks, bring score).
+    `picker(members, matrix)` can choose the bring instead of the calcs (None = calcs).
+    Returns (who evolves, pair matrix, bring picks, bring score); who is None when no
+    Mega Stone holder is in the bring - you can't Mega Evolve a Pokémon you didn't bring.
     """
     if variants and isinstance(variants[0], Member):
         variants = [(next((m.form.name for m in variants if m.form.is_mega), None), variants)]
@@ -390,9 +392,16 @@ def best_variant(variants, theirs: list[Member], trick_room: bool, doubles: bool
     for who, members in variants:
         matrix = pair_matrix(members, theirs, trick_room, doubles, weather)
         picks, picked = best_bring(matrix, bring)
-        key = (picked, team_score(matrix))
+        chosen = picker(members, matrix) if picker else None
+        if chosen:
+            rows = [list(matrix.index).index(x) for x in chosen]
+            picks, picked = list(chosen), team_score(bring_matrix(matrix, rows))
+        mega = next((m.label for m in members if m.form.is_mega), None)
+        evolves = who if mega is not None and mega in picks else None
+        # a version whose Mega actually comes along beats one where it stays home
+        key = (evolves is not None, picked, team_score(matrix))
         if best is None or key > best[0]:
-            best = (key, who, matrix, picks, picked)
+            best = (key, evolves, matrix, picks, picked)
     _, who, matrix, picks, picked = best
     return who, matrix, picks, picked
 

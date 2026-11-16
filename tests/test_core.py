@@ -646,6 +646,34 @@ class TestPlanBuilderSwaps(unittest.TestCase):
         self.assertEqual(len(plan.their_leads), 2)
         self.assertEqual(len(plan.speed), len(picks) + len(theirs))
 
+    def test_mega_choice_follows_the_bring(self):
+        from dataclasses import replace
+        from src.analysis import mega_variants
+        from src.matchup import best_variant, opponent_members
+        team, _ = parse_paste(GARGANACL_TEAM, self.dex)
+        team = [p if p.species != "Rillaboom" else replace(p, species="Charizard", item="Charizardite Y",
+                                                             ability="Blaze") for p in team]
+        variants = mega_variants(team, self.dex)
+        self.assertEqual(len(variants), 2)
+        arch = build_archetypes(self.usage, self.dex, keep=1)[0]
+        theirs = opponent_members(arch.members, self.usage, self.dex)
+
+        def no_chomp(members, matrix):  # a bring that leaves Garchomp at home
+            return [m.label for m in members if not m.label.startswith("Garchomp")][:4]
+
+        who, matrix, picks, _ = best_variant(variants, theirs, arch.trick_room, True, arch.weather, 4, no_chomp)
+        self.assertFalse(any(p.startswith("Garchomp") for p in picks))
+        self.assertNotEqual(who, "Garchomp-Mega-Z")  # never Mega Evolve a Pokémon left at home
+        if who:
+            self.assertIn(who, picks)
+
+        def neither(members, matrix):
+            return [m.label for m in members if not m.form.is_mega and not m.label.startswith(("Garchomp",
+                                                                                                "Charizard"))][:4]
+
+        who, _, picks, _ = best_variant(variants, theirs, arch.trick_room, True, arch.weather, 4, neither)
+        self.assertIsNone(who)
+
     def test_win_chance_fit(self):
         import numpy as np
         from src.validate import fit_logistic, win_chance
