@@ -36,7 +36,7 @@ from src.dex import Dex, to_id
 from src.plan import team_plans
 from src.matchup import (Archetype, Support, _set_key, best_attack, opponent_members, pair_parts, pair_score,
                          scores_from_parts, side_support)
-from src.recommend import _root
+from src.recommend import HIDDEN_MAX, _root
 from src.roles import job, plan_roles, set_roles
 from src.team import MAX_MEGAS, PokemonSet
 from src.usage import UsageData
@@ -267,7 +267,6 @@ def suggest_swaps(team: list[PokemonSet], dex: Dex, usage: UsageData, engine: Sw
     return df
 
 
-HIDDEN_MAX = 5.0  # Hidden gems only offers Pokémon on fewer than this % of ladder teams
 
 
 def mode_pool(usage: UsageData, mode: str, dex: Dex | None = None) -> list[str]:
