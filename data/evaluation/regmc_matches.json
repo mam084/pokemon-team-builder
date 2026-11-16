@@ -9,53 +9,53 @@
  ],
  "models": {
   "team vs team (bring 4)": {
-   "k": 0.1256,
-   "accuracy": 0.5242,
+   "k": 0.1249,
+   "accuracy": 0.5249,
    "log_loss": 0.6915,
    "brier": 0.2492,
    "calibration": [
     {
      "score": -1.49,
-     "predicted": 0.453,
-     "actual": 0.496,
+     "predicted": 0.454,
+     "actual": 0.497,
      "matches": 782
     },
     {
      "score": -0.55,
      "predicted": 0.483,
-     "actual": 0.489,
+     "actual": 0.485,
      "matches": 781
     },
     {
      "score": 0.01,
      "predicted": 0.5,
-     "actual": 0.515,
+     "actual": 0.52,
      "matches": 781
     },
     {
-     "score": 0.6,
-     "predicted": 0.519,
-     "actual": 0.528,
+     "score": 0.59,
+     "predicted": 0.518,
+     "actual": 0.522,
      "matches": 781
     },
     {
      "score": 1.52,
      "predicted": 0.547,
-     "actual": 0.557,
+     "actual": 0.56,
      "matches": 781
     }
    ]
   },
   "team vs team (all 6)": {
-   "k": 0.25,
-   "accuracy": 0.5236,
+   "k": 0.2495,
+   "accuracy": 0.5242,
    "log_loss": 0.6912,
    "brier": 0.249,
    "calibration": [
     {
      "score": -0.74,
      "predicted": 0.454,
-     "actual": 0.488,
+     "actual": 0.49,
      "matches": 782
     },
     {
@@ -73,20 +73,20 @@
     {
      "score": 0.29,
      "predicted": 0.518,
-     "actual": 0.536,
+     "actual": 0.534,
      "matches": 781
     },
     {
      "score": 0.75,
-     "predicted": 0.547,
-     "actual": 0.565,
+     "predicted": 0.546,
+     "actual": 0.566,
      "matches": 781
     }
    ]
   },
   "score vs the meta": {
    "k": 0.2409,
-   "accuracy": 0.5178,
+   "accuracy": 0.5181,
    "log_loss": 0.6922,
    "brier": 0.2495,
    "calibration": [
@@ -99,7 +99,7 @@
     {
      "score": -0.23,
      "predicted": 0.486,
-     "actual": 0.52,
+     "actual": 0.519,
      "matches": 781
     },
     {
@@ -111,7 +111,7 @@
     {
      "score": 0.24,
      "predicted": 0.515,
-     "actual": 0.526,
+     "actual": 0.528,
      "matches": 781
     },
     {

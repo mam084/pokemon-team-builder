@@ -152,8 +152,8 @@ Tournaments are split by date. Synergy learned tournament pairings from the 2,51
 
 | model | top 1 | top 5 | top 10 | MRR |
 |---|---|---|---|---|
-| tuned weights | 46.6% | 70.7% | 78.4% | 0.575 |
-| hand-set weights | 27.4% | 53.7% | 65.6% | 0.401 |
+| tuned weights | 46.6% | 70.7% | 78.5% | 0.575 |
+| hand-set weights | 27.4% | 53.6% | 65.5% | 0.401 |
 | synergy only | 35.1% | 63.4% | 71.2% | 0.479 |
 | popularity only | 6.4% | 36.0% | 49.9% | 0.206 |
 | random | 1.5% | 7.3% | 14.7% | 0.071 |
@@ -201,14 +201,14 @@ scored against each other, a win-chance curve is fitted on the older
 
 | model | picks the winner | log loss |
 |---|---|---|
-| team vs team (bring 4) | 52.4% | 0.6915 |
+| team vs team (bring 4) | 52.5% | 0.6915 |
 | team vs team (all 6) | 52.4% | 0.6912 |
 | score vs the meta | 51.8% | 0.6922 |
 | popularity | 51.1% | 0.6917 |
 | coin flip | 50.0% | 0.6931 |
 
 Split into fifths by score, the side the model favors most strongly won
-**56%** and the side it disfavors most strongly
+**57%** and the side it disfavors most strongly
 **49%**, close to the fitted curve
 (55% / 45%).
 <!-- /generated:validation -->
@@ -257,15 +257,15 @@ matches, and it's tested once on the newest 3,775
 
 | model | picks the winner | log loss | AUC |
 |---|---|---|---|
-| learned model (skill + team) | 60.1% | 0.6649 | 0.633 |
+| learned model (skill + team) | 60.1% | 0.6650 | 0.632 |
 | player skill only | 59.0% | 0.6686 | 0.622 |
-| team only | 54.6% | 0.6889 | 0.557 |
-| damage-calc matchup score | 52.4% | 0.6909 | 0.536 |
+| team only | 54.5% | 0.6889 | 0.556 |
+| damage-calc matchup score | 52.3% | 0.6909 | 0.536 |
 | popularity only | 51.5% | 0.6914 | 0.532 |
 | coin flip | 50.0% | 0.6931 | 0.500 |
 
 - **Who's playing matters most**, but the team adds real signal on top: log-loss
-  gain +0.0011 to +0.0063 over ratings alone (95% paired bootstrap).
+  gain +0.0010 to +0.0063 over ratings alone (95% paired bootstrap).
 <!-- /generated:learned -->
 - **Per-Pokémon effects were mostly player skill.** Without ratings they helped
   (e.g. "Alakazam teams win 3 points more than their calcs say"); with ratings in
@@ -306,14 +306,14 @@ replays are saved publicly each day.
 choices on the newest replays (rates and model fitted on older ones):
 
 <!-- generated:bring -->
-37,381 replays; tested on 14,932 team previews.
+37,381 replays; tested on 15,281 team previews.
 
 | | bring-4 | lead pair |
 |---|---|---|
-| learned bring / lead model | 72.2% | 43.3% |
-| players' usual picks (bring / lead rates) | 70.7% | 43.6% |
-| damage-calc game plan | 68.2% | 34.7% |
-| random | 66.5% | 33.4% |
+| learned bring / lead model | 72.2% | 43.4% |
+| players' usual picks (bring / lead rates) | 70.6% | 43.6% |
+| damage-calc game plan | 68.2% | 34.6% |
+| random | 66.7% | 33.1% |
 <!-- /generated:bring -->
 
 The damage-calc plan barely beats random: real choices depend on more than
