@@ -127,13 +127,21 @@ class Dex:
     def get_species(self, name: str | None) -> Species | None:
         return self.species.get(to_id(name))
 
-    @staticmethod
-    def sheet_id(species: Species) -> str:
-        """The Pokemon as written on a team sheet: a Mega is its base forme; regional and
-        gendered formes (Arcanine-Hisui, Meowstic-F) are their own entries."""
+    def sheet_id(self, species: Species) -> str:
+        """The Pokemon as written on a team sheet: a Mega or a cosmetic forme is its base
+        forme; regional and gendered formes (Arcanine-Hisui, Meowstic-F) are their own entries."""
         if species.battle_only:
             return to_id(species.battle_only[0])
-        return to_id(species.base_species) if species.is_mega else species.id
+        return to_id(species.base_species) if species.is_mega or self.is_cosmetic(species) else species.id
+
+    def is_cosmetic(self, species: Species) -> bool:
+        """A forme that only looks different (Vivillon-Pokeball, Alcremie-Mint-Cream,
+        Sinistcha-Masterpiece): same types, base stats and abilities as its base species."""
+        if not species.forme or species.is_mega or species.battle_only or species.name == species.base_species:
+            return False
+        base = self.get_species(species.base_species)
+        return (base is not None and base.types == species.types and base.base_stats == species.base_stats
+                and base.abilities == species.abilities)
 
     @staticmethod
     def clause_key(species: Species) -> int:

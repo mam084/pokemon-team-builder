@@ -42,7 +42,8 @@ USAGE_DIR = Path(__file__).resolve().parent.parent / "data" / "usage"
 
 # How much of each section to keep when trimming (the long tails are noise).
 KEEP = {"abilities": 4, "items": 10, "moves": 16, "spreads": 8, "teammates": 30, "counters": 12}
-MIN_USAGE_PCT = 0.02
+MIN_USAGE_PCT = 0.02  # rating-weighted usage...
+MIN_RAW_COUNT = 100   # ...or this many appearances: rare Pokémon (Rotom-Fan) still get their sets
 
 
 def _percentages(section: dict, total: float, keep: int) -> dict:
@@ -57,7 +58,7 @@ def trim_chaos(raw: dict, fmt: str, month: str, cutoff: int) -> dict:
     pokemon = {}
     for name, entry in raw.get("data", {}).items():
         usage_pct = float(entry.get("usage", 0)) * 100
-        if usage_pct < MIN_USAGE_PCT:
+        if usage_pct < MIN_USAGE_PCT and int(entry.get("Raw count", 0)) < MIN_RAW_COUNT:
             continue
         total = sum(entry.get("Abilities", {}).values()) or float(entry.get("Raw count", 0))
         counters = {}
@@ -110,6 +111,15 @@ class UsageData:
     # ---- basic lookups ------------------------------------------------
     def name_of(self, species: str) -> str | None:
         return self._by_id.get(to_id(species))
+
+    def link_cosmetic(self, dex: Dex) -> None:
+        """Cosmetic formes (Vivillon-Pokeball, Alcremie flavors...) are pooled into their base
+        species in Smogon's stats: look them up as the base when they have no entry of their own."""
+        for s in dex.selectable_species():
+            if to_id(s.name) not in self._by_id and dex.is_cosmetic(s):
+                base = self._by_id.get(to_id(s.base_species))
+                if base:
+                    self._by_id[to_id(s.name)] = base
 
     def entry(self, species: str) -> dict | None:
         name = self.name_of(species)
@@ -385,6 +395,10 @@ def load_usage(format_id: str, tournament_pairs: bool = True) -> UsageData | Non
     if not path.exists():
         return None
     usage = UsageData(json.loads(path.read_text()))
+    from src.formats import FORMATS as _FORMATS  # local: formats imports nothing heavy, but keep load order
+    if format_id in _FORMATS:
+        from src.dex import load_dex as _load_dex
+        usage.link_cosmetic(_load_dex(_FORMATS[format_id].regulation))
     if tournament_pairs:
         from src.cooccurrence import Cooccurrence  # local imports: these modules import this one
         from src.dex import load_dex

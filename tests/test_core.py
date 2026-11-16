@@ -596,6 +596,26 @@ class TestPlanBuilderSwaps(unittest.TestCase):
         self.assertTrue((alts.groupby("slot").size() <= 2).all())
         self.assertEqual(set(alts["pick"]), {"Best upgrade", "Most similar"})
 
+    def test_cosmetic_formes_use_base_data(self):
+        for name in ["Vivillon-Pokeball", "Sinistcha-Masterpiece", "Alcremie-Mint-Cream"]:
+            s = self.dex.get_species(name)
+            self.assertTrue(self.dex.is_cosmetic(s), name)
+            self.assertEqual(self.dex.sheet_id(s), to_id(s.base_species))
+        for name in ["Rotom-Fan", "Meowstic-F", "Arcanine-Hisui", "Garchomp-Mega", "Squawkabilly-White"]:
+            self.assertFalse(self.dex.is_cosmetic(self.dex.get_species(name)), name)  # real differences
+        pset = self.usage.popular_set("Sinistcha-Masterpiece", self.dex)
+        self.assertIsNotNone(pset)
+        self.assertEqual(pset.species, "Sinistcha-Masterpiece")
+
+    def test_trim_keeps_rare_pokemon_with_real_appearances(self):
+        from src.usage import trim_chaos
+        raw = {"info": {}, "data": {
+            "Rotom-Fan": {"usage": 0.00005, "Raw count": 400, "Abilities": {"levitate": 400}},
+            "Watchog": {"usage": 0.00005, "Raw count": 12, "Abilities": {"analytic": 12}}}}
+        kept = trim_chaos(raw, "f", "2026-10", 1630)["pokemon"]
+        self.assertIn("Rotom-Fan", kept)
+        self.assertNotIn("Watchog", kept)
+
     def test_hidden_pool_skips_popular_species(self):
         from src.recommend import recommend
         from src.swaps import HIDDEN_MAX, mode_pool
