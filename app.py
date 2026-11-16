@@ -92,8 +92,13 @@ def main() -> None:
     members = build_members(team, dex)
 
     inject_css()
-    month = usage.info["month"] if usage else None
-    title_row(fmt.label + (f", ladder data from {month}" if month else ""))
+    if usage is not None and usage.recent:
+        r = usage.recent
+        from src.replays import day_range
+        title_row(fmt.label + f", meta from ladder replays {day_range(r['first_day'], r['last_day'])}")
+    else:
+        month = usage.info["month"] if usage else None
+        title_row(fmt.label + (f", ladder data from {month}" if month else ""))
     legality(team, dex, fmt)
     notices()
 

@@ -35,7 +35,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install requests
+      - run: pip install requests -r requirements.txt
       - name: Fetch
         run: |
           MODE="${{ github.event.inputs.mode || 'new' }}"
@@ -49,9 +49,7 @@ jobs:
       - name: Summarize per-Pokémon replay stats for the app
         run: python scripts/summarize_replays.py
       - name: Retrain the learned teammate model on the new replays
-        run: |
-          pip install -r requirements.txt
-          python scripts/train_teammates.py
+        run: python scripts/train_teammates.py
         timeout-minutes: 20
         continue-on-error: true
 

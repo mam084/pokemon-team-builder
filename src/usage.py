@@ -98,6 +98,7 @@ class UsageData:
         self._set_cache: dict = {}
         self.cooc = None  # src.cooccurrence.Cooccurrence from tournament teams, when available
         self.teammates = None  # src.synergy.TeammateModel (learned from real teams), when available
+        self.recent = None  # set when usage comes from recent replays (see apply_recent)
         self.pokemon: dict = {
             display_name(name): {key: ({display_name(n): v for n, v in sec.items()}
                                        if key in ("teammates", "counters") and isinstance(sec, dict) else sec)
@@ -160,19 +161,20 @@ class UsageData:
             return 1.0, False
         known = True
         if self.teammate_pct(a, b):
-            raw = self.teammate_pct(a, b) / eb["usage"]
+            raw = self.teammate_pct(a, b) / eb.get("smogon_usage", eb["usage"])
         elif self.teammate_pct(b, a):
-            raw = self.teammate_pct(b, a) / ea["usage"]
+            raw = self.teammate_pct(b, a) / ea.get("smogon_usage", ea["usage"])
         else:
             known = False
             floor = min(ea["teammates"].values(), default=0.0)
-            raw = min(1.0, floor / eb["usage"]) if eb["usage"] else 1.0
+            base_use = eb.get("smogon_usage", eb["usage"])
+            raw = min(1.0, floor / base_use) if base_use else 1.0
         raw = max(raw, 0.25)
         n = min(ea.get("raw_count", 0), eb.get("raw_count", 0))
         weight = n / (n + shrink) if n else 0.0
         # Teammate stats are weighted toward the rating cutoff, where a Pokemon on 0.05% of
         # teams is one or two players. Shrink by that usage too, not only all-ratings counts.
-        share = min(ea["usage"], eb["usage"])
+        share = min(ea.get("smogon_usage", ea["usage"]), eb.get("smogon_usage", eb["usage"]))
         if USAGE_SHRINK:
             weight *= share / (share + USAGE_SHRINK)
         ladder = math.log2(raw) * weight  # already shrunk toward 0
@@ -223,6 +225,24 @@ class UsageData:
         """On at least `cutoff`% of ladder teams (Megas count toward their base species)."""
         sheet = self.sheet_name(name, dex)
         return sheet is not None and self.team_sheet_usage(dex).get(sheet, 0.0) >= cutoff
+
+    def apply_recent(self, recent: dict, dex: Dex) -> None:
+        """Rescale every Pokemon's usage to its share of recent replay teams, keeping the monthly
+        stats' sets and their Mega / base split (team preview doesn't show who Mega Evolves).
+        Pokemon not seen recently fall to near zero."""
+        old = self.team_sheet_usage(dex)
+        share = recent["share"]
+        for name, entry in self.pokemon.items():
+            base = self.sheet_name(name, dex)
+            s = dex.get_species(base) if base else None
+            if s is None or not old.get(base):
+                continue
+            new = 100 * share.get(dex.sheet_id(s), 0.0)
+            entry["smogon_usage"] = entry["usage"]  # teammate % in these stats is relative to this
+            entry["usage"] = round(entry["usage"] * max(new, 0.01) / old[base], 4)
+        self.pokemon = dict(sorted(self.pokemon.items(), key=lambda kv: -kv[1]["usage"]))
+        self._sheet_usage = None
+        self.recent = {k: v for k, v in recent.items() if k != "share"}
 
     def team_sheet_usage(self, dex: Dex) -> dict[str, float]:
         """{base species name: usage incl. its Megas}, highest first."""
@@ -389,7 +409,7 @@ def item_has_support(item_id: str, team: list[tuple[str, set[str]]], own: tuple[
 
 
 @lru_cache(maxsize=None)
-def load_usage(format_id: str, tournament_pairs: bool = True) -> UsageData | None:
+def load_usage(format_id: str, tournament_pairs: bool = True, recent: bool = True) -> UsageData | None:
     """Ladder usage for a format. For doubles formats with tournament team lists on disk,
     synergy also draws on those lists' pairings (see src/cooccurrence.py)."""
     path = USAGE_DIR / f"{format_id}.json"
@@ -400,6 +420,14 @@ def load_usage(format_id: str, tournament_pairs: bool = True) -> UsageData | Non
     if format_id in _FORMATS:
         from src.dex import load_dex as _load_dex
         usage.link_cosmetic(_load_dex(_FORMATS[format_id].regulation))
+        # current meta: usage from the last two weeks of replays, when there are enough
+        recent_path = Path(__file__).resolve().parent.parent / "data" / "replays" / "summary" / \
+            f"{format_id}_recent_usage.json"
+        if recent and recent_path.exists():
+            try:
+                usage.apply_recent(json.loads(recent_path.read_text()), _load_dex(_FORMATS[format_id].regulation))
+            except (OSError, ValueError, KeyError):
+                pass
     if tournament_pairs:
         from src.cooccurrence import Cooccurrence  # local imports: these modules import this one
         from src.dex import load_dex

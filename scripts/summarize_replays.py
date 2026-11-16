@@ -17,7 +17,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
-from src.replays import REPLAY_DIR, load_records, species_stats  # noqa: E402
+from src.replays import REPLAY_DIR, load_records, recent_usage, species_stats  # noqa: E402
 
 from src.formats import replay_sources  # noqa: E402
 
@@ -41,6 +41,17 @@ def main() -> None:
         }
         (out_dir / f"{fmt}.json").write_text(json.dumps(summary, indent=0))
         print(f"{fmt}: {len(records)} games, {len(summary['pokemon'])} Pokémon")
+    # current-meta usage per app format, from all its replay formats (ladder + Bo3) together
+    from src.dex import load_dex
+    from src.formats import FORMATS as APP_FORMATS
+    for app_id in sorted({app for app, _ in replay_sources().values()}):
+        fmt = APP_FORMATS[app_id]
+        records = [r for f in fmt.replays for r in load_records(f)]
+        recent = recent_usage(records, load_dex(fmt.regulation))
+        path = out_dir / f"{app_id}_recent_usage.json"
+        if recent:
+            path.write_text(json.dumps({"format": app_id, **recent}, indent=0))
+            print(f"{app_id}: recent usage from {recent['teams']} teams ({recent['first_day']} to {recent['last_day']})")
 
 
 if __name__ == "__main__":
