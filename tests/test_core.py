@@ -674,6 +674,24 @@ class TestPlanBuilderSwaps(unittest.TestCase):
         who, _, picks, _ = best_variant(variants, theirs, arch.trick_room, True, arch.weather, 4, neither)
         self.assertIsNone(who)
 
+    def test_calcs_use_the_mega_forme(self):
+        from dataclasses import replace
+        from src.analysis import mega_variants
+        from src.matchup import best_attack, opponent_members
+        golurk = replace(self.usage.popular_set("Golurk-Mega", self.dex), species="Golurk", item="Golurkite")
+        lucario = replace(self.usage.popular_set("Lucario-Mega-Z", self.dex), species="Lucario",
+                          item="Lucarionite Z")
+        inc = opponent_members(["Incineroar"], self.usage, self.dex)[0]
+        hits, taken = {}, {}
+        for _, members in mega_variants([golurk, lucario], self.dex):
+            for m in members:
+                hits[m.label], taken[m.label] = best_attack(m, inc)[0], best_attack(inc, m)[0]
+        # the same set as a Mega and in base forme: the calc cache must not mix them up
+        self.assertGreater(hits["Lucario-Mega-Z"], hits["Lucario"] * 1.2)
+        self.assertLess(taken["Lucario-Mega-Z"], taken["Lucario"] * 0.7)  # Aura Guard halves Flare Blitz
+        self.assertLess(taken["Golurk-Mega"], taken["Golurk"] * 0.9)  # (Iron Fist base Golurk hits as hard)
+        self.assertAlmostEqual(hits["Lucario-Mega-Z"], 75, delta=3)  # Aura Sphere into Sitrus Incineroar
+
     def test_bring_model_keeps_the_mega(self):
         from src.analysis import mega_variants
         from src.bring_model import load_model, pick
