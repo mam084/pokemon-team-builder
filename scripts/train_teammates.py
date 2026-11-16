@@ -24,7 +24,10 @@ from src.evaluate import load_tournament_teams  # noqa: E402
 from src.replays import load_records  # noqa: E402
 from src.synergy import L2, MODEL_DIR, TOURNAMENT_WEIGHT, TeammateModel, build_vocab, replay_rows, tournament_rows  # noqa: E402
 
-REGULATIONS = {"regmc": ["gen9championsvgc2026regmc", "gen9championsvgc2026regmcbo3"]}
+from src.formats import FORMATS  # noqa: E402
+
+# {regulation: Showdown formats whose replays train it}, for the current formats with replays
+REGULATIONS = {f.regulation: list(f.replays) for f in FORMATS.values() if f.current and f.replays}
 
 
 def train(regulation: str, formats: list[str]) -> dict | None:

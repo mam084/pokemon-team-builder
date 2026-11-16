@@ -40,7 +40,7 @@ from src.replay_parse import PLAYERS
 from src.replays import _sets_for, load_records
 
 EVAL_DIR = Path(__file__).resolve().parent.parent / "data" / "evaluation"
-FORMATS = ["gen9championsvgc2026regmc", "gen9championsvgc2026regmcbo3"]
+FORMATS = list(__import__("src.formats", fromlist=["CURRENT"]).CURRENT.replays)
 PRIOR_N = 20  # pseudo-count pulling a Pokemon's bring / lead rate toward the average
 
 TOOL_FEATURES = ["Fake Out", "Tailwind", "Trick Room", "Intimidate", "Redirection", "Wide Guard",
@@ -230,7 +230,9 @@ if __name__ == "__main__":
     from src.dex import load_dex
     from src.usage import load_usage
     # a sample keeps the monthly retrain to minutes once there are 100k+ replays
-    report = train_and_report(load_dex("regmc"), load_usage("gen9championsvgc2026regmc"), max_games=12000)
+    from src.formats import DEFAULT_FORMAT, FORMATS
+    report = train_and_report(load_dex(FORMATS[DEFAULT_FORMAT].regulation), load_usage(DEFAULT_FORMAT),
+                              max_games=12000)
     out = EVAL_DIR / "regmc_bring_model.json"
     out.write_text(json.dumps(report, indent=1))
     for label, r in report["results"].items():

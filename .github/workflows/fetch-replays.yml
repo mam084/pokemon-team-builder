@@ -6,6 +6,7 @@ name: Fetch replays
 on:
   schedule:
     - cron: "17 9 * * *"
+    - cron: "17 21 * * *"  # twice a day: GitHub sometimes skips a scheduled run
   workflow_dispatch:
     inputs:
       mode:
@@ -40,6 +41,10 @@ jobs:
           MODE="${{ github.event.inputs.mode || 'new' }}"
           FLAG=""; [ "$MODE" = "backfill" ] && FLAG="--backfill"
           MIN="${{ github.event.inputs.minutes || '50' }}"; SAMPLES="${{ github.event.inputs.samples || '0' }}"
+          if [ -n "$FLAG" ]; then  # a backfill also catches up on new replays first, so no gap opens
+            python scripts/fetch_replays.py --minutes 20
+            MIN=$((MIN - 20))
+          fi
           python scripts/fetch_replays.py $FLAG --minutes "$MIN" --samples "$SAMPLES"
       - name: Summarize per-Pokémon replay stats for the app
         run: python scripts/summarize_replays.py

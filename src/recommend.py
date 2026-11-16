@@ -56,7 +56,8 @@ DEFAULT_WEIGHTS = {"synergy": 0.8, "defense": 0.0, "offense": 0.0, "roles": 0.0,
 def _tuned_weights() -> dict:
     """The weights the latest evaluation tuned (data/evaluation/regmc.json, refreshed monthly),
     so Popular picks follows the newest data; the constants above are the fallback."""
-    path = Path(__file__).resolve().parent.parent / "data" / "evaluation" / "regmc.json"
+    from src.formats import CURRENT
+    path = Path(__file__).resolve().parent.parent / "data" / "evaluation" / f"{CURRENT.regulation}.json"
     try:
         tuned = json.loads(path.read_text())["tuned_weights"]
     except (OSError, ValueError, KeyError):
@@ -284,7 +285,7 @@ def recommend(
 
         synergy = 0.0
         tm_i = tm.index.get(dex.sheet_id(form)) if tm is not None else None
-        if tm is not None:
+        if tm is not None and tm_i is not None:
             # the summed pull from every member (log-odds), squashed so 0.5 = no pull either way;
             # exploring damps Pokemon few teams use, whose pulls rest on little data
             fit = float(fit_vec[tm_i]) if tm_i is not None else 0.0
@@ -293,7 +294,7 @@ def recommend(
             elif tm_i is not None:  # Popular picks: the full model, pick rate included (tests best)
                 fit += float(tm.b[tm_i]) - b_mid
             scale = FIT_SCALE if explore else POPULAR_FIT_SCALE
-            synergy = 1 / (1 + math.exp(-fit / scale)) if team_ids and tm_i is not None else 0.0
+            synergy = 1 / (1 + math.exp(-fit / scale)) if team_ids else 0.0
             if tm_i is not None and team_ids:
                 pulls = sorted(((float(tm.W[j, tm_i]), tm.vocab[j]) for j in team_ids), reverse=True)
                 good = [(w, r) for w, r in pulls if w >= 0.4][:3]
@@ -306,6 +307,12 @@ def recommend(
                     reasons.append("rarely run next to " + ", ".join(
                         f"{root_label.get(r, r)} ({_odds(w)})" for w, r in bad))
                     parts["clash"] = reasons[-1]
+        elif tm is not None:
+            # new to the model (e.g. just released): no evidence either way - neutral, not last
+            synergy = 0.5 if team_ids else 0.0
+            if team_ids:
+                reasons.append("too new or rare for teammate data yet")
+                parts["fit"] = reasons[-1]
         # synergy (fallback): mean log2(lift) across the whole team, mapped so lift 1 -> 0.33, lift 4 -> 1
         elif usage is not None and team_species:
             pairs = {m: usage.pair_lift(m, name) for m in team_species if usage.entry(m)}

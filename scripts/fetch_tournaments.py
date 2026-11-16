@@ -33,7 +33,10 @@ API = "https://play.limitlesstcg.com/api"
 
 # our regulation key -> Limitless VGC format id (only the current regulation is
 # evaluated; add older ones here if needed)
-REGULATIONS = {"regmc": "M-C"}
+sys.path.insert(0, str(ROOT))
+from src.formats import FORMATS  # noqa: E402
+
+REGULATIONS = {f.regulation: f.limitless for f in FORMATS.values() if f.current and f.limitless}
 DELAY = 1.0  # seconds between requests; the API is free, so stay well under its rate limit
 
 
