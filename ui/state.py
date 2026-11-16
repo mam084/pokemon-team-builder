@@ -94,6 +94,12 @@ def on_species_change(slot: int, dex: Dex, usage: UsageData | None) -> None:
     st.session_state["slot_tab_index"] = slot
 
 
+def fill_slot(slot: int, species: str, dex: Dex, usage: UsageData | None) -> None:
+    """Put a Pokémon (its popular set) in this slot and keep the slot selected."""
+    write_slot(slot, starting_set(species, dex, usage, slot))
+    st.session_state["slot_tab_index"] = slot
+
+
 def apply_preset(slot: int, pset: PokemonSet) -> None:
     taken = {p.item for j, p in enumerate(read_slot(x) for x in range(SLOTS)) if p and j != slot}
     if pset.item and pset.item in taken:
