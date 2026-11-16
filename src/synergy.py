@@ -210,6 +210,15 @@ class TeammateModel:
                         "instead": [(self.vocab[j], float(p[j])) for j in order if j != i][:top]})
         return out
 
+    def links(self, team: list[str]) -> dict[str, tuple[str, float] | None]:
+        """Each member's strongest partner on this team: (partner root, pull in log-odds)."""
+        out = {}
+        for r in team:
+            best = max(((self.pull(r, o), o) for o in team if o != r and o in self.index and r in self.index),
+                       default=None)
+            out[r] = (best[1], best[0]) if best else None
+        return out
+
     def confidence(self, k: float = 100.0) -> np.ndarray:
         """0..1 per vocab entry: how much data backs it (weighted teams n -> n / (n + k)). Used to
         damp the popularity-free fit of rarely used Pokemon, whose pulls rest on few teams."""

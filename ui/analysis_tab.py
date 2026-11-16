@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import math
+
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
@@ -41,30 +43,58 @@ def speed_chart(df: pd.DataFrame, trick_room: bool) -> go.Figure:
 
 
 def fit_check_section(team, dex, usage) -> None:
-    """How usual each member is next to the other five, from the learned teammate model."""
+    """How your team compares to what players build, from the learned teammate model: is it an
+    off-meta build, which of your picks players pair with each other, and how usual each is."""
+    from src.recommend import HIDDEN_MAX
     tm = usage.teammates if usage is not None else None
     if tm is None or len(team) < 3:
         return
-    roots = [dex.sheet_id(p.battle_form(dex)) for p in team]
-    name = {dex.sheet_id(s): s.name for s in dex.selectable_species() if not dex.is_cosmetic(s)}
-    lines = []
-    for p, r in zip(team, tm.fit_check(roots)):
-        instead = ", ".join(f"{name.get(x, x)} ({q:.0%})" for x, q in r["instead"])
-        if r["rank"] is None:
-            lines.append(f"- **{p.species}**: too rarely used to judge.")
-            continue
-        if r["rank"] <= 3:
-            verdict = f"a common pick here (#{r['rank']}, {r['prob']:.0%})"
-        elif r["rank"] <= 15:
-            verdict = f"a reasonable pick here (#{r['rank']}, {r['prob']:.1%})"
-        else:
-            verdict = f"unusual here (#{r['rank']} of {len(tm.vocab)})"
-        lines.append(f"- **{p.species}** is {verdict}. Players with your other Pokémon most often run: {instead}.")
+    forms = [p.battle_form(dex) for p in team]
+    roots = [dex.sheet_id(f) for f in forms]
+    sheet = usage.team_sheet_usage(dex)
+    share = [sheet.get(usage.sheet_name(f.name, dex) or "", 0.0) for f in forms]
+    rare = sum(1 for x in share if x < HIDDEN_MAX)
+    checks = {r["root"]: r for r in tm.fit_check(roots)}
+    links = tm.links(roots)
+    by_root = {dex.sheet_id(f): p.species for p, f in zip(team, forms)}
+
     st.subheader("How your team compares to what players build")
-    st.caption("How often players with your other Pokémon pick each member for that spot, and what they pick "
-               "most instead. Learned from real tournament team lists and ladder replays. It measures how "
-               "**usual** a pick is, not how good: an unusual pick can be your team's surprise factor.")
+    off_meta = rare >= (len(team) + 1) // 2
+    if off_meta:
+        st.markdown(f"**Off-meta build.** {rare} of your {len(team)} are on fewer than {HIDDEN_MAX:.0f}% of ladder "
+                    "teams, so the meta's usual pairings mostly don't apply. What still helps: which of your own "
+                    "picks players *do* run together (proven partnerships), and which are new territory.")
+    else:
+        natural = sum(1 for r in checks.values() if r["rank"] and r["rank"] <= 15)
+        st.markdown(f"**{natural} of {len(team)}** are natural fits with the rest: among the 15 Pokémon players "
+                    "most often pick next to your other members.")
+    lines = []
+    for p, f, r, use in zip(team, forms, roots, share):
+        c, link = checks.get(r) or {}, links.get(r)
+        partner = (f"pairs best with **{by_root.get(link[0], link[0])}** ({math.exp(link[1]):.1f}x as likely "
+                   "together)" if link and link[1] >= 0.3 else "no proven partner on your team yet")
+        if not c or c.get("rank") is None:
+            usual = "too rarely used to judge"
+        elif c["rank"] <= 3:
+            usual = f"a top pick next to the rest (#{c['rank']})"
+        elif c["rank"] <= 15:
+            usual = f"a natural pick next to the rest (#{c['rank']})"
+        else:
+            usual = f"rarely seen with this group (#{c['rank']} of {len(tm.vocab)})"
+        if off_meta and not (c and c.get("rank") and c["rank"] <= 15):
+            usual = ""  # on an off-meta build "rare next to this group" says nothing new
+        lines.append(f"- **{p.species}** ({use:.1f}% of teams): {partner}" + (f"; {usual}." if usual else "."))
     st.markdown("\n".join(lines))
+    st.caption("From real tournament team lists and ladder replays. \"4.5x\" means players are 4.5 times as likely "
+               "to run the two together, all else equal. This is about how usual a team is, not how good: an "
+               "off-meta pick can be the surprise that wins games.")
+    with st.expander("What players usually run in each spot"):
+        name = {dex.sheet_id(s): s.name for s in dex.selectable_species() if not dex.is_cosmetic(s)}
+        st.caption("For each member: the Pokémon players most often pick alongside your other five instead. "
+                   "Each spot is judged against a different five, so the same name can come up more than once.")
+        st.markdown("\n".join(
+            f"- **{p.species}**: " + ", ".join(name.get(x, x) for x, _ in (checks.get(r) or {}).get("instead", []))
+            for p, r in zip(team, roots) if (checks.get(r) or {}).get("instead")))
 
 
 def analysis_tab(team, members, dex, usage, fmt) -> None:
