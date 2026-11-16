@@ -97,6 +97,7 @@ class UsageData:
         self._variant_index: dict = {}
         self._set_cache: dict = {}
         self.cooc = None  # src.cooccurrence.Cooccurrence from tournament teams, when available
+        self.teammates = None  # src.synergy.TeammateModel (learned from real teams), when available
         self.pokemon: dict = {
             display_name(name): {key: ({display_name(n): v for n, v in sec.items()}
                                        if key in ("teammates", "counters") and isinstance(sec, dict) else sec)
@@ -410,4 +411,8 @@ def load_usage(format_id: str, tournament_pairs: bool = True) -> UsageData | Non
             teams = load_tournament_teams(fmt.regulation, dex)
             if teams:
                 usage.cooc = Cooccurrence([t["sets"] for t in teams], dex)
+            from src.synergy import load_model as _load_teammates
+            model = _load_teammates(fmt.regulation)
+            if model is not None and format_id in model.formats:
+                usage.teammates = model
     return usage

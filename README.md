@@ -124,15 +124,19 @@ play on the ladder.
 
   | signal | meaning |
   |---|---|
-  | synergy | how much more often it appears next to your members than chance predicts, averaged over the **whole team** (mean log2 lift from teammate stats, P(B\|A) / P(B)). Lift is shrunk toward 1 for rare Pokémon. No relationship scores 0.33 |
+  | synergy ("Fits") | how strongly players pair it with your **whole team**, from a teammate model learned on real teams (below). 0.5 = no pull either way. Formats without the model fall back to Smogon teammate lift |
   | defense | how well it resists the types your team is weak to |
   | offense | how well it hits popular Pokémon your team can't hit super effectively (weighted by usage) |
   | roles | whether it brings a role your team is missing |
   | meta | its overall usage, as a prior |
 
-  Each pick also gets a written reason, e.g. *"paired often with Garganacl (2.0x);
-  resists Water, Grass, Fighting, Ground"*, and an **Add to team** button that
-  adds its most popular set.
+  Each pick's card explains itself in short lines (*Fits: Rillaboom (7.4x),
+  Sinistcha (5.9x)*; *Watch: rarely run next to Garchomp (0.5x)*; *Covers: Ice,
+  Dark, Steel*), shows how often players with your team pick it next, and has an
+  **Add to team** button that adds its most popular set.
+- **Fit check** (Analysis tab): for each member, how usual it is next to the rest
+  and what players most often run in that spot instead. Swaps use the same model:
+  each member's second suggestion is the *usual pick* for that spot.
 - **Meta explorer**: the usage leaderboard and each Pokémon's moves, items,
   abilities, spreads, teammates, and checks & counters.
 
@@ -146,20 +150,21 @@ Pokémon ranks** among about 68 candidates. This is repeated
 for every member of every team.
 
 <!-- generated:recommender -->
-Tournaments are split by date. Synergy learned tournament pairings from the 2,448 oldest teams and the weights were tuned by grid search on the next 1,347. Every number below comes from
-1,726 teams in the 36 newest tournaments (2026-11-10 to
-2026-11-16), which neither ever saw.
+Tournaments are split by date. The teammate model learned from the 2,512 oldest teams (plus replays from before the next tournaments) and the weights were tuned by grid search on the next 1,317. Every number below comes from
+1,739 teams in the 36 newest tournaments (2026-11-09 to
+2026-11-15), which neither ever saw.
 
 | model | top 1 | top 5 | top 10 | MRR |
 |---|---|---|---|---|
-| tuned weights | 46.3% | 70.4% | 78.2% | 0.573 |
-| hand-set weights | 27.2% | 53.7% | 65.4% | 0.399 |
-| synergy only | 35.1% | 63.0% | 71.0% | 0.478 |
-| popularity only | 6.2% | 35.9% | 49.6% | 0.204 |
+| tuned weights | 55.2% | 78.6% | 85.0% | 0.656 |
+| hand-set weights | 18.3% | 47.6% | 63.0% | 0.328 |
+| synergy only | 55.2% | 78.6% | 85.0% | 0.656 |
+| popularity only | 6.4% | 36.0% | 49.9% | 0.206 |
+| before: lift synergy | 46.6% | 70.8% | 78.5% | 0.575 |
 | random | 1.5% | 7.3% | 14.7% | 0.071 |
 
-- The tuned weights find the missing Pokémon **first try 46% of the
-  time** and in the top 10 78% of the time: 43% better MRR than the
+- The tuned weights find the missing Pokémon **first try 55% of the
+  time** and in the top 10 85% of the time: 100% better MRR than the
   weights the recommender originally shipped with.
 <!-- /generated:recommender -->
 - **Two Mega Stones are normal**: 81% of these tournament teams carry two (you
@@ -174,11 +179,12 @@ Tournaments are split by date. Synergy learned tournament pairings from the 2,44
   modes, whose weights are a design choice rather than fitted. In Neutral mode on 400
   held-out teams the recommender still ranks the real missing Pokémon in its
   top 10 48% of the time among ~260 candidates (random: 4%).
-- The tuning learned **synergy 0.54, meta 0.27,
-  defense 0.14, plan 0.05**, with **offense and roles at 0**: real players pick partners
-  that are proven together and patch type weaknesses, more than ones that fill a checklist.
-  Those two signals still explain each pick in the app, and you can raise their weights there.
-- **Synergy also learns from tournament pairings** (`src/cooccurrence.py`):
+- With the learned teammate model, tuning puts **all the weight on Fits**: for
+  predicting real teams, popularity, type coverage, roles and game plan add nothing
+  on top (the model already learned who players pick). Those signals still explain
+  each pick in the app, drive the *Neutral* and *Hidden gems* styles, and can be
+  raised under **Fine-tune the ranking**.
+- *(Before the teammate model)* **Lift synergy also learned from tournament pairings** (`src/cooccurrence.py`):
   ladder teammate stats are weighted to high-rated players, so a Pokémon on
   0.05% of those teams is really one or two players. Thousands of tournament
   team sheets give those Pokémon real sample sizes. In a three-way date split
@@ -188,6 +194,38 @@ Tournaments are split by date. Synergy learned tournament pairings from the 2,44
 - About 6% of hidden Pokémon are outside the candidate pool
   (the usage top 80), which caps every model's scores.
 - `python scripts/evaluate.py` reproduces this. The monthly data refresh re-runs it on new tournaments.
+
+### Learned synergy
+
+Lift looks at one pair at a time, so it can't tell real partners apart from two
+Pokémon that only show up together because both go with a third. The teammate
+model (`src/synergy.py`) scores a candidate against the whole team at once, and is
+fitted the way it's used: hide each member of a real team and predict it from the
+rest.
+
+    P(candidate c | team T)  ∝  exp( b_c + Σ_{m in T} W[m, c] )
+
+`b_c` is how often c gets picked at all, and `W[m, c]` is the pull between two
+Pokémon *after* accounting for the rest of the team. It's fitted on every tournament
+team list (counted 3x) plus ~44,000 ladder and Bo3 teams from replays (each
+player's team once, higher ratings weighted more), with L2 regularisation so
+rarely seen pairs stay near 0. `exp(W)` is the "7.4x" in the app's reasons.
+
+`scripts/synergy_lab.py` compares it with lift on the same held-out tournaments
+(model fitted only on older tournaments and replays):
+
+| synergy measure (alone) | top 1 | top 10 | MRR |
+|---|---|---|---|
+| lift (ladder + tournament pairings) | 35.1% | 71.3% | 0.479 |
+| learned, tournaments only | 53.4% | 81.7% | 0.629 |
+| learned, ladder replays only | 54.3% | 83.3% | 0.643 |
+| learned, both (shipped) | 55.2% | 84.7% | 0.655 |
+
+**Can replays say which pairs *win* more together?** Not yet:
+`scripts/win_synergy_lab.py` predicts the winners of 14,000 newer ladder games
+from player ratings, plus the Pokémon on each team, plus every pair. Pairs moved
+accuracy from 54.4% to 54.7% (log loss 0.6873 to 0.6870), which is noise at this
+size, so recommendations use who players pair, not pair win rates.
 
 ## Does the matchup score predict wins?
 
@@ -346,9 +384,10 @@ A few things to know about the data:
   results.
 - The defensive heatmap is type-based (with the abilities that change type
   matchups). Damage-based views are the Matchups tab and the Damage calc tab.
-- Tournament team lists from [Limitless](https://play.limitlesstcg.com) are used
-  only to *evaluate* the recommender, never to build it, so the evaluation is
-  an honest out-of-sample test.
+- Tournament team lists from [Limitless](https://play.limitlesstcg.com) both feed
+  the recommender (pairings, the teammate model) and test it. The evaluation keeps
+  them apart by date: the model only sees tournaments (and replays) older than the
+  ones it's tested on.
 
 ## Run it
 
@@ -451,5 +490,5 @@ The tests check:
 - [x] Matchup score validated on real match results, shown as a calibrated win chance
 - [x] Game plans per matchup; tournament pairings in the synergy signal
 - [x] Learned win-chance model (support tools, Pokémon effects) from 12,000 real matches
-- [ ] Stage 5: learned embeddings (e.g. word2vec on tournament team lists) as an extra synergy signal, measured with the same evaluation
+- [x] Learned teammate model (whole-team synergy from tournament and ladder teams), measured with the same evaluation
 - [x] Deploy to Streamlit Community Cloud

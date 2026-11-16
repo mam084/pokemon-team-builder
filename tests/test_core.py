@@ -594,7 +594,8 @@ class TestPlanBuilderSwaps(unittest.TestCase):
         alts = suggest_swaps(team, self.dex, self.usage, engine, per_member=2)
         self.assertEqual(set(alts["slot"]), set(range(len(team))))  # every member gets alternatives
         self.assertTrue((alts.groupby("slot").size() <= 2).all())
-        self.assertEqual(set(alts["pick"]), {"Best upgrade", "Most similar"})
+        expected = "Usual pick" if self.usage.teammates is not None else "Most similar"
+        self.assertEqual(set(alts["pick"]), {"Best upgrade", expected})
 
     def test_cosmetic_formes_use_base_data(self):
         for name in ["Vivillon-Pokeball", "Sinistcha-Masterpiece", "Alcremie-Mint-Cream"]:
@@ -771,3 +772,40 @@ class TestPlanBuilderSwaps(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestTeammateModel(unittest.TestCase):
+    def test_learns_partners_and_explains_away(self):
+        import numpy as np
+        from src.synergy import TeammateModel, TeamRow
+        # a and b always come together; c pairs with d; e/f are filler on every team
+        rows = [TeamRow(("a", "b", "e", "f"), 1.0, 0, "t") for _ in range(200)]
+        rows += [TeamRow(("c", "d", "e", "f"), 1.0, 0, "t") for _ in range(200)]
+        m = TeammateModel(["a", "b", "c", "d", "e", "f"]).fit(rows, l2=1.0, epochs=40)
+        self.assertGreater(m.pull("a", "b"), m.pull("a", "d"))
+        p = m.pick_probs(["a", "e", "f"])
+        self.assertEqual(m.vocab[int(np.argmax(p))], "b")
+        self.assertAlmostEqual(float(p.sum()), 1.0, places=6)
+        self.assertEqual(p[m.index["a"]], 0.0)  # never re-picks a member
+        check = {r["root"]: r for r in m.fit_check(["a", "b", "e", "f"])}
+        self.assertEqual(check["b"]["rank"], 1)
+
+    def test_round_trip(self):
+        from src.synergy import TeammateModel, TeamRow
+        rows = [TeamRow(("a", "b", "c", "d"), 1.0, 0, "t")] * 50
+        m = TeammateModel(["a", "b", "c", "d"]).fit(rows, epochs=5)
+        m2 = TeammateModel.from_json(m.to_json({"formats": ["x"]}))
+        self.assertEqual(m2.formats, ["x"])
+        self.assertAlmostEqual(m2.pull("a", "b"), m.pull("a", "b"), places=3)
+
+    def test_recommendations_explain_with_the_model(self):
+        from src.formats import DEFAULT_FORMAT, FORMATS
+        dex = load_dex(FORMATS[DEFAULT_FORMAT].regulation)
+        usage = load_usage(DEFAULT_FORMAT)
+        if usage is None or usage.teammates is None:
+            self.skipTest("no teammate model")
+        team, _ = parse_paste(GARGANACL_TEAM, dex)
+        recs = recommend(build_members(team[:4], dex), dex, usage, top_n=10, mode="popular")
+        self.assertTrue(any("fit" in p for p in recs["parts"]))
+        self.assertTrue(recs["why"].str.contains("players pair it with").any())
+        self.assertTrue(recs["synergy"].between(0, 1).all())

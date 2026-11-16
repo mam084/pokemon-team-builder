@@ -43,6 +43,8 @@ from src.usage import UsageData, typical_spread
 
 TOURNAMENT_DIR = Path(__file__).resolve().parent.parent / "data" / "tournaments"
 SIGNALS = ["synergy", "defense", "offense", "roles", "meta", "plan"]
+# The tuned weights of the lift-based recommender, before the learned teammate model.
+LIFT_WEIGHTS = {"synergy": 0.762, "defense": 0.0, "offense": 0.0, "roles": 0.0, "meta": 0.19, "plan": 0.048}
 # The weights the recommender shipped with before this evaluation existed (chosen by hand).
 HAND_SET_WEIGHTS = {"synergy": 0.30, "defense": 0.25, "offense": 0.15, "roles": 0.15, "meta": 0.15, "plan": 0.0}
 KS = (1, 5, 10)
@@ -200,6 +202,21 @@ def tune(queries: list[Query]) -> tuple[dict, dict]:
     return {k: round(v / total, 3) for k, v in best_w.items()}, best_m
 
 
+def _holdout_teammates(production, pairs_from: list[dict], train: list[dict], dex: Dex):
+    """A teammate model fitted only on data older than the tuning tournaments."""
+    from datetime import datetime, timezone
+    from src.replays import load_records
+    from src.synergy import L2, TOURNAMENT_WEIGHT, TeammateModel, build_vocab, replay_rows, tournament_rows
+    if not train:
+        return None
+    cut = datetime.fromisoformat(min(t["date"] for t in train)).replace(tzinfo=timezone.utc).timestamp()
+    records = [r for f in production.formats for r in load_records(f) if (r["uploadtime"] or 0) < cut]
+    rows = tournament_rows(pairs_from, dex, weight=TOURNAMENT_WEIGHT) + replay_rows(records, dex)
+    model = TeammateModel(build_vocab(rows)).fit(rows, l2=L2)
+    model.formats = production.formats
+    return model
+
+
 def evaluate(regulation: str, dex: Dex, usage: UsageData, doubles: bool = True,
              max_teams: int | None = None, path: Path | None = None) -> dict:
     teams = load_tournament_teams(regulation, dex, path)
@@ -210,13 +227,20 @@ def evaluate(regulation: str, dex: Dex, usage: UsageData, doubles: bool = True,
     # honest, those pairings come only from the oldest tournaments; the weights are tuned on
     # the next ones and tested on the newest - never on teams the pairings saw.
     pairs_from, train = split_by_date(train, 0.4) if usage.cooc is not None else ([], train)
-    saved_cooc = usage.cooc
+    saved_cooc, saved_tm = usage.cooc, usage.teammates
     usage.cooc = Cooccurrence([t["sets"] for t in pairs_from], dex) if pairs_from else None
+    # The learned teammate model (src/synergy.py) the same way: refitted on the oldest
+    # tournaments plus replays uploaded before the tuning tournaments, never on test teams.
+    usage.teammates = _holdout_teammates(saved_tm, pairs_from, train, dex) if saved_tm is not None else None
+    lift_q = None
     try:
         train_q = build_queries(train, dex, usage, doubles)
         test_q = build_queries(test, dex, usage, doubles)
+        if usage.teammates is not None:  # the same test with lift synergy, for comparison
+            usage.teammates = None
+            lift_q = build_queries(test, dex, usage, doubles)
     finally:
-        usage.cooc = saved_cooc
+        usage.cooc, usage.teammates = saved_cooc, saved_tm
     pool = int(np.median([q.table["root"].nunique() for q in test_q])) if test_q else 0
 
     tuned, train_metrics = tune(train_q)
@@ -227,6 +251,8 @@ def evaluate(regulation: str, dex: Dex, usage: UsageData, doubles: bool = True,
         "popularity only": {s: float(s == "meta") for s in SIGNALS},
     }
     results = {name: metrics(test_q, w) for name, w in models.items()}
+    if lift_q is not None:
+        results["before: lift synergy"] = metrics(lift_q, LIFT_WEIGHTS)
     results["random"] = {**{f"hit@{k}": min(1.0, k / pool) if pool else 0.0 for k in KS},
                          "mrr": float(np.mean([1 / r for r in range(1, pool + 1)])) if pool else 0.0,
                          "in_pool": 1.0}

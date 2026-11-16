@@ -598,6 +598,10 @@ def swaps_section(team, dex, usage, fmt, threats: pd.DataFrame) -> None:
 
 def swap_detail(row) -> str:
     detail = row["set"]
+    fit = row.get("fit")
+    if fit is not None and not pd.isna(fit):
+        detail += (f"  \nPlayers with your other Pokémon pick it for this spot {fit:.0%} of the time."
+                   if fit >= 0.01 else "  \nAn unusual pick next to your other Pokémon.")
     if row["shared roles"]:
         detail += f"  \nShared roles: {row['shared roles']}"
     if row["key calc"]:

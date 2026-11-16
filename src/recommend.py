@@ -33,6 +33,7 @@ from pathlib import Path
 import math
 from dataclasses import dataclass
 
+import numpy as np
 import pandas as pd
 
 from src.analysis import ROLES, Member, defense_matrix, meta_form, provides_role
@@ -76,7 +77,9 @@ EXPLORE_WEIGHTS = {"synergy": 0.40, "defense": 0.25, "offense": 0.05, "roles": 0
 #   popular  tuned defaults; the candidate pool is the usage top 80
 #   neutral  popularity gets no weight, and every Pokemon with usage data is a candidate
 #            (teammate lift is already popularity-adjusted, so rare picks compete fairly)
-#   hidden   like neutral, without Pokemon on 3%+ of ladder teams; the rest are marked down by usage
+#   hidden   like neutral, without Pokemon on 3%+ of ladder teams
+FIT_SCALE = 1.5  # learned fit (summed log-odds) -> 0..1: +1.5 -> 0.73, +3 -> 0.88
+POPULAR_FIT_SCALE = 3.0  # Popular picks adds the pick rate, so its logits run wider
 HIDDEN_MAX = 3.0  # Hidden gems leaves out Pokemon on this % of ladder teams or more
 MODES = {"neutral": "Neutral", "popular": "Popular picks", "hidden": "Hidden gems"}
 
@@ -156,6 +159,12 @@ def team_needs(members: list[Member], dex: Dex, usage: UsageData | None, doubles
         if not provides_role(role.key, move_ids, ability_ids, spread):
             missing.append(role.key)
     return TeamNeeds(weak_types, unhit, missing)
+
+
+def _odds(pull: float) -> str:
+    """A learned pull (log-odds) as 'how many times likelier', capped so rare pairs don't read as 40x."""
+    x = math.exp(pull)
+    return "10x+" if x >= 10 else f"{x:.1f}x"
 
 
 def _root(species) -> str:
@@ -256,15 +265,49 @@ def recommend(
         pool = [p for p in pool if not usage.is_common(p, dex, HIDDEN_MAX)]
 
     max_usage = max((usage.usage(p) for p in pool), default=1.0) if usage else 1.0
+    # Learned teammate model (src/synergy.py), when this format has one: synergy is its pull
+    # toward your whole team, and popularity its learned pick rate. Lift is the fallback.
+    tm = usage.teammates if usage is not None else None
+    if tm is not None:
+        team_roots = [dex.sheet_id(m.form) for m in members]
+        team_ids = [tm.index[r] for r in team_roots if r in tm.index]
+        fit_vec = tm.W[team_ids].sum(0) if team_ids else np.zeros(len(tm.vocab))
+        conf = tm.confidence()
+        b_mid = float(np.median(tm.b))
+        root_label = {dex.sheet_id(m.form): (m.pset.species if m.pset is not None else m.label) for m in members}
     rows = []
     for name in pool:
         form, ability, move_ids, abilities, atk_types, spread, plan_profile = _candidate_profile(name, dex, usage)
         cand_types = [t.lower() for t in form.types]
         reasons = []
+        parts: dict[str, str] = {}  # the same reasons by kind, for the app's cards
 
-        # synergy: mean log2(lift) across the whole team, mapped so lift 1 -> 0.33, lift 4 -> 1
         synergy = 0.0
-        if usage is not None and team_species:
+        tm_i = tm.index.get(dex.sheet_id(form)) if tm is not None else None
+        if tm is not None:
+            # the summed pull from every member (log-odds), squashed so 0.5 = no pull either way;
+            # exploring damps Pokemon few teams use, whose pulls rest on little data
+            fit = float(fit_vec[tm_i]) if tm_i is not None else 0.0
+            if explore and tm_i is not None:
+                fit *= float(conf[tm_i])
+            elif tm_i is not None:  # Popular picks: the full model, pick rate included (tests best)
+                fit += float(tm.b[tm_i]) - b_mid
+            scale = FIT_SCALE if explore else POPULAR_FIT_SCALE
+            synergy = 1 / (1 + math.exp(-fit / scale)) if team_ids and tm_i is not None else 0.0
+            if tm_i is not None and team_ids:
+                pulls = sorted(((float(tm.W[j, tm_i]), tm.vocab[j]) for j in team_ids), reverse=True)
+                good = [(w, r) for w, r in pulls if w >= 0.4][:3]
+                bad = [(w, r) for w, r in pulls if w <= -0.7][-2:]
+                if good:
+                    reasons.append("players pair it with " + ", ".join(
+                        f"{root_label.get(r, r)} ({_odds(w)})" for w, r in good))
+                    parts["fit"] = reasons[-1]
+                if bad:
+                    reasons.append("rarely run next to " + ", ".join(
+                        f"{root_label.get(r, r)} ({_odds(w)})" for w, r in bad))
+                    parts["clash"] = reasons[-1]
+        # synergy (fallback): mean log2(lift) across the whole team, mapped so lift 1 -> 0.33, lift 4 -> 1
+        elif usage is not None and team_species:
             pairs = {m: usage.pair_lift(m, name) for m in team_species if usage.entry(m)}
             if pairs:
                 mean_log = sum(math.log2(lift) for lift, _ in pairs.values()) / len(pairs)
@@ -273,6 +316,7 @@ def recommend(
                                 reverse=True)
                 if strong:
                     reasons.append("paired often with " + ", ".join(f"{m} ({lift:.1f}x)" for lift, m in strong[:3]))
+                    parts["fit"] = reasons[-1]
 
         # defense: weighted share of the team's weak types it resists, minus ones it's also weak to
         defense = 0.0
@@ -294,6 +338,7 @@ def recommend(
             if covered:
                 verb = f"covers your {glue.label} core's weak spots:" if glue else "resists"
                 reasons.append(f"{verb} " + ", ".join(covered[:4]))
+                parts["cover"] = reasons[-1]
 
         # offense: share of (usage-weighted) unhit meta Pokemon it hits super effectively
         offense = 0.0
@@ -303,6 +348,7 @@ def recommend(
             offense = sum(p for _, p in hit) / sum(p for _, _, p in needs.unhit_meta)
             if hit:
                 reasons.append("hits " + ", ".join(n for n, _ in hit[:3]) + " super effectively")
+                parts["hits"] = reasons[-1]
 
         # roles: share of missing roles it fills
         roles = 0.0
@@ -312,6 +358,7 @@ def recommend(
             if filled:
                 labels = {r.key: r.label for r in ROLES}
                 reasons.append("adds " + ", ".join(labels[r] for r in filled[:3]))
+                parts["adds"] = reasons[-1]
 
         # plan: how well it plays into the team's weather / Trick Room / Tailwind / terrain
         plan, plan_why = plan_score(plan_profile, plans, members, dex)
@@ -322,25 +369,24 @@ def recommend(
             starts = ""
         if plan_why:
             reasons.insert(0, plan_why)
+            parts["plan"] = plan_why
 
         meta = (usage.usage(name) / max_usage) if usage is not None else 0.0
 
         score = (weights["synergy"] * synergy + weights["defense"] * defense + weights["offense"] * offense
                  + weights["roles"] * roles + weights["meta"] * meta + weights["plan"] * plan) / total_w
-        if mode == "hidden":
-            score *= 1 - 0.6 * meta
         note = ""
         extra_mega = form.is_mega and megas_on_team >= MAX_MEGAS
         if extra_mega:
             note = f"Mega Stone #{megas_on_team + 1} - more than two leaves you short on options"
             score *= 0.8
         elif form.is_mega and megas_on_team:
-            note = "second Mega Stone - you choose which one Mega Evolves at team preview"
+            note = "second Mega Stone: you pick which one Mega Evolves each game"
         rows.append({
             "pokemon": name, "form": form.name, "types": "/".join(form.types), "score": round(score * 100, 1),
-            "synergy": round(synergy, 2), "defense": round(defense, 2), "offense": round(offense, 2),
+            "synergy": round(synergy, 4), "defense": round(defense, 2), "offense": round(offense, 2),
             "roles": round(roles, 2), "meta": round(meta, 2), "plan": round(plan, 2),
-            "why": "; ".join(reasons) or "solid all-round pick", "note": note,
+            "why": "; ".join(reasons) or "solid all-round pick", "note": note, "parts": parts,
             "extra_mega": bool(extra_mega), "starts": starts,
         })
 

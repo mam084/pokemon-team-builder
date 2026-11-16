@@ -88,6 +88,9 @@ div[data-testid="stVerticalBlockBorderWrapper"][style*="border"] {{ background: 
 
 /* cards with the sprite beside the name */
 .card-head {{ display: flex; align-items: center; gap: .7rem; }}
+.rec-score {{ font-size: .75rem; font-weight: 600; padding: 0 .4rem; border-radius: 999px;
+  background: rgba(37, 99, 235, .1); color: #1d4ed8; margin-left: .2rem; }}
+.rec-sub {{ font-size: .78rem; opacity: .7; }}
 .card-head .card-sprite {{ width: 56px; height: 56px; image-rendering: pixelated; flex: none; }}
 /* opponent lineup: six across, three per row on phones */
 .opp-grid {{ display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: .6rem; margin: .3rem 0 .6rem; }}

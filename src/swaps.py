@@ -165,10 +165,12 @@ def suggest_swaps(team: list[PokemonSet], dex: Dex, usage: UsageData, engine: Sw
         pool = [name for name, _ in usage.ranked(80)]
     candidates = [n for n in pool if dex.get_species(n) and dex.get_species(n).num not in nums_on_team]
 
+    tm = usage.teammates  # learned teammate model: how usual each newcomer is next to the rest
     rows = []
     for i, out_set in enumerate(team):
         rest = team[:i] + team[i + 1:]
         rest_members = members[:i] + members[i + 1:]
+        fit_probs = tm.pick_probs([dex.sheet_id(m.form) for m in rest_members]) if tm is not None else None
         taken = {p.item for p in rest if p.item}
         rest_megas = sum(p.is_mega(dex) for p in rest)
         out_tags = set_roles(out_set, dex, engine.doubles)
@@ -211,11 +213,16 @@ def suggest_swaps(team: list[PokemonSet], dex: Dex, usage: UsageData, engine: Sw
                 key_calc = f"{move} {pct:.0f}% to {threat.label}; takes {taken_pct:.0f}%"
             elif change <= 0 and not per_member:
                 continue
+            fit = None
+            if fit_probs is not None:
+                k = tm.index.get(dex.sheet_id(pset.battle_form(dex)))
+                fit = float(fit_probs[k]) if k is not None else 0.0
             out_labels, in_labels = {t.label for t in out_tags}, {t.label for t in in_tags}
             out_types = set(out_set.battle_form(dex).types)
             similarity = len(out_labels & in_labels) + 0.5 * len(out_types & set(pset.battle_form(dex).types))
             rows.append({
                 "similarity": similarity,
+                "fit": fit,
                 "swap out": out_set.nickname or out_set.species,
                 "swap in": pset.species,
                 "out job": out_job,
@@ -255,8 +262,13 @@ def suggest_swaps(team: list[PokemonSet], dex: Dex, usage: UsageData, engine: Sw
         for slot in sorted(groups):
             best = best_rows[slot]
             rest = groups[slot][groups[slot]["swap in"] != best["swap in"].iloc[0]]
-            rest = rest.sort_values(["similarity"] + sort, ascending=False)
-            picks += [best, rest.head(per_member - 1).assign(pick="Most similar")]
+            if tm is not None:  # the Pokemon players most often run with the other five
+                rest = rest.sort_values(["fit"] + sort, ascending=False)
+                label = "Usual pick"
+            else:
+                rest = rest.sort_values(["similarity"] + sort, ascending=False)
+                label = "Most similar"
+            picks += [best, rest.head(per_member - 1).assign(pick=label)]
         df = pd.concat(picks).reset_index(drop=True)
     else:
         # one suggestion per incoming Pokemon (its best slot), then the best few

@@ -61,6 +61,11 @@ jobs:
         timeout-minutes: 30
         continue-on-error: true  # evaluation data only; never block a usage refresh
 
+      - name: Retrain the learned teammate model (synergy)
+        run: python scripts/train_teammates.py
+        timeout-minutes: 20
+        continue-on-error: true
+
       - name: Re-run the recommender evaluation on the new data
         run: python scripts/evaluate.py
         timeout-minutes: 45
