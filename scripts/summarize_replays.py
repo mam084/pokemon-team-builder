@@ -19,7 +19,9 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 from src.replays import REPLAY_DIR, load_records, species_stats  # noqa: E402
 
-FORMATS = ["gen9championsvgc2026regmc", "gen9championsvgc2026regmcbo3"]
+from src.formats import replay_sources  # noqa: E402
+
+FORMATS = list(replay_sources())
 
 
 def main() -> None:

@@ -17,6 +17,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
+from src.formats import CURRENT  # noqa: E402
 
 from src.dex import load_dex  # noqa: E402
 from src.evaluate import evaluate  # noqa: E402
@@ -26,7 +27,7 @@ from src.usage import load_usage  # noqa: E402
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--format", default="gen9championsvgc2026regmc")
+    parser.add_argument("--format", default=CURRENT.id)
     parser.add_argument("--max-teams", type=int)
     args = parser.parse_args()
 

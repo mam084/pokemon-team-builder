@@ -44,8 +44,10 @@ OUT = ROOT / "data" / "replays"
 STATE = OUT / "state.json"
 SEARCH = "https://replay.pokemonshowdown.com/search.json"
 REPLAY = "https://replay.pokemonshowdown.com/{id}.json"
-FORMATS = ["gen9championsvgc2026regmc", "gen9championsvgc2026regmcbo3"]
-SINCE = "2026-09-09"  # Reg M-C start
+from src.formats import replay_sources  # noqa: E402  (the current regulation's formats)
+
+FORMATS = list(replay_sources())
+SINCE = min((start for _, start in replay_sources().values() if start), default="2026-09-09")
 HEADERS = {"User-Agent": "pokemon-team-builder replay fetcher (github.com/mam084/pokemon-team-builder)"}
 DELAY = 0.35  # seconds between requests: be a polite client
 

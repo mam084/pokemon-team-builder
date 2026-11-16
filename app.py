@@ -15,6 +15,8 @@ Run with:
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import streamlit as st
 
 st.set_page_config(page_title="Champions Team Builder", layout="wide")
@@ -49,7 +51,39 @@ def legality(team, dex, fmt) -> None:
                 st.warning(issue.message)
 
 
+DATA_DIRS = ["data/usage", "data/evaluation", "data/tournaments", "data/dex", "data/replays/summary"]
+
+
+@st.cache_resource(show_spinner=False)
+def _data_seen() -> dict:
+    return {"stamp": None}
+
+
+def reload_if_data_changed() -> None:
+    """New data reaches the app by git push (daily replays and synergy model, monthly ladder
+    stats); Community Cloud copies the files but the app keeps what it loaded in memory. When
+    any data file changed since the last page load, drop every cache so the next load reads
+    the new files - no reboot needed."""
+    root = Path(__file__).resolve().parent
+    stamp = tuple(sorted((str(p), p.stat().st_mtime) for d in DATA_DIRS if (root / d).exists()
+                         for p in (root / d).glob("*.json")))
+    seen = _data_seen()
+    if seen["stamp"] is not None and stamp != seen["stamp"]:
+        from src import matchup, recommend
+        from src.dex import load_dex
+        from src.usage import load_usage
+        load_usage.cache_clear()
+        load_dex.cache_clear()
+        matchup._CALC_CACHE.clear()
+        recommend._PROFILE_CACHE.clear()
+        st.cache_data.clear()
+        st.cache_resource.clear()
+        seen = _data_seen()
+    seen["stamp"] = stamp
+
+
 def main() -> None:
+    reload_if_data_changed()
     restore_from_url()  # a team in the link loads before any widget renders
     fmt_id, dex, usage = sidebar()
     fmt = FORMATS[fmt_id]

@@ -42,6 +42,7 @@ import numpy as np
 import pandas as pd
 
 from src.analysis import Member, build_members
+from src.formats import CURRENT
 from src.dex import Dex, load_dex
 from src.evaluate import TOURNAMENT_DIR, load_tournament_teams
 from itertools import combinations
@@ -163,7 +164,7 @@ def _sides(teams: dict, dex: Dex) -> dict:
     return out
 
 
-def build_dataset(regulation: str = "regmc", format_id: str = "gen9championsvgc2026regmc",
+def build_dataset(regulation: str = CURRENT.regulation, format_id: str = CURRENT.id,
                   cache: bool = True, verbose: bool = True) -> pd.DataFrame:
     """One row per decided match with both team lists: features, species, outcome."""
     path = CACHE_DIR / f"{regulation}_match_features.pkl"
@@ -365,7 +366,7 @@ def _choose(train: pd.DataFrame, features: list[str], vocab: list[str]) -> tuple
     return best
 
 
-def train_and_report(regulation: str = "regmc", format_id: str = "gen9championsvgc2026regmc",
+def train_and_report(regulation: str = CURRENT.regulation, format_id: str = CURRENT.id,
                      boot: int = 200, verbose: bool = True) -> dict:
     """
     Fits P(player 1 wins) from team features *and* player skill (Elo before the match),

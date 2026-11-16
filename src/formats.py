@@ -22,6 +22,9 @@ class Format:
     active: str          # human-readable date range
     usage_cutoff: int = 1630  # Smogon rating cutoff to pull usage stats at
     current: bool = False
+    start: str = ""      # first day (YYYY-MM-DD): replays are fetched back to here
+    replays: tuple[str, ...] = ()  # Showdown formats whose replays feed this one's learned models
+    limitless: str = ""  # Limitless VGC format id for tournament team lists ("M-C")
 
     @property
     def is_doubles(self) -> bool:
@@ -39,6 +42,9 @@ FORMATS: dict[str, Format] = {
             pick=4,
             active="Sep 9 – Dec 2, 2026",
             current=True,
+            start="2026-09-09",
+            replays=("gen9championsvgc2026regmc", "gen9championsvgc2026regmcbo3"),
+            limitless="M-C",
         ),
         Format(
             id="gen9championsbssregmc",
@@ -61,3 +67,15 @@ FORMATS: dict[str, Format] = {
 }
 
 DEFAULT_FORMAT = "gen9championsvgc2026regmc"
+CURRENT = FORMATS[DEFAULT_FORMAT]  # the regulation the learned models and evaluation are built for
+
+# A new regulation: export its dex (scripts/export_dex.js), add its formats above with
+# current=True, start= and replays=, and point DEFAULT_FORMAT at it. Replay fetching,
+# the replay summaries and every learned model read these entries; nothing else names
+# the regulation.
+
+
+def replay_sources() -> dict[str, tuple[str, str]]:
+    """{Showdown format id to fetch replays for: (app format it feeds, its start day)} for
+    the current formats."""
+    return {r: (f.id, f.start) for f in FORMATS.values() if f.current for r in f.replays}

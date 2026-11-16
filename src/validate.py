@@ -34,6 +34,7 @@ EVAL_DIR = Path(__file__).resolve().parent.parent / "data" / "evaluation"
 import numpy as np
 
 from src.analysis import build_members
+from src.formats import CURRENT
 from src.dex import Dex, load_dex
 from src.evaluate import TOURNAMENT_DIR, load_tournament_teams, split_by_date
 from src.matchup import best_bring, build_archetypes, pair_matrix, team_score
@@ -126,7 +127,7 @@ def calibration(x: np.ndarray, y: np.ndarray, k: float, bins: int = 5) -> list[d
     return out
 
 
-def validate(regulation: str = "regmc", format_id: str = "gen9championsvgc2026regmc",
+def validate(regulation: str = CURRENT.regulation, format_id: str = CURRENT.id,
              max_matches: int | None = None) -> dict:
     dex, usage = load_dex(regulation), load_usage(format_id)
     rows = match_rows(regulation, dex, usage, max_matches=max_matches)

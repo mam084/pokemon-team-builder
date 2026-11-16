@@ -24,6 +24,8 @@ import math
 from collections import defaultdict
 from pathlib import Path
 
+from src.formats import CURRENT
+
 TOURNAMENT_DIR = Path(__file__).resolve().parent.parent / "data" / "tournaments"
 START = 1500.0
 K_BASE = 32.0   # tuned on the older tournaments (python -m src.ratings)
@@ -71,7 +73,7 @@ def log_loss(rows: list[dict]) -> float:
     return total / len(rows)
 
 
-def tune(regulation: str = "regmc", train_share: float = 0.7) -> dict:
+def tune(regulation: str = CURRENT.regulation, train_share: float = 0.7) -> dict:
     """Pick K_BASE / NEW_BOOST by log loss on the older tournaments only."""
     matches = ordered_matches(regulation)
     tournaments = list(dict.fromkeys(m["tournament"] for m in matches))

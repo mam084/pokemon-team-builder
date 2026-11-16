@@ -809,3 +809,24 @@ class TestTeammateModel(unittest.TestCase):
         self.assertTrue(any("fit" in p for p in recs["parts"]))
         self.assertTrue(recs["why"].str.contains("players pair it with").any())
         self.assertTrue(recs["synergy"].between(0, 1).all())
+
+
+class TestNewPokemon(unittest.TestCase):
+    def test_pokemon_the_model_never_saw_score_neutral(self):
+        from src.formats import DEFAULT_FORMAT, FORMATS
+        dex = load_dex(FORMATS[DEFAULT_FORMAT].regulation)
+        usage = load_usage(DEFAULT_FORMAT)
+        if usage is None or usage.teammates is None:
+            self.skipTest("no teammate model")
+        team, _ = parse_paste(GARGANACL_TEAM, dex)
+        members = build_members(team[:3], dex)
+        tm = usage.teammates
+        saved = dict(tm.index)
+        try:  # pretend Kingambit was just released: not in the model
+            del tm.index["kingambit"]
+            recs = recommend(members, dex, usage, top_n=300, mode="neutral")
+        finally:
+            tm.index.clear(); tm.index.update(saved)
+        row = recs[recs["pokemon"] == "Kingambit"].iloc[0]
+        self.assertEqual(row["synergy"], 0.5)  # no evidence: neutral, not buried at 0
+        self.assertIn("too new or rare", row["why"])
