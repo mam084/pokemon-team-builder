@@ -197,17 +197,31 @@ class UsageData:
     def species_usage(self, species: str, dex: Dex) -> float:
         return round(sum(self.pokemon[v]["usage"] for v in self.variants(species, dex)), 3)
 
+    @staticmethod
+    def sheet_name(name: str, dex: Dex) -> str | None:
+        """The team-sheet species a usage entry belongs to (a Mega counts as its base)."""
+        s = dex.get_species(name)
+        if s is None:
+            return None
+        if s.is_mega or s.battle_only:
+            base = dex.get_species(s.battle_only[0] if s.battle_only else s.base_species)
+            return base.name if base else s.name
+        return s.name
+
+    def is_common(self, name: str, dex: Dex, cutoff: float = 5.0) -> bool:
+        """On at least `cutoff`% of ladder teams (Megas count toward their base species)."""
+        sheet = self.sheet_name(name, dex)
+        return sheet is not None and self.team_sheet_usage(dex).get(sheet, 0.0) >= cutoff
+
     def team_sheet_usage(self, dex: Dex) -> dict[str, float]:
         """{base species name: usage incl. its Megas}, highest first."""
         if getattr(self, "_sheet_usage", None) is None:
             totals: dict[str, float] = {}
-            for name, entry in self.pokemon.items():
-                s = dex.get_species(name)
-                if s is None:
+            for name in self.pokemon:
+                base = self.sheet_name(name, dex)
+                if base is None:
                     continue
-                base = dex.get_species(s.battle_only[0] if s.battle_only else s.base_species) \
-                    if (s.is_mega or s.battle_only) else s
-                totals[base.name] = totals.get(base.name, 0.0) + entry["usage"]
+                totals[base] = totals.get(base, 0.0) + self.pokemon[name]["usage"]
             self._sheet_usage = dict(sorted(totals.items(), key=lambda kv: -kv[1]))
         return self._sheet_usage
 

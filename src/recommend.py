@@ -76,7 +76,8 @@ EXPLORE_WEIGHTS = {"synergy": 0.40, "defense": 0.25, "offense": 0.05, "roles": 0
 #   popular  tuned defaults; the candidate pool is the usage top 80
 #   neutral  popularity gets no weight, and every Pokemon with usage data is a candidate
 #            (teammate lift is already popularity-adjusted, so rare picks compete fairly)
-#   hidden   like neutral, but popular Pokemon are marked down (up to -60% for the most used)
+#   hidden   like neutral, without Pokemon on 5%+ of ladder teams; the rest are marked down by usage
+HIDDEN_MAX = 5.0  # Hidden gems leaves out Pokemon on this % of ladder teams or more
 MODES = {"neutral": "Neutral", "popular": "Popular picks", "hidden": "Hidden gems"}
 
 
@@ -251,6 +252,8 @@ def recommend(
     else:
         pool = [s.name for s in dex.selectable_species()]
     pool = [p for p in pool if dex.get_species(p) and dex.get_species(p).num not in on_team]
+    if mode == "hidden" and usage is not None:  # gems: leave common Pokémon out, not just marked down
+        pool = [p for p in pool if not usage.is_common(p, dex, HIDDEN_MAX)]
 
     max_usage = max((usage.usage(p) for p in pool), default=1.0) if usage else 1.0
     rows = []

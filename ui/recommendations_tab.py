@@ -32,7 +32,7 @@ MODE_HELP = {
     "popular": "Data-tuned on real tournament teams. Leans on proven meta Pokémon.",
     "neutral": "Popularity counts for nothing and every Pokémon with ladder data is considered. "
                "Leans on synergy, type fit and your team's game plan (weather, Trick Room...).",
-    "hidden": "Like Neutral, and the most-used Pokémon are marked down, to surface less common picks.",
+    "hidden": "Like Neutral, but only Pokémon on fewer than 5% of ladder teams, to surface less common picks.",
 }
 
 

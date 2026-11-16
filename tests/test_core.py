@@ -597,11 +597,19 @@ class TestPlanBuilderSwaps(unittest.TestCase):
         self.assertEqual(set(alts["pick"]), {"Best upgrade", "Most similar"})
 
     def test_hidden_pool_skips_popular_species(self):
-        from src.swaps import HIDDEN_SKIP, mode_pool
-        ranked = [n for n, _ in self.usage.ranked()]
+        from src.recommend import recommend
+        from src.swaps import HIDDEN_MAX, mode_pool
+        sheet = self.usage.team_sheet_usage(self.dex)
         pool = mode_pool(self.usage, "hidden", self.dex)
-        top_nums = {self.dex.get_species(n).num for n in ranked[:HIDDEN_SKIP] if self.dex.get_species(n)}
-        self.assertFalse(any(self.dex.get_species(n).num in top_nums for n in pool))
+        self.assertTrue(pool)
+        # nothing on 5%+ of teams, Megas counted with their base species (Salamence-Mega)
+        self.assertTrue(all(sheet.get(self.usage.sheet_name(n, self.dex), 0) < HIDDEN_MAX for n in pool))
+        common = [n for n, v in sheet.items() if v >= HIDDEN_MAX]
+        self.assertIn("Dragonite", common)  # ~6% of teams: not a gem
+        self.assertNotIn("Dragonite", pool)
+        team, _ = parse_paste(GARGANACL_TEAM, self.dex)
+        recs = recommend(build_members(team[:3], self.dex), self.dex, self.usage, mode="hidden", top_n=50)
+        self.assertFalse(set(recs["pokemon"]) & set(common))
 
     def test_game_plan(self):
         from src.gameplan import game_plan
