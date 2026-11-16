@@ -169,10 +169,12 @@ _CALC_CACHE: dict[tuple, tuple[float, str]] = {}
 
 
 def _set_key(m: Member) -> tuple:
+    """Cache key for a member's calcs. The forme is part of it: with two Mega Stones the same
+    set battles as a Mega in one version of the team and in its base forme in the other."""
     p = m.pset
     if p is None:
         return (m.label,)
-    return (p.species, p.item, p.ability, p.nature, tuple(sorted(p.sps.items())), tuple(p.moves))
+    return (m.form.name, p.species, p.item, p.ability, p.nature, tuple(sorted(p.sps.items())), tuple(p.moves))
 
 
 def best_attack(a: Member, b: Member, doubles: bool = True, weather: str | None = None) -> tuple[float, str]:
