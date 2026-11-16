@@ -29,8 +29,9 @@ def recommender(r: dict) -> str:
         f"| {name} | {m['hit@1']:.1%} | {m['hit@5']:.1%} | {m['hit@10']:.1%} | {m['mrr']:.3f} |"
         for name, m in res.items())
     t, h = res["tuned weights"], res["hand-set weights"]
-    pairs = (f"Synergy learned tournament pairings from the {r['pairing_teams']:,} oldest teams and the "
-             f"weights were tuned by grid search on the next {r['train_teams']:,}"
+    pairs = (f"The teammate model learned from the {r['pairing_teams']:,} oldest teams (plus replays from "
+             f"before the next tournaments) and the weights were tuned by grid search on the next "
+             f"{r['train_teams']:,}"
              if r.get("pairing_teams") else
              f"The weights were tuned by grid search on {r['train_teams']:,} teams from the older tournaments")
     return f"""Tournaments are split by date. {pairs}. Every number below comes from

@@ -36,7 +36,10 @@ def quick_picks(dex: Dex, usage: UsageData | None) -> list[tuple[str, str]]:
     weights = {key: ss.get(f"w_{mode}_{key}", defaults[key]) for key in DEFAULT_WEIGHTS}
     recs = recommend(build_members(team, dex), dex, usage, doubles=ss.get("doubles", True),
                      weights=weights, top_n=QUICK, mode=mode)
-    return [(row["pokemon"], row["why"].split(";")[0]) for _, row in recs.head(QUICK).iterrows()]
+    def reason(row) -> str:
+        parts = row.get("parts") or {}
+        return parts.get("fit") or parts.get("plan") or parts.get("cover") or row["why"].split(";")[0]
+    return [(row["pokemon"], reason(row)) for _, row in recs.head(QUICK).iterrows()]
 
 
 def empty_slot(slot: int, dex: Dex, usage: UsageData | None, picks: list[tuple[str, str]]) -> None:

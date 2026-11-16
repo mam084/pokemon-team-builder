@@ -19,12 +19,14 @@ from ui.state import add_to_team, load_team
 from ui.theme import how_it_works
 
 HELP = {
-    "synergy": "Average over your whole team of how much more often it appears next to each member "
-               "than chance (Smogon teammate lift). Already adjusted for popularity. 0.33 = no relationship.",
+    "synergy": "How strongly players pair it with your whole team, from a model learned on ~50,000 real "
+               "tournament and ladder teams. It weighs every member at once, so two Pokémon that only appear "
+               "together because both go with a third don't count as partners. 0.5 = no pull either way.",
     "defense": "Resists the types your team is weak to (and doesn't share its weaknesses).",
     "offense": "Hits popular Pokémon your team can't hit super effectively.",
     "roles": "Commonly brings a role you're missing (Fake Out, speed control…).",
-    "meta": "Overall usage - proven Pokémon tend to be good.",
+    "meta": "Overall ladder usage - proven Pokémon tend to be good. (In Popular picks, Fits already counts how "
+            "often players pick it.)",
     "plan": "Plays into your team's weather, Trick Room, Tailwind or terrain (with diminishing returns), "
             "or sets one up that your team already benefits from.",
 }
@@ -47,17 +49,19 @@ def mode_picker() -> str:
 
 
 def weights_for(mode: str) -> dict:
+    """The weights in effect: the sliders' values (they render at the bottom of the tab)."""
     defaults = DEFAULT_WEIGHTS if mode == "popular" else EXPLORE_WEIGHTS
-    title = ("Adjust weights (defaults tuned on real tournament teams)" if mode == "popular"
-             else "Adjust weights (exploration defaults)")
-    with st.expander(title):
-        cols = st.columns(3)
-        weights = {
-            key: cols[i % 3].slider(SIGNALS[key], 0.0, 1.0, float(defaults[key]), 0.05, help=HELP[key],
-                                    key=f"w_{mode}_{key}", disabled=(key == "meta" and mode != "popular"))
-            for i, key in enumerate(DEFAULT_WEIGHTS)
-        }
-    return weights
+    return {key: float(st.session_state.get(f"w_{mode}_{key}", defaults[key])) for key in DEFAULT_WEIGHTS}
+
+
+def weight_sliders(mode: str) -> None:
+    defaults = DEFAULT_WEIGHTS if mode == "popular" else EXPLORE_WEIGHTS
+    st.caption("Defaults are tuned on real tournament teams (Popular picks) or set for exploring (Neutral, "
+               "Hidden gems). Hover a slider for what it measures.")
+    cols = st.columns(3)
+    for i, key in enumerate(DEFAULT_WEIGHTS):
+        cols[i % 3].slider(SIGNALS[key], 0.0, 1.0, float(defaults[key]), 0.05, help=HELP[key],
+                           key=f"w_{mode}_{key}", disabled=(key == "meta" and mode != "popular"))
 
 
 def team_builder_section(team, dex, usage, fmt, mode, weights) -> None:
@@ -107,6 +111,43 @@ def team_builder_section(team, dex, usage, fmt, mode, weights) -> None:
                 st.button("Load this team", key=f"load_built_{n}", width="stretch",
                           on_click=load_team, args=(t.sets,))
 
+LINES = [("fit", "Fits"), ("clash", "Watch"), ("plan", "Plan"), ("cover", "Covers"), ("hits", "Hits"),
+         ("adds", "Adds")]
+
+
+def card_lines(parts: dict) -> str:
+    """The reasons as short labelled lines (Fits / Covers / Hits...) instead of one long sentence."""
+    out = []
+    for key, label in LINES:
+        text = parts.get(key)
+        if text:
+            for lead in ("players pair it with ", "paired often with ", "rarely run next to ", "resists ",
+                         "hits ", "adds "):
+                if text.startswith(lead):
+                    text = ("next to " if lead == "rarely run next to " else "") + text[len(lead):]
+                    break
+            text = text.replace(" super effectively", "")
+            if key == "cover" and "weak spots:" in text:  # "covers your Grassy Terrain core's weak spots: Ice..."
+                core, _, types = text.partition("weak spots:")
+                text = f"{types.strip()} ({core.replace('covers ', '').strip()} weak spots)"
+            if key == "hits":
+                text += " (super effective)"
+            if key == "clash":
+                text = "rarely run " + text
+            out.append(f"**{label}:** {text[0].upper() + text[1:] if key != 'clash' else text}")
+    return "  \n".join(out)
+
+
+def pick_chances(team, dex, usage) -> dict[str, float]:
+    """{root: P(players with this team pick it next)} from the learned teammate model."""
+    tm = usage.teammates if usage is not None else None
+    if tm is None or not team:
+        return {}
+    roots = [dex.sheet_id(f) for p in team if (f := p.battle_form(dex)) is not None]
+    probs = tm.pick_probs(roots)
+    return {r: float(probs[i]) for r, i in tm.index.items()}
+
+
 def recommendations_tab(team, members, dex, usage, fmt) -> None:
     mode = mode_picker()
     weights = weights_for(mode)
@@ -116,12 +157,17 @@ def recommendations_tab(team, members, dex, usage, fmt) -> None:
     if len(team) >= SLOTS:
         st.info("Your team is full - remove a member (Team tab) to add one of these, or see "
                 "**Suggested swaps** on the Matchups tab.")
-    how_it_works("Every candidate is scored on six signals (0–1 each) and ranked by the weighted blend: synergy, "
-                 "defense, offense, roles, meta and game plan (hover the weight sliders for each). **Synergy** is "
-                 "judged against your whole team: the average of how much more often the candidate appears next "
-                 "to each of your Pokémon than chance predicts.", "How picks are scored")
-    if mode == "popular":
-        accuracy_note(fmt)
+    learned = usage is not None and usage.teammates is not None
+    how_it_works(
+        ("**Fits** comes from a model learned on real teams (tournament team lists and ladder replays): given "
+         "your whole team, how much likelier players are to pick each candidate. It looks at every member at "
+         "once, so it isn't fooled by two Pokémon that only show up together because both pair with a third. "
+         if learned else
+         "**Fits** is how much more often it appears next to each of your Pokémon than chance (ladder stats). ")
+        + "**Covers** is the types your team is weak to that it resists, **Hits** the popular Pokémon your team "
+        "can't hit super effectively that it can, **Adds** jobs your team lacks, and **Plan** how it plays into "
+        "your weather, terrain, Trick Room or Tailwind. The ranking blends these with weights you can change "
+        "under **Fine-tune** at the bottom.", "How picks are chosen")
     recs = recommend(members, dex, usage, doubles=fmt.is_doubles,
                      weights=weights, top_n=15, mode=mode)
     if recs.empty:
@@ -134,6 +180,7 @@ def recommendations_tab(team, members, dex, usage, fmt) -> None:
     if usage:
         recs.insert(2, "usually plays", [role_text(meta_roles(n, usage, dex, fmt.is_doubles), 2)
                                           for n in recs["pokemon"]])
+    chances = pick_chances(team, dex, usage)
     full = len(team) >= SLOTS
     top = recs.head(10)
     for i, row in top.iterrows():
@@ -143,15 +190,18 @@ def recommendations_tab(team, members, dex, usage, fmt) -> None:
             with st.container(border=True):
                 form = dex.get_species(row["form"])
                 img = f"<img class='card-sprite' src='{sprite(form, dex)}' alt=''>" if form is not None else ""
+                sub = f"Usually plays: {row['usually plays']}" if usage else ""
                 st.markdown(  # sprite beside the name (not on its own row) so cards stay short on a phone
-                    f"<div class='card-head'>{img}<div><b>{i + 1}. {row['pokemon']}</b> · score "
-                    f"{row['score']:.0f}<br>{type_badges(row['types'].split('/'))}</div></div>",
+                    f"<div class='card-head'>{img}<div><b>{i + 1}. {row['pokemon']}</b> "
+                    f"<span class='rec-score' title='Blended score, 0-100'>{row['score']:.0f}</span><br>"
+                    f"{type_badges(row['types'].split('/'))}<br>"
+                    f"<span class='rec-sub'>{sub}</span></div></div>",
                     unsafe_allow_html=True,
                 )
-                if usage:
-                    st.caption(f"Usually plays: {row['usually plays']}")
-                st.markdown(row["why"][0].upper() + row["why"][1:])
-                st.caption(drivers(row, recs.attrs.get("weights", weights)))
+                chance = chances.get(dex.sheet_id(form)) if form is not None else None
+                if chance is not None and chance >= 0.005:
+                    st.caption(f"Players with your team pick it next **{chance:.0%}** of the time.")
+                st.markdown(card_lines(row["parts"]) or row["why"][0].upper() + row["why"][1:])
                 if row["note"]:
                     st.caption(f"Note: {row['note']}")
                 if not full:  # a full team is explained once above the list
@@ -161,30 +211,25 @@ def recommendations_tab(team, members, dex, usage, fmt) -> None:
                         on_click=add_to_team, args=(row["pokemon"], dex, usage),
                         help="Adds its most popular set to the first empty slot",
                     )
-    with st.expander("Score breakdown (all signals)"):
+    with st.expander("Fine-tune the ranking"):
+        weight_sliders(mode)
+        if mode == "popular":
+            accuracy_note(fmt)
+        st.markdown("**Score breakdown** (each signal 0-1)")
         st.dataframe(
-            recs.drop(columns=["form", "starts", "extra_mega"], errors="ignore"), hide_index=True, width="stretch",
+            recs.drop(columns=["form", "starts", "extra_mega", "parts"], errors="ignore"), hide_index=True,
+            width="stretch",
             column_config={
                 "score": st.column_config.ProgressColumn("score", min_value=0, max_value=100, format="%.0f"),
-                **{c: st.column_config.NumberColumn(c, format="%.2f", width="small")
+                **{c: st.column_config.NumberColumn(SIGNALS[c], format="%.2f", width="small")
                    for c in ["synergy", "defense", "offense", "roles", "meta", "plan"]},
                 "why": st.column_config.TextColumn(width="large"),
             },
         )
 
 
-SIGNALS = {"synergy": "Synergy", "defense": "Defense", "offense": "Offense", "roles": "Roles",
+SIGNALS = {"synergy": "Fits", "defense": "Covers", "offense": "Hits", "roles": "Adds",
            "meta": "Popularity", "plan": "Game plan"}
-
-
-def drivers(row, weights: dict) -> str:
-    """Which signals the score came from, as shares: 'Ranked on: Synergy 48%, Defense 30%...'"""
-    parts = {k: weights.get(k, 0) * float(row[k]) for k in SIGNALS}
-    total = sum(parts.values())
-    if total <= 0:
-        return ""
-    top = [(k, v / total) for k, v in sorted(parts.items(), key=lambda kv: -kv[1]) if v / total >= 0.08]
-    return "Ranked on: " + ", ".join(f"{SIGNALS[k]} {share:.0%}" for k, share in top)
 
 
 EVAL_DIR = Path(__file__).resolve().parent.parent / "data" / "evaluation"
@@ -197,19 +242,20 @@ def accuracy_note(fmt) -> None:
         return
     report = json.loads(path.read_text())
     tuned = report["results"].get("tuned weights", {})
-    with st.expander(f"How accurate is this? Top-10 hit rate {tuned.get('hit@10', 0):.0%} on real tournament teams"):
-        st.caption(
-            f"Tested on {report['test_teams']:,} teams from {report['test_tournaments']} Limitless tournaments "
-            f"({report['test_dates'][0]} to {report['test_dates'][1]}): hide one member of a real team, give the "
-            "other five to the recommender, and see where the hidden Pokémon ranks among about "
-            f"{report['candidate_pool']} candidates. "
-            + (f"Synergy learned pairings from the {report['pairing_teams']:,} oldest teams and the weights were "
-               f"tuned on the next {report['train_teams']:,}" if report.get("pairing_teams") else
-               f"Weights were tuned on {report['train_teams']:,} older teams")
-            + " only, so these numbers are a forward-in-time test."
-        )
-        rows = [{"model": name, "top 1": m["hit@1"], "top 5": m["hit@5"], "top 10": m["hit@10"], "MRR": m["mrr"]}
-                for name, m in report["results"].items()]
-        st.dataframe(pd.DataFrame(rows), hide_index=True, width="stretch",
-                     column_config={c: st.column_config.NumberColumn(format="percent" if c != "MRR" else "%.3f")
-                                    for c in ["top 1", "top 5", "top 10", "MRR"]})
+    st.markdown(f"**How accurate is this?** Top-10 hit rate {tuned.get('hit@10', 0):.0%} on real "
+                "tournament teams")
+    st.caption(
+        f"Tested on {report['test_teams']:,} teams from {report['test_tournaments']} Limitless tournaments "
+        f"({report['test_dates'][0]} to {report['test_dates'][1]}): hide one member of a real team, give the "
+        "other five to the recommender, and see where the hidden Pokémon ranks among about "
+        f"{report['candidate_pool']} candidates. "
+        + (f"The teammate model learned from the {report['pairing_teams']:,} oldest teams (and older replays) and "
+           f"the weights were tuned on the next {report['train_teams']:,}" if report.get("pairing_teams") else
+           f"Weights were tuned on {report['train_teams']:,} older teams")
+        + " only, so these numbers are a forward-in-time test."
+    )
+    rows = [{"model": name, "top 1": m["hit@1"], "top 5": m["hit@5"], "top 10": m["hit@10"], "MRR": m["mrr"]}
+            for name, m in report["results"].items()]
+    st.dataframe(pd.DataFrame(rows), hide_index=True, width="stretch",
+                 column_config={c: st.column_config.NumberColumn(format="percent" if c != "MRR" else "%.3f")
+                                for c in ["top 1", "top 5", "top 10", "MRR"]})

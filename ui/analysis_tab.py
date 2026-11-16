@@ -40,10 +40,38 @@ def speed_chart(df: pd.DataFrame, trick_room: bool) -> go.Figure:
     return fig
 
 
+def fit_check_section(team, dex, usage) -> None:
+    """How usual each member is next to the other five, from the learned teammate model."""
+    tm = usage.teammates if usage is not None else None
+    if tm is None or len(team) < 3:
+        return
+    roots = [dex.sheet_id(p.battle_form(dex)) for p in team]
+    name = {dex.sheet_id(s): s.name for s in dex.selectable_species() if not dex.is_cosmetic(s)}
+    lines = []
+    for p, r in zip(team, tm.fit_check(roots)):
+        instead = ", ".join(f"{name.get(x, x)} ({q:.0%})" for x, q in r["instead"])
+        if r["rank"] is None:
+            lines.append(f"- **{p.species}**: too rarely used to judge.")
+            continue
+        if r["rank"] <= 3:
+            verdict = f"a common pick here (#{r['rank']}, {r['prob']:.0%})"
+        elif r["rank"] <= 15:
+            verdict = f"a reasonable pick here (#{r['rank']}, {r['prob']:.1%})"
+        else:
+            verdict = f"unusual here (#{r['rank']} of {len(tm.vocab)})"
+        lines.append(f"- **{p.species}** is {verdict}. Players with your other Pokémon most often run: {instead}.")
+    st.subheader("How your team compares to what players build")
+    st.caption("How often players with your other Pokémon pick each member for that spot, and what they pick "
+               "most instead. Learned from real tournament team lists and ladder replays. It measures how "
+               "**usual** a pick is, not how good: an unusual pick can be your team's surprise factor.")
+    st.markdown("\n".join(lines))
+
+
 def analysis_tab(team, members, dex, usage, fmt) -> None:
     if not members:
         st.info("Add Pokémon on the **Team** tab to see the analysis.")
         return
+    fit_check_section(team, dex, usage)
 
     st.subheader("Defensive matchups")
     st.caption("Damage each attacking type deals to each member, with Mega forms and type-changing abilities "
