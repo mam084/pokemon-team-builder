@@ -68,6 +68,19 @@ class TestApp(unittest.TestCase):
         at = at.sidebar.selectbox[0].set_value("gen9championsbssregmc").run()
         self.assertClean(at)
 
+    def test_cards_open_slots_and_spread_pills(self):
+        at = click(fresh(), key="s0_example")
+        at = click(at, key="tp_edit3")  # tapping a team card opens that Pokémon's editor
+        self.assertClean(at)
+        self.assertEqual(at.session_state["slot_tabs"], at.session_state["s3_species"])
+        self.assertEqual(at.session_state["slot_tab_index"], 3)
+        at = next(p for p in at.button_group if p.key == "s0_spread").set_value("Fast attacker").run()
+        self.assertClean(at)
+        sps = {s: at.session_state[f"s0_sp_{s}"] for s in ["hp", "atk", "def", "spa", "spd", "spe"]}
+        self.assertEqual(sum(sps.values()), 66)
+        self.assertEqual(sps["spe"], 32)
+        self.assertIsNone(at.session_state["s0_spread"])
+
 
 if __name__ == "__main__":
     unittest.main()
