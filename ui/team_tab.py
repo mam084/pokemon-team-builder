@@ -10,8 +10,8 @@ from src.presets import presets_for
 from src.roles import role_text, set_roles, species_roles
 
 from src.usage import UsageData
-from ui.common import NONE, nature_label, ranked_options, sprite, type_badges
-from ui.state import (apply_preset, current_team, fill_slot, k, on_slot_tab_change, on_species_change, read_slot,
+from ui.common import NONE, SLOTS, nature_label, ranked_options, sprite, type_badges
+from ui.state import (apply_preset, apply_spread, current_team, fill_slot, k, on_slot_tab_change, on_species_change, read_slot,
                       slot_labels, write_slot)
 from ui.sidebar import import_paste, load_example
 
@@ -69,6 +69,69 @@ def empty_slot(slot: int, dex: Dex, usage: UsageData | None, picks: list[tuple[s
         st.caption("Or build a whole team around one Pokémon on the Recommendations tab.")
 
 
+SPREADS = {  # 66 points each; "atk" is whichever attacking stat the moves use
+    "Fast attacker": {"atk": 32, "spe": 32, "hp": 2},
+    "Bulky attacker": {"hp": 32, "atk": 32, "spd": 2},
+    "Physically bulky": {"hp": 32, "def": 32, "spd": 2},
+    "Specially bulky": {"hp": 32, "spd": 32, "def": 2},
+    "Clear": {},
+}
+
+
+def attack_stat(pset, form, dex: Dex) -> str:
+    """'atk' or 'spa': the stat most of the set's attacks use (base stats break a tie)."""
+    phys = spec = 0
+    for m in pset.moves:
+        mv = dex.moves.get(to_id(m))
+        if mv and (mv.get("offensiveStat") or mv.get("usesTargetAttack")):
+            continue  # Body Press, Foul Play: not the user's attacking stat
+        if mv and mv["category"] == "Physical":
+            phys += 1
+        elif mv and mv["category"] == "Special":
+            spec += 1
+    if phys != spec:
+        return "atk" if phys > spec else "spa"
+    return "atk" if form.base_stats["atk"] >= form.base_stats["spa"] else "spa"
+
+
+
+def load_spread(slot: int, atk: str) -> None:
+    """Callback: a quick spread fills the Stat Points at once; the pills then reset."""
+    key = k(slot, "spread")
+    name = st.session_state.get(key)
+    if name in SPREADS:
+        apply_spread(slot, {(atk if stat == "atk" else stat): v for stat, v in SPREADS[name].items()})
+    st.session_state[key] = None
+
+
+def meta_check(pset, dex: Dex, usage: UsageData | None, doubles: bool) -> tuple[list[str], list[str]]:
+    """This set against the 30 most used Pokémon (their popular sets): who hits it hardest
+    (50%+ a hit) and who it handles (hits them for 50%+ while taking under 50%)."""
+    if usage is None:
+        return [], []
+    from src.analysis import build_members
+    from src.matchup import best_attack, opponent_members
+    mine = build_members([pset], dex)
+    if not mine:
+        return [], []
+    me = mine[0]
+    threats, handles = [], []
+    for name, pct in usage.ranked(30):
+        opp = opponent_members([name], usage, dex)
+        if not opp or opp[0].form.name == me.form.name:
+            continue
+        o = opp[0]
+        dealt, dealt_move = best_attack(o, me, doubles)
+        taken, taken_move = best_attack(me, o, doubles)
+        if dealt >= 50:
+            threats.append((dealt, f"{o.label} ({dealt_move} ~{min(dealt, 999):.0f}%)"))
+        elif taken >= 50:
+            handles.append((pct, f"{o.label} ({taken_move} ~{taken:.0f}%)"))
+    threats.sort(reverse=True)
+    handles.sort(reverse=True)
+    return [t for _, t in threats[:3]], [h for _, h in handles[:3]]
+
+
 def load_preset(slot: int, presets: list) -> None:
     """Callback: a preset picked from the menu loads at once; the menu then resets."""
     key = k(slot, "preset")
@@ -110,6 +173,10 @@ def slot_editor(slot: int, dex: Dex, usage: UsageData | None, picks: list[tuple[
         ss[k(slot, "item")] = NONE
     c[0].selectbox("Item", items, key=k(slot, "item"),
                    format_func=lambda n: f"{n}  ·  {item_pct[to_id(n)]:.0f}%" if to_id(n) in item_pct else n)
+    item_now = ss.get(k(slot, "item"), NONE)
+    others = [read_slot(j) for j in range(SLOTS) if j != slot]
+    if item_now != NONE and any(p and p.item == item_now for p in others):
+        c[0].caption(f":orange[Another Pokémon already holds {item_now} (one of each item).]")
     abilities = list(base.abilities)
     if ss.get(k(slot, "ability")) not in abilities:
         ss[k(slot, "ability")] = abilities[0]
@@ -165,6 +232,12 @@ def slot_editor(slot: int, dex: Dex, usage: UsageData | None, picks: list[tuple[
                 ss[k(slot, f"move{i}")] = NONE
             st.selectbox(f"Move {i + 1}", move_opts, key=k(slot, f"move{i}"), format_func=move_label,
                          label_visibility="collapsed")
+        chosen = [ss.get(k(slot, f"move{i}")) for i in range(4)]
+        dupes = sorted({m for m in chosen if m != NONE and chosen.count(m) > 1})
+        if dupes:
+            st.caption(f":orange[{', '.join(dupes)} is picked twice.]")
+        elif NONE in chosen:
+            st.caption(f"{chosen.count(NONE)} move slot{'s' if chosen.count(NONE) > 1 else ''} empty.")
 
     # stat points + final stats, one row per stat
     spent = sum(int(ss.get(k(slot, f"sp_{s}"), 0)) for s in STATS)
@@ -178,6 +251,10 @@ def slot_editor(slot: int, dex: Dex, usage: UsageData | None, picks: list[tuple[
                     unsafe_allow_html=True)
         if remaining:
             st.caption(left_txt)
+        atk = attack_stat(pset, form, dex)
+        st.pills("Quick spread", list(SPREADS), key=k(slot, "spread"), label_visibility="collapsed",
+                 on_change=load_spread, args=(slot, atk),
+                 help=f"Fill the points in one tap (attackers use {STAT_LABELS[atk]}, from the moves).")
         head = st.columns([1.3, 3, 1.4], vertical_alignment="bottom")
         head[0].caption("Stat")
         head[1].caption("Points")
@@ -195,6 +272,13 @@ def slot_editor(slot: int, dex: Dex, usage: UsageData | None, picks: list[tuple[
             row[2].markdown(f"<div class='stat-final' title='Base {form.base_stats[stat]}'>{stats[stat]}</div>",
                             unsafe_allow_html=True)
 
+    threats, handles = meta_check(pset, dex, usage, doubles)
+    if threats or handles:
+        with st.container(border=True, key=f"meta_box{slot}"):
+            st.markdown("<div class='box-title'>Against the top 30 <span class='box-sub'>popular sets, "
+                        "damage calcs</span></div>", unsafe_allow_html=True)
+            st.markdown(f"**Hit it hardest:** {', '.join(threats) or 'nothing hits it for half'}  \n"
+                        f"**It handles:** {', '.join(handles) or 'none it clearly beats'}")
     bottom = st.columns([3, 1], vertical_alignment="bottom")
     nick = ss.get(k(slot, "nick"), "")
     with bottom[0].popover(f"Nickname: {nick}" if nick else "Add a nickname"):

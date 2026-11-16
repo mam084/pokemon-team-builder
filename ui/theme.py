@@ -149,6 +149,16 @@ div[data-testid="stVerticalBlockBorderWrapper"][style*="border"] {{ background: 
 .tp-role {{ font-size: .78rem; color: {STAGE['muted']}; margin-top: .35rem; line-height: 1.3; }}
 [class*="st-key-tp_slot"] [data-testid="stMarkdownContainer"] {{ margin-bottom: 0 !important; }}
 [class*="st-key-tp_slot"] [data-testid="stMarkdownContainer"] p {{ margin: 0; }}
+[class*="st-key-tp_edit"] {{ position: absolute; inset: 0; z-index: 1; width: auto !important; }}
+[class*="st-key-tp_edit"] button {{ width: 100%; height: 100%; opacity: 0; cursor: pointer; }}
+[class*="st-key-tp_slot"]:not([class*="empty"]):hover {{ background: rgba(255,255,255,.09); }}
+[class*="st-key-tp_slot"]:has([class*="st-key-tp_edit"] button:focus-visible) {{ outline: 2px solid {STAGE['accent']}; }}
+[class*="st-key-tp_add"] {{ height: 100%; }}
+[class*="st-key-tp_add"] button {{ height: 100%; min-height: 130px; background: transparent; border: none;
+  color: {STAGE['muted']}; font-size: .85rem; line-height: 1.1; }}
+[class*="st-key-tp_add"] button:hover {{ background: rgba(255,255,255,.06); color: #fff; }}
+[class*="st-key-tp_add"] button > div {{ flex-direction: column; gap: .3rem; }}
+[class*="st-key-tp_add"] [data-testid="stIconMaterial"] {{ font-size: 1.7rem; }}
 .tp-empty {{ display: flex; flex-direction: column; justify-content: center; align-items: center;
   min-height: 150px; color: {STAGE['muted']}; }}
 .tp-empty .tp-plus {{ font-size: 1.7rem; line-height: 1; opacity: .7; }}
@@ -180,7 +190,7 @@ def team_stage(dex: Dex, status_html: str) -> None:
     """The team as a team-preview lineup, in slot order: each card has a remove button,
     empty slots are dashed. Built from Streamlit containers (styled by key) so the
     remove buttons run callbacks like any other button."""
-    from ui.state import read_slot, write_slot
+    from ui.state import open_slot, read_slot, write_slot
     doubles = st.session_state.get("doubles", True)
     with st.container(key="tp_stage"):
         st.markdown("<div class='tp-head'><span class='tp-title'>Your team</span>"
@@ -191,8 +201,8 @@ def team_stage(dex: Dex, status_html: str) -> None:
             with col:
                 if pset is None:
                     with st.container(key=f"tp_slot_empty{i}"):
-                        st.markdown(f"<div class='tp-empty'><div class='tp-plus'>+</div>"
-                                    f"<div class='tp-open'>Slot {i + 1}</div></div>", unsafe_allow_html=True)
+                        st.button(f"Slot {i + 1}", icon=":material/add:", key=f"tp_add{i}", on_click=open_slot, args=(i,),
+                                  help=f"Pick a Pokémon for slot {i + 1}", width="stretch")
                     continue
                 form = pset.battle_form(dex)
                 if form.is_mega:
@@ -202,6 +212,8 @@ def team_stage(dex: Dex, status_html: str) -> None:
                 with st.container(key=f"tp_slot{i}"):
                     st.button(":material/close:", key=f"tp_rm{i}", on_click=write_slot, args=(i, None),
                               help=f"Remove {pset.species}")
+                    # the whole card is a button that opens this Pokémon's editor
+                    st.button(f"Edit {pset.species}", key=f"tp_edit{i}", on_click=open_slot, args=(i,))
                     st.markdown(
                         f"<div class='tp-platform'><img src='{sprite(form, dex)}' alt=''></div>"
                         f"<div class='tp-name'>{html.escape(pset.nickname or pset.species)}</div>"

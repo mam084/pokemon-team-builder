@@ -94,6 +94,19 @@ def on_species_change(slot: int, dex: Dex, usage: UsageData | None) -> None:
     st.session_state["slot_tab_index"] = slot
 
 
+def open_slot(slot: int) -> None:
+    """Callback for a team card: show that slot's editor on the Team tab."""
+    ss = st.session_state
+    ss["slot_tab_index"] = slot
+    ss["slot_tabs"] = slot_labels()[slot]
+    ss["main_tabs"] = "Team"
+
+
+def apply_spread(slot: int, sps: dict[str, int]) -> None:
+    for stat in STATS:
+        st.session_state[k(slot, f"sp_{stat}")] = int(sps.get(stat, 0))
+
+
 def fill_slot(slot: int, species: str, dex: Dex, usage: UsageData | None) -> None:
     """Put a Pokémon (its popular set) in this slot and keep the slot selected."""
     write_slot(slot, starting_set(species, dex, usage, slot))
