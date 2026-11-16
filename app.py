@@ -27,7 +27,7 @@ from ui.damage_tab import damage_tab  # noqa: E402
 from ui.matchups_tab import matchups_tab  # noqa: E402
 from ui.meta_tab import meta_tab  # noqa: E402
 from ui.recommendations_tab import recommendations_tab  # noqa: E402
-from ui.sidebar import sidebar  # noqa: E402
+from ui.sidebar import notices, sidebar  # noqa: E402
 from ui.state import current_team  # noqa: E402
 from ui.team_tab import team_tab  # noqa: E402
 from ui.theme import inject_css, status_html, team_stage, title_row  # noqa: E402
@@ -61,6 +61,7 @@ def main() -> None:
     month = usage.info["month"] if usage else None
     title_row(fmt.label + (f", ladder data from {month}" if month else ""))
     legality(team, dex, fmt)
+    notices()
 
     tabs = st.tabs(["Team", "Analysis", "Matchups", "Damage calc", "Recommendations", "Meta"], key="main_tabs", on_change="rerun")
     with tabs[0]:

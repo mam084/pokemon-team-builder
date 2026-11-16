@@ -73,7 +73,7 @@ class TestAppUrl(unittest.TestCase):
         at.query_params["team"] = "garbage"
         at.run()
         self.assertFalse(at.exception)
-        self.assertTrue(any("link" in w.value for w in at.sidebar.warning))
+        self.assertTrue(any("link" in w.value for w in at.warning))  # in the page: the sidebar is hidden on a phone
 
 
 if __name__ == "__main__":

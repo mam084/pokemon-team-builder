@@ -67,6 +67,26 @@ Modest Nature
 """
 
 
+def load_example(dex: Dex) -> None:
+    load_team(parse_paste(SAMPLE_TEAM, dex)[0])
+
+
+def import_paste(dex: Dex, key: str) -> None:
+    """Callback: load the team pasted into the text area `key`, keeping any warnings to show."""
+    team, warnings = parse_paste(st.session_state.get(key, ""), dex)
+    load_team(team)
+    st.session_state["import_warnings"] = warnings
+
+
+def notices() -> None:
+    """Import / link messages, shown in the page (the sidebar is hidden on a phone)."""
+    notice = st.session_state.pop("url_notice", None)
+    if notice:
+        st.success(notice)
+    for w in st.session_state.pop("import_warnings", []):
+        st.warning(w)
+
+
 def sidebar() -> tuple[str, Dex, UsageData | None]:
     with st.sidebar:
         if st.session_state.get("format") not in FORMATS:
@@ -87,23 +107,12 @@ def sidebar() -> tuple[str, Dex, UsageData | None]:
         st.divider()
         st.subheader("Import / export")
         paste = st.text_area("Showdown paste", height=150, placeholder="Paste a team here…",
-                             label_visibility="collapsed")
+                             label_visibility="collapsed", key="paste_side")
         c1, c2 = st.columns(2)
-        if c1.button("Import", width="stretch", disabled=not paste.strip()):
-            team, warnings = parse_paste(paste, dex)
-            load_team(team)
-            st.session_state["import_warnings"] = warnings
-            st.rerun()
-        if c2.button("Example team", width="stretch",
-                     help="A Garganacl team for VGC Reg M-C"):
-            team, _ = parse_paste(SAMPLE_TEAM, dex)
-            load_team(team)
-            st.rerun()
-        notice = st.session_state.pop("url_notice", None)
-        if notice:
-            st.success(notice)
-        for w in st.session_state.pop("import_warnings", []):
-            st.warning(w)
+        c1.button("Import", width="stretch", disabled=not paste.strip(),
+                  on_click=import_paste, args=(dex, "paste_side"))
+        c2.button("Example team", width="stretch", help="A Garganacl team for VGC Reg M-C",
+                  on_click=load_example, args=(dex,))
 
         team = current_team()
         if team:
@@ -118,9 +127,7 @@ def sidebar() -> tuple[str, Dex, UsageData | None]:
                        "keeps it.")
             with st.expander("Copy a link to this team"):  # the link is long: keep it out of the way
                 st.code(share_link(team, fmt_id), language=None, wrap_lines=True)
-        if st.button("Clear team", width="stretch", type="secondary"):
-            load_team([])
-            st.rerun()
+        st.button("Clear team", width="stretch", type="secondary", on_click=load_team, args=([],))
         st.caption("Light or dark: ⋮ menu (top right), then Settings.")
         st.caption(f"Legality data: Pokémon Showdown ({dex.format_name}), exported {dex.generated_at}.")
     return fmt_id, dex, usage

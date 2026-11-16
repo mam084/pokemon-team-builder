@@ -213,7 +213,7 @@ def team_stage(dex: Dex, status_html: str) -> None:
 
 def status_html(errors: int, warnings: int, size: int, fmt_label: str) -> str:
     if size == 0:
-        return "Pick Pokémon on the Team tab, or try the example team in the sidebar"
+        return "Pick Pokémon below, or load the example team to try things out"
     if errors:
         return (f"<span class='tp-dot' style='background:{STAGE['bad']}'></span>"
                 f"<b>{errors} rule problem{'s' if errors > 1 else ''}</b> (details below)")

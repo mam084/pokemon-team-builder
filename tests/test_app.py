@@ -47,9 +47,21 @@ class TestApp(unittest.TestCase):
         species = next(s for s in at.selectbox if s.key == "s0_species")
         at = species.set_value("Pelipper").run()
         self.assertClean(at)
-        at = click(at, key="s0_apply_preset")
+        preset = next(s for s in at.selectbox if s.key == "s0_preset")
+        at = preset.set_value(1).run()  # picking a common set loads it at once, then the menu resets
         self.assertClean(at)
         self.assertEqual(at.session_state["s0_species"], "Pelipper")
+        self.assertIsNone(at.session_state["s0_preset"])
+
+    def test_quick_picks_fill_the_slot(self):
+        at = click(fresh(), key="s0_example")  # the in-page example button (the sidebar is hidden on a phone)
+        self.assertClean(at)
+        self.assertEqual(at.session_state["s0_species"], "Garganacl")
+        at = click(at, key="s5_rm")
+        at = click(at, key="s5_quick0")  # a top pick for the team, straight into that slot
+        self.assertClean(at)
+        self.assertNotEqual(at.session_state["s5_species"], "—")
+        self.assertEqual(at.session_state["slot_tab_index"], 5)
 
     def test_singles_format(self):
         at = click(fresh(), label="Example team")
