@@ -150,17 +150,17 @@ Pokémon ranks** among about 68 candidates. This is repeated
 for every member of every team.
 
 <!-- generated:recommender -->
-Tournaments are split by date. The teammate model learned from the 2,512 oldest teams (plus replays from before the next tournaments) and the weights were tuned by grid search on the next 1,317. Every number below comes from
-1,739 teams in the 36 newest tournaments (2026-11-09 to
-2026-11-15), which neither ever saw.
+Tournaments are split by date. The teammate model learned from the 2,448 oldest teams (plus replays from before the next tournaments) and the weights were tuned by grid search on the next 1,347. Every number below comes from
+1,726 teams in the 36 newest tournaments (2026-11-10 to
+2026-11-16), which neither ever saw.
 
 | model | top 1 | top 5 | top 10 | MRR |
 |---|---|---|---|---|
-| tuned weights | 55.2% | 78.6% | 85.0% | 0.656 |
-| hand-set weights | 18.3% | 47.6% | 63.0% | 0.328 |
-| synergy only | 55.2% | 78.6% | 85.0% | 0.656 |
-| popularity only | 6.4% | 36.0% | 49.9% | 0.206 |
-| before: lift synergy | 46.6% | 70.8% | 78.5% | 0.575 |
+| tuned weights | 55.2% | 78.4% | 84.7% | 0.655 |
+| hand-set weights | 18.1% | 47.5% | 63.2% | 0.327 |
+| synergy only | 55.2% | 78.4% | 84.7% | 0.655 |
+| popularity only | 6.2% | 35.9% | 49.6% | 0.204 |
+| before: lift synergy | 46.5% | 70.4% | 78.2% | 0.574 |
 | random | 1.5% | 7.3% | 14.7% | 0.071 |
 
 - The tuned weights find the missing Pokémon **first try 55% of the
