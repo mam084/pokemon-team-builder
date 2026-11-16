@@ -602,10 +602,11 @@ class TestPlanBuilderSwaps(unittest.TestCase):
         sheet = self.usage.team_sheet_usage(self.dex)
         pool = mode_pool(self.usage, "hidden", self.dex)
         self.assertTrue(pool)
-        # nothing on 5%+ of teams, Megas counted with their base species (Salamence-Mega)
+        # nothing on 3%+ of teams, Megas counted with their base species (Salamence-Mega)
         self.assertTrue(all(sheet.get(self.usage.sheet_name(n, self.dex), 0) < HIDDEN_MAX for n in pool))
         common = [n for n, v in sheet.items() if v >= HIDDEN_MAX]
         self.assertIn("Dragonite", common)  # ~6% of teams: not a gem
+        self.assertIn("Swampert", common)  # ~4.4%: under the old 5% line, over the 3% one
         self.assertNotIn("Dragonite", pool)
         team, _ = parse_paste(GARGANACL_TEAM, self.dex)
         recs = recommend(build_members(team[:3], self.dex), self.dex, self.usage, mode="hidden", top_n=50)

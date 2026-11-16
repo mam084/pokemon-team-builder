@@ -76,8 +76,8 @@ EXPLORE_WEIGHTS = {"synergy": 0.40, "defense": 0.25, "offense": 0.05, "roles": 0
 #   popular  tuned defaults; the candidate pool is the usage top 80
 #   neutral  popularity gets no weight, and every Pokemon with usage data is a candidate
 #            (teammate lift is already popularity-adjusted, so rare picks compete fairly)
-#   hidden   like neutral, without Pokemon on 5%+ of ladder teams; the rest are marked down by usage
-HIDDEN_MAX = 5.0  # Hidden gems leaves out Pokemon on this % of ladder teams or more
+#   hidden   like neutral, without Pokemon on 3%+ of ladder teams; the rest are marked down by usage
+HIDDEN_MAX = 3.0  # Hidden gems leaves out Pokemon on this % of ladder teams or more
 MODES = {"neutral": "Neutral", "popular": "Popular picks", "hidden": "Hidden gems"}
 
 

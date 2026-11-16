@@ -208,7 +208,7 @@ class UsageData:
             return base.name if base else s.name
         return s.name
 
-    def is_common(self, name: str, dex: Dex, cutoff: float = 5.0) -> bool:
+    def is_common(self, name: str, dex: Dex, cutoff: float = 3.0) -> bool:
         """On at least `cutoff`% of ladder teams (Megas count toward their base species)."""
         sheet = self.sheet_name(name, dex)
         return sheet is not None and self.team_sheet_usage(dex).get(sheet, 0.0) >= cutoff

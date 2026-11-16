@@ -11,7 +11,7 @@ import streamlit as st
 from src.builder import build_teams
 from src.dex import to_id
 from src.matchup import verdict
-from src.recommend import DEFAULT_WEIGHTS, EXPLORE_WEIGHTS, MODES, recommend
+from src.recommend import HIDDEN_MAX, DEFAULT_WEIGHTS, EXPLORE_WEIGHTS, MODES, recommend
 from src.roles import meta_roles, role_text, set_roles
 from ui.common import SLOTS, sprite, type_badges
 from ui.matchups_tab import archetypes_for
@@ -32,7 +32,7 @@ MODE_HELP = {
     "popular": "Data-tuned on real tournament teams. Leans on proven meta Pokémon.",
     "neutral": "Popularity counts for nothing and every Pokémon with ladder data is considered. "
                "Leans on synergy, type fit and your team's game plan (weather, Trick Room...).",
-    "hidden": "Like Neutral, but only Pokémon on fewer than 5% of ladder teams, to surface less common picks.",
+    "hidden": f"Like Neutral, but only Pokémon on fewer than {HIDDEN_MAX:.0f}% of ladder teams, to surface less common picks.",
 }
 
 
