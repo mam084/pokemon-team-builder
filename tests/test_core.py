@@ -594,8 +594,7 @@ class TestPlanBuilderSwaps(unittest.TestCase):
         alts = suggest_swaps(team, self.dex, self.usage, engine, per_member=2)
         self.assertEqual(set(alts["slot"]), set(range(len(team))))  # every member gets alternatives
         self.assertTrue((alts.groupby("slot").size() <= 2).all())
-        expected = "Usual pick" if self.usage.teammates is not None else "Most similar"
-        self.assertEqual(set(alts["pick"]), {"Best upgrade", expected})
+        self.assertEqual(set(alts["pick"]), {"Best upgrade", "Most similar"})
 
     def test_cosmetic_formes_use_base_data(self):
         for name in ["Vivillon-Pokeball", "Sinistcha-Masterpiece", "Alcremie-Mint-Cream"]:

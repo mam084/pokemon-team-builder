@@ -262,13 +262,8 @@ def suggest_swaps(team: list[PokemonSet], dex: Dex, usage: UsageData, engine: Sw
         for slot in sorted(groups):
             best = best_rows[slot]
             rest = groups[slot][groups[slot]["swap in"] != best["swap in"].iloc[0]]
-            if tm is not None:  # the Pokemon players most often run with the other five
-                rest = rest.sort_values(["fit"] + sort, ascending=False)
-                label = "Usual pick"
-            else:
-                rest = rest.sort_values(["similarity"] + sort, ascending=False)
-                label = "Most similar"
-            picks += [best, rest.head(per_member - 1).assign(pick=label)]
+            rest = rest.sort_values(["similarity"] + sort, ascending=False)  # the same job: shared roles, types
+            picks += [best, rest.head(per_member - 1).assign(pick="Most similar")]
         df = pd.concat(picks).reset_index(drop=True)
     else:
         # one suggestion per incoming Pokemon (its best slot), then the best few
