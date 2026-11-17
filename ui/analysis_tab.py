@@ -91,11 +91,52 @@ def fit_check_section(team, dex, usage) -> None:
             for p, r in zip(team, roots) if (checks.get(r) or {}).get("instead")))
 
 
+@st.cache_data(show_spinner=False, ttl=3600)
+def _tournament_teams(regulation: str) -> list[dict]:
+    from src.evaluate import load_tournament_teams
+    from src.dex import load_dex
+    try:
+        return load_tournament_teams(regulation, load_dex(regulation))
+    except (OSError, ValueError, KeyError):
+        return []
+
+
+def similar_teams_section(team, dex, regulation: str) -> None:
+    """Real tournament teams that share most of yours, and how they did."""
+    from src.similar_teams import find_similar, ordinal, top_cut
+    teams = _tournament_teams(regulation)
+    if not teams or len(team) < 3:
+        return
+    sims, need = find_similar(team, teams, dex)
+    st.subheader("Tournament teams like yours")
+    if not sims:
+        st.markdown(f"No tournament team shares {need}+ of your Pokémon: this is untested in "
+                    f"{len(teams):,} team lists.")
+        return
+    w, l = sum(x.wins for x in sims), sum(x.losses for x in sims)
+    all_w, all_l = sum(int(t.get("wins") or 0) for t in teams), sum(int(t.get("losses") or 0) for t in teams)
+    rate, base = w / max(w + l, 1), all_w / max(all_w + all_l, 1)
+    cut = sum(top_cut(x) for x in sims)
+    st.markdown(f"**{len(sims)} teams** share {need}+ of your Pokémon. Together they went **{w}–{l} "
+                f"({rate:.0%})**, against {base:.0%} for all tournament teams" + (f"; {cut} made top 8." if cut else "."))
+    name = {dex.sheet_id(sp): sp.name for sp in dex.selectable_species() if not dex.is_cosmetic(sp)}
+    lines = []
+    for x in sims[:5]:
+        place = f"{ordinal(x.placing)} of {x.players}" if x.placing else f"{x.players} players"
+        swap = (f"{', '.join(name.get(r, r) for r in x.extra)} instead of {', '.join(name.get(r, r) for r in x.missing)}"
+                if x.missing else "your exact team" if not x.extra else f"plus {', '.join(name.get(r, r) for r in x.extra)}")
+        lines.append(f"- **{place}** ({x.wins}–{x.losses}), {x.date[5:].replace('-', '/')}: {swap}")
+    st.markdown("\n".join(lines))
+    st.caption("From Limitless tournament team lists for this regulation; best finishes first. Records include "
+               "players who dropped, which is why the average is under 50%.")
+
+
 def analysis_tab(team, members, dex, usage, fmt) -> None:
     if not members:
         st.info("Add Pokémon on the **Team** tab to see the analysis.")
         return
     fit_check_section(team, dex, usage)
+    similar_teams_section(team, dex, fmt.regulation)
 
     st.subheader("Defensive matchups")
     matrix = defense_matrix(members)
