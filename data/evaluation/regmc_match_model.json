@@ -1,52 +1,52 @@
 {
  "regulation": "regmc",
- "matches": 11831,
- "train_matches": 8025,
- "test_matches": 3806,
+ "matches": 12071,
+ "train_matches": 8321,
+ "test_matches": 3750,
  "test_dates": [
-  "2026-11-10",
-  "2026-11-16"
+  "2026-11-11",
+  "2026-11-17"
  ],
  "settings": {
   "C": 0.003,
   "shrink": 1.0,
-  "cv_log_loss": 0.67724,
+  "cv_log_loss": 0.67677,
   "species_effects": false,
-  "cv_without_species": 0.67724,
-  "cv_with_species": 0.67688,
+  "cv_without_species": 0.67677,
+  "cv_with_species": 0.67765,
   "elo_k": 32.0,
   "elo_new_boost": 1.0
  },
  "test": {
   "learned model (skill + team)": {
-   "accuracy": 0.5946,
-   "log_loss": 0.6689,
-   "brier": 0.2382,
-   "auc": 0.623
+   "accuracy": 0.5901,
+   "log_loss": 0.6684,
+   "brier": 0.238,
+   "auc": 0.6209
   },
   "player skill only": {
-   "accuracy": 0.5885,
-   "log_loss": 0.671,
-   "brier": 0.2392,
-   "auc": 0.6153
+   "accuracy": 0.5835,
+   "log_loss": 0.6696,
+   "brier": 0.2386,
+   "auc": 0.6182
   },
   "team only": {
-   "accuracy": 0.5413,
-   "log_loss": 0.6898,
-   "brier": 0.2483,
-   "auc": 0.5493
+   "accuracy": 0.5352,
+   "log_loss": 0.6901,
+   "brier": 0.2485,
+   "auc": 0.5461
   },
   "damage-calc matchup score": {
-   "accuracy": 0.5234,
-   "log_loss": 0.6917,
-   "brier": 0.2493,
-   "auc": 0.5294
+   "accuracy": 0.5179,
+   "log_loss": 0.6927,
+   "brier": 0.2498,
+   "auc": 0.5216
   },
   "popularity only": {
-   "accuracy": 0.5152,
-   "log_loss": 0.6918,
-   "brier": 0.2493,
-   "auc": 0.5289
+   "accuracy": 0.5091,
+   "log_loss": 0.6926,
+   "brier": 0.2497,
+   "auc": 0.5215
   },
   "coin flip": {
    "accuracy": 0.5,
@@ -57,39 +57,39 @@
  },
  "gain_ci95": {
   "team beyond skill": [
-   -0.00076,
-   0.00494
+   -0.0018,
+   0.00422
   ],
   "learned vs damage-calc score": [
-   0.01666,
-   0.02876
+   0.0182,
+   0.03016
   ]
  },
  "calibration": [
   {
-   "predicted": 0.36,
-   "actual": 0.398,
-   "matches": 762
+   "predicted": 0.364,
+   "actual": 0.38,
+   "matches": 750
   },
   {
-   "predicted": 0.455,
-   "actual": 0.431,
-   "matches": 761
+   "predicted": 0.458,
+   "actual": 0.456,
+   "matches": 750
   },
   {
-   "predicted": 0.506,
-   "actual": 0.486,
-   "matches": 761
+   "predicted": 0.507,
+   "actual": 0.485,
+   "matches": 750
   },
   {
    "predicted": 0.555,
-   "actual": 0.589,
-   "matches": 761
+   "actual": 0.58,
+   "matches": 750
   },
   {
-   "predicted": 0.651,
-   "actual": 0.67,
-   "matches": 761
+   "predicted": 0.646,
+   "actual": 0.656,
+   "matches": 750
   }
  ],
  "model": {
@@ -132,323 +132,323 @@
   ],
   "species": [],
   "coef": [
-   0.80283,
-   0.000881,
-   0.072243,
-   0.02143,
-   0.160864,
-   0.030138,
-   0.009201,
-   0.237448,
-   0.064809,
-   0.074043,
-   -0.004125,
-   0.171709,
-   0.176351,
-   -0.030927,
-   0.048601,
-   -0.058575,
-   0.060845,
-   0.031763,
-   -0.014849,
-   0.023447,
-   0.072697,
-   0.047171,
-   -0.070874,
-   0.073765,
-   0.015721,
-   0.050649,
-   -0.527762,
-   -0.070338,
-   0.013139,
-   0.0057,
-   -0.039558,
-   0.063007,
-   -0.062948,
-   -0.230029,
-   0.008784
+   0.808494,
+   -0.000403,
+   0.055313,
+   0.023521,
+   0.142039,
+   0.038896,
+   0.011071,
+   0.290934,
+   0.064778,
+   0.060791,
+   -0.004077,
+   0.202995,
+   0.135337,
+   -0.019316,
+   0.04011,
+   -0.05623,
+   0.073522,
+   0.041229,
+   -0.050347,
+   0.019885,
+   0.080783,
+   0.056637,
+   -0.077758,
+   0.050712,
+   0.003964,
+   0.05397,
+   -0.499447,
+   -0.08286,
+   0.014325,
+   0.008182,
+   -0.044497,
+   0.060507,
+   -0.070759,
+   -0.243353,
+   0.016859
   ]
  },
  "effects": [
   {
    "feature": "skill (Elo)",
-   "coef": 0.80283,
-   "lo90": 0.73377,
-   "hi90": 0.8814,
-   "points": 20.07,
-   "differs_in": 0.9287
+   "coef": 0.80849,
+   "lo90": 0.72815,
+   "hi90": 0.88825,
+   "points": 20.21,
+   "differs_in": 0.9322
   },
   {
    "feature": "experience",
-   "coef": 0.00088,
-   "lo90": -0.02763,
-   "hi90": 0.02403,
-   "points": 0.02,
-   "differs_in": 0.7863
+   "coef": -0.0004,
+   "lo90": -0.02639,
+   "hi90": 0.02398,
+   "points": -0.01,
+   "differs_in": 0.7966
   },
   {
    "feature": "matchup score",
-   "coef": 0.07224,
-   "lo90": -0.00817,
-   "hi90": 0.15064,
-   "points": 1.81,
-   "differs_in": 0.9885
+   "coef": 0.05531,
+   "lo90": -0.02619,
+   "hi90": 0.12635,
+   "points": 1.38,
+   "differs_in": 0.9888
   },
   {
    "feature": "bring-4 score",
-   "coef": 0.02143,
-   "lo90": -0.0201,
-   "hi90": 0.06166,
-   "points": 0.54,
+   "coef": 0.02352,
+   "lo90": -0.01142,
+   "hi90": 0.05604,
+   "points": 0.59,
    "differs_in": 0.9956
   },
   {
    "feature": "best damage (mean %)",
-   "coef": 0.16086,
-   "lo90": -0.07861,
-   "hi90": 0.39592,
-   "points": 4.02,
-   "differs_in": 0.9964
+   "coef": 0.14204,
+   "lo90": -0.11696,
+   "hi90": 0.33374,
+   "points": 3.55,
+   "differs_in": 0.9966
   },
   {
    "feature": "OHKOs",
-   "coef": 0.03014,
-   "lo90": -0.04999,
-   "hi90": 0.09719,
-   "points": 0.75,
-   "differs_in": 0.8927
+   "coef": 0.0389,
+   "lo90": -0.04042,
+   "hi90": 0.13323,
+   "points": 0.97,
+   "differs_in": 0.8951
   },
   {
    "feature": "2HKOs",
-   "coef": 0.0092,
-   "lo90": -0.04541,
-   "hi90": 0.05956,
-   "points": 0.23,
-   "differs_in": 0.9157
+   "coef": 0.01107,
+   "lo90": -0.03878,
+   "hi90": 0.05431,
+   "points": 0.28,
+   "differs_in": 0.9148
   },
   {
    "feature": "outspeeds (share)",
-   "coef": 0.23745,
-   "lo90": 0.08715,
-   "hi90": 0.37165,
-   "points": 5.94,
-   "differs_in": 0.9614
+   "coef": 0.29093,
+   "lo90": 0.13481,
+   "hi90": 0.41718,
+   "points": 7.27,
+   "differs_in": 0.9616
   },
   {
    "feature": "score vs meta",
-   "coef": 0.06481,
-   "lo90": -0.01929,
-   "hi90": 0.16478,
+   "coef": 0.06478,
+   "lo90": -0.02207,
+   "hi90": 0.14357,
    "points": 1.62,
    "differs_in": 0.9973
   },
   {
    "feature": "popularity",
-   "coef": 0.07404,
-   "lo90": 0.02787,
-   "hi90": 0.12267,
-   "points": 1.85,
-   "differs_in": 0.9938
+   "coef": 0.06079,
+   "lo90": 0.00841,
+   "hi90": 0.11395,
+   "points": 1.52,
+   "differs_in": 0.9939
   },
   {
    "feature": "base speed (mean)",
-   "coef": -0.00412,
-   "lo90": -0.00744,
-   "hi90": -0.00098,
+   "coef": -0.00408,
+   "lo90": -0.00681,
+   "hi90": -0.00051,
    "points": -0.1,
    "differs_in": 0.9882
   },
   {
    "feature": "bulk (mean)",
-   "coef": 0.17171,
-   "lo90": 0.02252,
-   "hi90": 0.33429,
-   "points": 4.29,
+   "coef": 0.203,
+   "lo90": 0.03531,
+   "hi90": 0.35462,
+   "points": 5.07,
    "differs_in": 0.9955
   },
   {
    "feature": "has Mega",
-   "coef": 0.17635,
-   "lo90": -0.07682,
-   "hi90": 0.52717,
-   "points": 4.41,
-   "differs_in": 0.006
+   "coef": 0.13534,
+   "lo90": -0.10122,
+   "hi90": 0.40643,
+   "points": 3.38,
+   "differs_in": 0.0063
   },
   {
    "feature": "tool: Fake Out",
-   "coef": -0.03093,
-   "lo90": -0.05671,
-   "hi90": -0.00248,
-   "points": -0.77,
-   "differs_in": 0.7025
+   "coef": -0.01932,
+   "lo90": -0.04777,
+   "hi90": 0.0134,
+   "points": -0.48,
+   "differs_in": 0.7031
   },
   {
    "feature": "tool: Intimidate",
-   "coef": 0.0486,
-   "lo90": -0.00524,
-   "hi90": 0.09091,
-   "points": 1.22,
-   "differs_in": 0.5055
+   "coef": 0.04011,
+   "lo90": -0.01134,
+   "hi90": 0.0815,
+   "points": 1.0,
+   "differs_in": 0.5097
   },
   {
    "feature": "tool: Tailwind",
-   "coef": -0.05858,
-   "lo90": -0.11165,
-   "hi90": -0.00055,
-   "points": -1.46,
-   "differs_in": 0.5069
+   "coef": -0.05623,
+   "lo90": -0.11188,
+   "hi90": 0.00776,
+   "points": -1.41,
+   "differs_in": 0.5053
   },
   {
    "feature": "tool: Trick Room",
-   "coef": 0.06085,
-   "lo90": 0.01452,
-   "hi90": 0.11466,
-   "points": 1.52,
-   "differs_in": 0.449
+   "coef": 0.07352,
+   "lo90": 0.02455,
+   "hi90": 0.124,
+   "points": 1.84,
+   "differs_in": 0.4478
   },
   {
    "feature": "tool: Reflect",
-   "coef": 0.03176,
-   "lo90": -0.05523,
-   "hi90": 0.10246,
-   "points": 0.79,
-   "differs_in": 0.2652
+   "coef": 0.04123,
+   "lo90": -0.03424,
+   "hi90": 0.12063,
+   "points": 1.03,
+   "differs_in": 0.2625
   },
   {
    "feature": "tool: Light Screen",
-   "coef": -0.01485,
-   "lo90": -0.09996,
-   "hi90": 0.06638,
-   "points": -0.37,
-   "differs_in": 0.2758
+   "coef": -0.05035,
+   "lo90": -0.13011,
+   "hi90": 0.01569,
+   "points": -1.26,
+   "differs_in": 0.2728
   },
   {
    "feature": "tool: Redirection",
-   "coef": 0.02345,
-   "lo90": -0.01376,
-   "hi90": 0.06968,
-   "points": 0.59,
-   "differs_in": 0.5082
+   "coef": 0.01989,
+   "lo90": -0.01593,
+   "hi90": 0.05574,
+   "points": 0.5,
+   "differs_in": 0.5095
   },
   {
    "feature": "tool: Wide Guard",
-   "coef": 0.0727,
-   "lo90": 0.0229,
-   "hi90": 0.12788,
-   "points": 1.82,
-   "differs_in": 0.2944
+   "coef": 0.08078,
+   "lo90": 0.03257,
+   "hi90": 0.14098,
+   "points": 2.02,
+   "differs_in": 0.2914
   },
   {
    "feature": "tool: Sleep",
-   "coef": 0.04717,
-   "lo90": -0.00716,
-   "hi90": 0.10389,
-   "points": 1.18,
-   "differs_in": 0.2444
+   "coef": 0.05664,
+   "lo90": 0.00183,
+   "hi90": 0.1161,
+   "points": 1.42,
+   "differs_in": 0.2417
   },
   {
    "feature": "tool: Taunt",
-   "coef": -0.07087,
-   "lo90": -0.21312,
-   "hi90": 0.02289,
-   "points": -1.77,
-   "differs_in": 0.0498
+   "coef": -0.07776,
+   "lo90": -0.21857,
+   "hi90": 0.04091,
+   "points": -1.94,
+   "differs_in": 0.0482
   },
   {
    "feature": "tool: Encore",
-   "coef": 0.07377,
-   "lo90": 0.01473,
-   "hi90": 0.1327,
-   "points": 1.84,
-   "differs_in": 0.3231
+   "coef": 0.05071,
+   "lo90": -0.01153,
+   "hi90": 0.11113,
+   "points": 1.27,
+   "differs_in": 0.3242
   },
   {
    "feature": "tool: Helping Hand",
-   "coef": 0.01572,
-   "lo90": -0.02826,
-   "hi90": 0.05968,
-   "points": 0.39,
-   "differs_in": 0.4216
+   "coef": 0.00396,
+   "lo90": -0.04984,
+   "hi90": 0.04478,
+   "points": 0.1,
+   "differs_in": 0.4211
   },
   {
    "feature": "tool: Speed drops",
-   "coef": 0.05065,
-   "lo90": -0.00924,
-   "hi90": 0.11105,
-   "points": 1.27,
-   "differs_in": 0.2813
+   "coef": 0.05397,
+   "lo90": -0.01076,
+   "hi90": 0.1116,
+   "points": 1.35,
+   "differs_in": 0.2823
   },
   {
    "feature": "tool: Paralysis",
-   "coef": -0.52776,
-   "lo90": -0.87671,
-   "hi90": -0.27884,
-   "points": -13.19,
-   "differs_in": 0.0074
+   "coef": -0.49945,
+   "lo90": -0.85225,
+   "hi90": -0.2387,
+   "points": -12.49,
+   "differs_in": 0.0064
   },
   {
    "feature": "tool: Burn",
-   "coef": -0.07034,
-   "lo90": -0.21428,
-   "hi90": 0.04669,
-   "points": -1.76,
-   "differs_in": 0.0556
+   "coef": -0.08286,
+   "lo90": -0.20597,
+   "hi90": 0.03071,
+   "points": -2.07,
+   "differs_in": 0.0546
   },
   {
    "feature": "tool: Priority attack",
-   "coef": 0.01314,
-   "lo90": -0.01007,
-   "hi90": 0.04273,
-   "points": 0.33,
-   "differs_in": 0.6456
+   "coef": 0.01432,
+   "lo90": -0.00764,
+   "hi90": 0.04012,
+   "points": 0.36,
+   "differs_in": 0.6455
   },
   {
    "feature": "tool: Weather",
-   "coef": 0.0057,
-   "lo90": -0.03895,
-   "hi90": 0.0499,
-   "points": 0.14,
-   "differs_in": 0.5508
+   "coef": 0.00818,
+   "lo90": -0.03702,
+   "hi90": 0.05761,
+   "points": 0.2,
+   "differs_in": 0.5493
   },
   {
    "feature": "tool: Terrain",
-   "coef": -0.03956,
-   "lo90": -0.08711,
-   "hi90": 0.01812,
-   "points": -0.99,
-   "differs_in": 0.5039
+   "coef": -0.0445,
+   "lo90": -0.09273,
+   "hi90": -0.00133,
+   "points": -1.11,
+   "differs_in": 0.5043
   },
   {
    "feature": "tool: Setup",
-   "coef": 0.06301,
-   "lo90": 0.03213,
-   "hi90": 0.09005,
-   "points": 1.58,
-   "differs_in": 0.6523
+   "coef": 0.06051,
+   "lo90": 0.03549,
+   "hi90": 0.08451,
+   "points": 1.51,
+   "differs_in": 0.6529
   },
   {
    "feature": "tool: Recovery",
-   "coef": -0.06295,
-   "lo90": -0.13181,
-   "hi90": 0.00285,
-   "points": -1.57,
-   "differs_in": 0.2056
+   "coef": -0.07076,
+   "lo90": -0.13463,
+   "hi90": -0.00241,
+   "points": -1.77,
+   "differs_in": 0.2129
   },
   {
    "feature": "Trick Room x slow team",
-   "coef": -0.23003,
-   "lo90": -0.36446,
-   "hi90": -0.12311,
-   "points": -5.75,
-   "differs_in": 0.4355
+   "coef": -0.24335,
+   "lo90": -0.34172,
+   "hi90": -0.13,
+   "points": -6.08,
+   "differs_in": 0.4316
   },
   {
    "feature": "Tailwind x fast team",
-   "coef": 0.00878,
-   "lo90": -0.0767,
-   "hi90": 0.08616,
-   "points": 0.22,
-   "differs_in": 0.779
+   "coef": 0.01686,
+   "lo90": -0.06006,
+   "hi90": 0.11068,
+   "points": 0.42,
+   "differs_in": 0.7853
   }
  ]
 }
