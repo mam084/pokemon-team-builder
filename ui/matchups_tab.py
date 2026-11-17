@@ -184,18 +184,23 @@ def reliability_box(check: dict | None, learned: dict | None = None) -> None:
                    if skill else "")
                 + (f"From the teams alone: {team_only['accuracy']:.1%}. " if team_only else "")
                 + f"The damage-calc score alone gets {calc['accuracy']:.1%}; a coin flip 50%.",
-                f"- When it gave one side its best odds, that side won **{cal[-1]['actual']:.0%}**; "
-                f"its worst odds, **{cal[0]['actual']:.0%}**.\n",
+                "- **Are the percentages honest?** The table splits the test matches into five equal groups by "
+                "the win chance the model gave. In each group, the average chance it gave should match how often "
+                f"that side actually won: in the group it rated lowest it said {cal[0]['predicted']:.0%} and they "
+                f"won {cal[0]['actual']:.0%}; in the highest, {cal[-1]['predicted']:.0%} and "
+                f"{cal[-1]['actual']:.0%}.\n",
                 "Who's playing matters more than the team, and luck matters a lot, so a team win chance is a few "
                 "points of edge, not a sure thing. See **What wins games** on the Meta tab for what the model "
                 "learned.",
             ]
             st.markdown("\n".join(lines))
-            st.dataframe(pd.DataFrame(cal).rename(columns={"predicted": "predicted win %",
-                                                           "actual": "actual win %"}),
-                         hide_index=True, width="stretch",
+            names = ["Lowest fifth", "2nd fifth", "Middle fifth", "4th fifth", "Highest fifth"]
+            rows = [{"matches, by the win chance given": names[i] if len(cal) == 5 else f"Group {i + 1}",
+                     "model said": c["predicted"], "actually won": c["actual"], "matches": c.get("matches")}
+                    for i, c in enumerate(cal)]
+            st.dataframe(pd.DataFrame(rows), hide_index=True, width="stretch",
                          column_config={c: st.column_config.NumberColumn(format="percent")
-                                        for c in ["predicted win %", "actual win %"]})
+                                        for c in ["model said", "actually won"]})
         return
     if not check:
         return
@@ -424,7 +429,12 @@ def matchups_tab(fmt_id, team, members, dex, usage, fmt) -> None:
                 pts = lambda items: ", ".join(f"{g} ({v:+.0f})" for g, v in items)  # noqa: E731
                 st.markdown("  \n".join(x for x in [f"**Helping you:** {pts(pros)}" if pros else "",
                                                      f"**Against you:** {pts(cons)}" if cons else ""] if x))
-                st.caption("Points of win chance, from the model learned on real tournament matches.")
+                st.caption("Points of win chance, from the model learned on real tournament matches. **Damage "
+                           "calcs**: how your Pokémon and theirs hit each other. **Speed**: who moves first, "
+                           "including Trick Room and Tailwind fit. **Bulk**: average defenses. **Strength vs the "
+                           "meta**: how your team does against the popular teams overall, how often its Pokémon "
+                           "are used, and whether it has a Mega. The rest are support tools (Wide Guard, Fake "
+                           "Out...).")
 
     threats = threats_section(fmt_id, team, members, dex, usage, doubles)
     swaps_section(team, dex, usage, fmt, threats)

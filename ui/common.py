@@ -2,6 +2,10 @@
 
 from __future__ import annotations
 
+import functools
+import json
+from pathlib import Path
+
 import streamlit as st
 
 from src.dex import STAT_LABELS, Dex, to_id
@@ -47,8 +51,20 @@ TYPE_COLORS = {
 }
 
 
+@functools.lru_cache(maxsize=8)
+def _sprites_available(regulation: str) -> frozenset:
+    """Mega / battle formes with their own Showdown sprite (scripts/check_sprites.py)."""
+    path = Path(__file__).resolve().parent.parent / "data" / "dex" / f"{regulation}_sprites.json"
+    try:
+        return frozenset(json.loads(path.read_text())["available"])
+    except (OSError, ValueError, KeyError):
+        return frozenset()
+
+
 def sprite(species, dex: Dex) -> str:
-    """Sprite of the team-sheet Pokemon (newer Mega formes lack sprites on Showdown)."""
+    """The forme's own sprite when Showdown has one (most older Megas), else the base Pokemon's."""
+    if (species.is_mega or species.battle_only) and species.sprite in _sprites_available(dex.regulation):
+        return species.sprite_url
     if species.is_mega or species.battle_only:
         base = dex.get_species(species.battle_only[0] if species.battle_only else species.base_species)
         species = base or species

@@ -66,6 +66,10 @@ jobs:
         timeout-minutes: 20
         continue-on-error: true
 
+      - name: Check which Mega formes have Showdown sprites
+        run: python scripts/check_sprites.py
+        continue-on-error: true
+
       - name: Re-run the recommender evaluation on the new data
         run: python scripts/evaluate.py
         timeout-minutes: 45
