@@ -160,7 +160,7 @@ def analysis_tab(team, members, dex, usage, fmt) -> None:
     tr = st.toggle("Trick Room order (slowest first)", value=False)
     st.caption("Your Pokémon's Speed (with their Stat Points and nature) next to the meta's most common spreads."
                + ("" if usage else " Add usage data to see meta benchmarks."))
-    st.plotly_chart(speed_chart(speed_table(members, dex, usage, n=20), tr), width="stretch")
+    st.plotly_chart(speed_chart(speed_table(members, dex, usage, n=25), tr), width="stretch")
 
     st.subheader("Offensive coverage")
     off = offense_by_type(members)

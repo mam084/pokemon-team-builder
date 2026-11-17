@@ -299,7 +299,7 @@ def meta_speed(name: str, usage: UsageData, dex: Dex) -> dict | None:
     }
 
 
-def speed_table(members: list[Member], dex: Dex, usage: UsageData | None, n: int = 20) -> pd.DataFrame:
+def speed_table(members: list[Member], dex: Dex, usage: UsageData | None, n: int = 25) -> pd.DataFrame:
     from src.stats import effective_speed
     rows = []
     for m in members:
