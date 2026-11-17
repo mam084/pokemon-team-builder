@@ -22,7 +22,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from src.dex import load_dex  # noqa: E402
 from src.evaluate import load_tournament_teams  # noqa: E402
 from src.replays import load_records  # noqa: E402
-from src.synergy import L2, MODEL_DIR, TOURNAMENT_WEIGHT, TeammateModel, build_vocab, replay_rows, tournament_rows  # noqa: E402
+from src.synergy import L2, MODEL_DIR, TOURNAMENT_WEIGHT, REPLAY_DAYS, TeammateModel, recent_records, build_vocab, replay_rows, tournament_rows  # noqa: E402
 
 from src.formats import FORMATS  # noqa: E402
 
@@ -33,7 +33,7 @@ REGULATIONS = {f.regulation: list(f.replays) for f in FORMATS.values() if f.curr
 def train(regulation: str, formats: list[str]) -> dict | None:
     dex = load_dex(regulation)
     t_rows = tournament_rows(load_tournament_teams(regulation, dex), dex, weight=TOURNAMENT_WEIGHT)
-    records = [r for f in formats for r in load_records(f)]
+    records = recent_records([r for f in formats for r in load_records(f)])  # the last REPLAY_DAYS
     l_rows = replay_rows(records, dex)
     rows = t_rows + l_rows
     if len(rows) < 500:
@@ -42,7 +42,7 @@ def train(regulation: str, formats: list[str]) -> dict | None:
     t0 = time.time()
     model = TeammateModel(build_vocab(rows)).fit(rows, l2=L2)
     meta = {"regulation": regulation, "tournament_teams": len(t_rows), "ladder_teams": len(l_rows),
-            "replays": len(records), "formats": formats, "l2": L2, "trained": time.strftime("%Y-%m-%d"),
+            "replays": len(records), "formats": formats, "l2": L2, "replay_days": REPLAY_DAYS, "trained": time.strftime("%Y-%m-%d"),
             "seconds": round(time.time() - t0)}
     out = MODEL_DIR / f"{regulation}_teammates.json"
     out.write_text(json.dumps(model.to_json(meta), separators=(",", ":")))

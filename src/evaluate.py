@@ -206,11 +206,12 @@ def _holdout_teammates(production, pairs_from: list[dict], train: list[dict], de
     """A teammate model fitted only on data older than the tuning tournaments."""
     from datetime import datetime, timezone
     from src.replays import load_records
-    from src.synergy import L2, TOURNAMENT_WEIGHT, TeammateModel, build_vocab, replay_rows, tournament_rows
+    from src.synergy import (L2, TOURNAMENT_WEIGHT, TeammateModel, build_vocab, recent_records, replay_rows,
+                             tournament_rows)
     if not train:
         return None
     cut = datetime.fromisoformat(min(t["date"] for t in train)).replace(tzinfo=timezone.utc).timestamp()
-    records = [r for f in production.formats for r in load_records(f) if (r["uploadtime"] or 0) < cut]
+    records = recent_records([r for f in production.formats for r in load_records(f)], end=cut - 1)
     rows = tournament_rows(pairs_from, dex, weight=TOURNAMENT_WEIGHT) + replay_rows(records, dex)
     model = TeammateModel(build_vocab(rows)).fit(rows, l2=L2)
     model.formats = production.formats

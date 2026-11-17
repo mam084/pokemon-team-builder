@@ -21,27 +21,27 @@
   "meta": 0.0,
   "plan": 0.0
  },
- "train_mrr": 0.6806,
+ "train_mrr": 0.6789,
  "results": {
   "tuned weights": {
-   "hit@1": 0.5468,
-   "hit@5": 0.7819,
-   "hit@10": 0.8482,
-   "mrr": 0.6526,
+   "hit@1": 0.5495,
+   "hit@5": 0.7798,
+   "hit@10": 0.8498,
+   "mrr": 0.6534,
    "in_pool": 0.9329
   },
   "hand-set weights": {
-   "hit@1": 0.1783,
-   "hit@5": 0.4709,
-   "hit@10": 0.6239,
-   "mrr": 0.322,
+   "hit@1": 0.1732,
+   "hit@5": 0.4659,
+   "hit@10": 0.6161,
+   "mrr": 0.3189,
    "in_pool": 0.9329
   },
   "synergy only": {
-   "hit@1": 0.5468,
-   "hit@5": 0.7819,
-   "hit@10": 0.8482,
-   "mrr": 0.6526,
+   "hit@1": 0.5495,
+   "hit@5": 0.7798,
+   "hit@10": 0.8498,
+   "mrr": 0.6534,
    "in_pool": 0.9329
   },
   "popularity only": {
@@ -67,5 +67,5 @@
   }
  },
  "format": "gen9championsvgc2026regmc",
- "seconds": 993.5
+ "seconds": 882.5
 }
