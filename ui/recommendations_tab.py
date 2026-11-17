@@ -115,10 +115,17 @@ LINES = [("fit", "Fits"), ("clash", "Watch"), ("plan", "Plan"), ("cover", "Cover
          ("adds", "Adds")]
 
 
-def card_lines(parts: dict) -> str:
-    """The reasons as short labelled lines (Fits / Covers / Hits...) instead of one long sentence."""
+SIGNAL_OF = {"fit": "synergy", "clash": "synergy", "plan": "plan", "cover": "defense", "hits": "offense",
+             "adds": "roles"}
+
+
+def card_lines(parts: dict, weights: dict | None = None) -> str:
+    """The reasons as short labelled lines (Fits / Covers / Hits...) instead of one long sentence.
+    A line whose signal is weighted to zero (Fine-tune the ranking) is left off."""
     out = []
     for key, label in LINES:
+        if weights is not None and not weights.get(SIGNAL_OF[key], 1):
+            continue
         text = parts.get(key)
         if text:
             for lead in ("players pair it with ", "paired often with ", "rarely run next to ", "resists ",
@@ -205,7 +212,7 @@ def recommendations_tab(team, members, dex, usage, fmt) -> None:
                 chance = chances.get(dex.sheet_id(form)) if form is not None else None
                 if chance is not None and chance >= 0.005:
                     st.caption(f"Players with your team pick it next **{chance:.0%}** of the time.")
-                st.markdown(card_lines(row["parts"]) or row["why"][0].upper() + row["why"][1:])
+                st.markdown(card_lines(row["parts"], weights) or "Solid all-round pick.")
                 if row["note"] and row["note"] != mega_note:
                     st.caption(f"Note: {row['note']}")
                 if not full:  # a full team is explained once above the list

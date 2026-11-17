@@ -76,6 +76,8 @@ def reload_if_data_changed() -> None:
         load_dex.cache_clear()
         matchup._CALC_CACHE.clear()
         recommend._PROFILE_CACHE.clear()
+        from ui.common import _sprites_available
+        _sprites_available.cache_clear()
         st.cache_data.clear()
         st.cache_resource.clear()
         seen = _data_seen()

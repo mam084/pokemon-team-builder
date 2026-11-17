@@ -121,9 +121,14 @@ def _what_wins(model, dex) -> None:
     rows = [{"support tool": e["feature"][6:], "win chance (points)": e["points"],
              "90% range": f"{25 * e['lo90']:+.1f} to {25 * e['hi90']:+.1f}",
              "clear?": verdict(e)} for e in tools]
-    rows.sort(key=lambda r: (r["clear?"] == "too rare to tell", -r["win chance (points)"]))
+    rare = [r["support tool"] for r in rows if r["clear?"] == "too rare to tell"]
+    rows = sorted((r for r in rows if r["clear?"] != "too rare to tell"), key=lambda r: -r["win chance (points)"])
     st.dataframe(pd.DataFrame(rows), hide_index=True, width="stretch",
                  column_config={"win chance (points)": st.column_config.NumberColumn(format="%+.1f")})
+    st.caption("**Clear?** *yes* means the 90% range is entirely above or below zero, so the effect is very "
+               "likely real; *no* means it could still be zero. " + (f"Left out as too rare to tell (one team has "
+               f"it and the other doesn't in under {RARE:.0%} of matches, so treat them as no effect): "
+               f"{', '.join(rare)}." if rare else ""))
     species = [e for f, e in effects.items() if f.startswith("species: ") and (e["lo90"] > 0 or e["hi90"] < 0)]
     if not species and skill:
         st.caption("Per-Pokémon effects aren't in the model: once player skill is accounted for, they stopped "
