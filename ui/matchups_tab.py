@@ -462,8 +462,7 @@ def threats_section(fmt_id: str, team, members, dex, usage, doubles: bool) -> pd
         return pd.DataFrame()
     how_it_works("The 30 most-used Pokémon (popular sets), ranked by **usage × (your Pokémon it 2HKOs + 1) ÷ "
                  "(answers + 1)**. An *answer* beats it 1-on-1: it needs fewer hits to KO it than it needs back, or "
-                 "the same number and it's faster (Choice Scarf counted). Spread moves like Rock Slide do 75% "
-                 "damage in doubles, so a single-target move can hit harder.", "How threats are ranked")
+                 "the same number and it's faster (Choice Scarf counted).", "How threats are ranked")
     threats = cached_threats(fmt_id, team_key(team))
     if threats.empty:
         return threats

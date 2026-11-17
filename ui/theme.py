@@ -97,7 +97,7 @@ div[data-testid="stVerticalBlockBorderWrapper"][style*="border"] {{ background: 
   [data-testid="stColumn"]:has([class*="st-key-rec_card"]) > [data-testid="stVerticalBlock"],
   [data-testid="stColumn"]:has([class*="st-key-rec_card"]) > [data-testid="stVerticalBlock"] > [data-testid="stLayoutWrapper"],
   [class*="st-key-rec_card"] {{ height: 100%; }}
-  [class*="st-key-rec_card"] > div:last-child {{ margin-top: auto; }}
+  [class*="st-key-rec_add_"] {{ margin-top: auto; }}  /* extra height goes above the button, below the text */
 }}
 .card-head .card-sprite {{ width: 56px; height: 56px; image-rendering: pixelated; flex: none; }}
 /* opponent lineup: six across, three per row on phones */
