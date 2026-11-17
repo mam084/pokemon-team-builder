@@ -48,6 +48,15 @@ class Plan:
     bring_source: str = "calcs"
 
 
+
+def _speed(m) -> int:
+    from src.stats import effective_speed
+    return effective_speed(m.stats["spe"], m.pset.item if m.pset is not None else None)
+
+
+def _scarf(m) -> str:
+    return " (Scarf)" if m.pset is not None and (m.pset.item or "").lower().replace(" ", "") == "choicescarf" else ""
+
 def _tools(m: Member, dex: Dex, doubles: bool) -> list[str]:
     if m.pset is None:
         return []
@@ -107,8 +116,8 @@ def game_plan(members: list[Member], theirs: list[Member], matrix: pd.DataFrame,
     strongest_why = f"wins {int(wins.max())} of {len(matrix.columns)} pairings" if len(wins) else ""
 
     # speed order
-    rows = [{"pokemon": m.label, "side": "yours", "speed": m.stats["spe"]} for m in brought]
-    rows += [{"pokemon": o.label, "side": "theirs", "speed": o.stats["spe"]} for o in theirs]
+    rows = [{"pokemon": m.label + _scarf(m), "side": "yours", "speed": _speed(m)} for m in brought]
+    rows += [{"pokemon": o.label + _scarf(o), "side": "theirs", "speed": _speed(o)} for o in theirs]
     rows.sort(key=lambda r: r["speed"], reverse=not trick_room)
     note = "Trick Room: slowest moves first." if trick_room else ""
     if any("Tailwind setter" in t for t in their_tools.values()):

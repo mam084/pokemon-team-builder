@@ -91,6 +91,14 @@ div[data-testid="stVerticalBlockBorderWrapper"][style*="border"] {{ background: 
 .rec-score {{ font-size: .75rem; font-weight: 600; padding: 0 .4rem; border-radius: 999px;
   background: rgba(37, 99, 235, .1); color: #1d4ed8; margin-left: .2rem; }}
 .rec-sub {{ font-size: .78rem; opacity: .7; }}
+/* cards in a row share one height; the Add button sits at the bottom */
+@media (min-width: 640px) {{  /* side by side only: on a phone the cards stack */
+  [data-testid="stHorizontalBlock"]:has([class*="st-key-rec_card"]) {{ align-items: stretch; }}
+  [data-testid="stColumn"]:has([class*="st-key-rec_card"]) > [data-testid="stVerticalBlock"],
+  [data-testid="stColumn"]:has([class*="st-key-rec_card"]) > [data-testid="stVerticalBlock"] > [data-testid="stLayoutWrapper"],
+  [class*="st-key-rec_card"] {{ height: 100%; }}
+  [class*="st-key-rec_card"] > div:last-child {{ margin-top: auto; }}
+}}
 .card-head .card-sprite {{ width: 56px; height: 56px; image-rendering: pixelated; flex: none; }}
 /* opponent lineup: six across, three per row on phones */
 .opp-grid {{ display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: .6rem; margin: .3rem 0 .6rem; }}

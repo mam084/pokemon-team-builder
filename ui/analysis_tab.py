@@ -110,8 +110,8 @@ def similar_teams_section(team, dex, regulation: str) -> None:
     sims, need = find_similar(team, teams, dex)
     st.subheader("Tournament teams like yours")
     if not sims:
-        st.markdown(f"No tournament team shares {need}+ of your Pokémon: this is untested in "
-                    f"{len(teams):,} team lists.")
+        st.markdown(f"None of the {len(teams):,} tournament teams we have run {need} or more of your Pokémon, "
+                    "so there are no results for a team like this yet.")
         return
     w, l = sum(x.wins for x in sims), sum(x.losses for x in sims)
     all_w, all_l = sum(int(t.get("wins") or 0) for t in teams), sum(int(t.get("losses") or 0) for t in teams)
@@ -152,20 +152,9 @@ def analysis_tab(team, members, dex, usage, fmt) -> None:
     st.caption("Damage each attacking type does to each member (Mega forms and abilities like Levitate or "
                "Purifying Salt applied). Red = weak, blue = resists.")
 
-    st.subheader("Roles")
-    roles = role_checklist(members, fmt.is_doubles)
-    gaps = roles[roles["status"] != "Yes"]
-    for _, r in gaps.iterrows():
-        msg = f"**{r['role']}**" + (f" (only {r['covered by'].replace(';', ',')})" if r["status"] == "Partly"
-                                    else "") \
-            + f": {r['why it matters']}"
-        (st.warning if r["status"] == "Missing" else st.info)(("Missing " if r["status"] == "Missing" else
-                                                                "Partly covered: ") + msg)
-    covered = roles[roles["status"] == "Yes"]
-    if not covered.empty:
-        with st.expander(f"Covered roles ({len(covered)})" if not gaps.empty else f"All {len(covered)} roles covered"):
-            st.markdown("\n".join(f"- **{r['role']}:** {r['covered by'].replace(';', ',')}"
-                                   for _, r in covered.iterrows()))
+    st.subheader("Role checklist")
+    st.dataframe(role_checklist(members, fmt.is_doubles), hide_index=True, width="stretch",
+                 column_config={"why it matters": st.column_config.TextColumn(width="medium")})
 
     st.subheader("Speed tiers")
     tr = st.toggle("Trick Room order (slowest first)", value=False)

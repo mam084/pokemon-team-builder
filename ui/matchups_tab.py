@@ -461,8 +461,9 @@ def threats_section(fmt_id: str, team, members, dex, usage, doubles: bool) -> pd
         st.info("Add Pokémon on the **Team** tab to see which popular Pokémon threaten you.")
         return pd.DataFrame()
     how_it_works("The 30 most-used Pokémon (popular sets), ranked by **usage × (your Pokémon it 2HKOs + 1) ÷ "
-                 "(answers + 1)**. An *answer* 2HKOs it back while taking under 50%. **Meta counters** are the "
-                 "Pokémon with the best pairing against it, if you want to add one.", "How threats are ranked")
+                 "(answers + 1)**. An *answer* beats it 1-on-1: it needs fewer hits to KO it than it needs back, or "
+                 "the same number and it's faster (Choice Scarf counted). Spread moves like Rock Slide do 75% "
+                 "damage in doubles, so a single-target move can hit harder.", "How threats are ranked")
     threats = cached_threats(fmt_id, team_key(team))
     if threats.empty:
         return threats
@@ -474,8 +475,8 @@ def threats_section(fmt_id: str, team, members, dex, usage, doubles: bool) -> pd
                 img = f"<img class='card-sprite' src='{sprite(form, dex)}' alt=''>" if form else ""
                 st.markdown(f"<div class='card-head'>{img}<div><b>{row['pokemon']}</b><br>"
                             f"{row['usage %']:.1f}% usage</div></div>", unsafe_allow_html=True)
-                st.caption(f"2HKOs {row['2HKOs']} of your team. Hardest hits: {row['hardest hits']}. "
-                           f"Your answers: {row['answers']}.")
+                st.caption(f"2HKOs {row['2HKOs']} of your team. Hardest hits: {row['hardest hits']}.  \n"
+                           f"Beats it 1-on-1: {row['answers']}.  \nYour hardest hits on it: {row['your best hits']}.")
     with st.expander(f"All {len(threats)} threats"):
         st.dataframe(threats, hide_index=True, width="stretch",
                      column_config={"threat score": st.column_config.ProgressColumn(
@@ -492,6 +493,16 @@ def swap_engine_for(fmt_id: str) -> SwapEngine:
     return engine
 
 
+def candidate_help(usage, dex) -> str:
+    """The three candidate pools in the same unit: share of ladder teams."""
+    sheet = list(usage.team_sheet_usage(dex).values()) if usage is not None else []
+    popular_floor = min((pct for _, pct in usage.ranked(80)), default=0) if usage is not None else 0
+    common = sum(1 for v in sheet if v >= HIDDEN_MAX)
+    return (f"**Neutral:** any Pokémon with ladder data.  \n**Popular picks:** the 80 most used (about "
+            f"{popular_floor:.1f}%+ of teams).  \n**Hidden gems:** only Pokémon on under {HIDDEN_MAX:.0f}% of teams "
+            f"(everything outside the top {common}).")
+
+
 def swaps_section(team, dex, usage, fmt, threats: pd.DataFrame) -> None:
     st.subheader("Suggested swaps")
     if len(team) < 2:
@@ -501,8 +512,7 @@ def swaps_section(team, dex, usage, fmt, threats: pd.DataFrame) -> None:
     if st.session_state.get("swap_mode") not in MODES:  # start from the Recommendations tab's style
         st.session_state["swap_mode"] = st.session_state.get("rec_mode", "neutral")
     mode = st.segmented_control("Candidates", list(MODES), format_func=MODES.get, key="swap_mode",
-                                help=f"Hidden gems only offers Pokémon on fewer than {HIDDEN_MAX:.0f}% of ladder teams. Popular picks "
-                                     "only uses the top 80.") or "neutral"
+                                help=candidate_help(usage, dex)) or "neutral"
     how_it_works(
         f"Candidates follow the **{MODES[mode]}** style. Each swap is judged by your team's **win chance against "
         "the meta teams** from the learned model (damage calcs, Speed, bulk and support tools, between equal "

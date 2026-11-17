@@ -298,13 +298,25 @@ def meta_speed(name: str, usage: UsageData, dex: Dex) -> dict | None:
 
 
 def speed_table(members: list[Member], dex: Dex, usage: UsageData | None, n: int = 20) -> pd.DataFrame:
-    rows = [{"pokemon": f"{m.label} (yours)", "speed": m.stats["spe"], "who": "Your team", "note": ""}
-            for m in members]
+    from src.stats import effective_speed
+    rows = []
+    for m in members:
+        scarf = m.pset is not None and to_id(m.pset.item or "") == "choicescarf"
+        rows.append({"pokemon": f"{m.label} (yours{', Scarf' if scarf else ''})",
+                     "speed": effective_speed(m.stats["spe"], m.pset.item if m.pset else None),
+                     "who": "Your team", "note": ""})
+    fastest = max((r["speed"] for r in rows), default=0)
     if usage is not None:
-        for name, _ in usage.ranked(n):
+        # the n most used, plus anything else in the top 50 that's faster than your fastest
+        for rank, (name, _) in enumerate(usage.ranked(50)):
             info = meta_speed(name, usage, dex)
             if info is None or info["common"] is None:
                 continue
-            note = "often Choice Scarf (x1.5)" if info["scarf"] else ""
-            rows.append({"pokemon": info["pokemon"], "speed": info["common"], "who": "Meta (most common spread)", "note": note})
+            scarf_speed = info["common"] * 3 // 2 if info["scarf"] else None
+            if rank < n or info["common"] > fastest or (scarf_speed or 0) > fastest:
+                rows.append({"pokemon": info["pokemon"], "speed": info["common"],
+                             "who": "Meta (most common spread)", "note": ""})
+                if scarf_speed:
+                    rows.append({"pokemon": f"{info['pokemon']} (Scarf)", "speed": scarf_speed,
+                                 "who": "Meta (most common spread)", "note": "often Choice Scarf"})
     return pd.DataFrame(rows).sort_values("speed", ascending=False).reset_index(drop=True)

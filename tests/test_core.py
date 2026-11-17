@@ -291,7 +291,11 @@ class TestAnalysis(unittest.TestCase):
 
     def test_speed_and_meta_views(self):
         speeds = speed_table(self.members, self.dex, self.usage)
-        self.assertEqual(speeds.iloc[0]["pokemon"], "Garchomp-Mega-Z (yours)")   # 223 Speed
+        mine = speeds[speeds["pokemon"] == "Garchomp-Mega-Z (yours)"]["speed"].iloc[0]
+        self.assertEqual(mine, 223)
+        # popular Pokémon faster than your fastest are shown too (here: Choice Scarf users)
+        faster = speeds[speeds["speed"] > mine]
+        self.assertTrue(len(faster) and faster["pokemon"].str.contains("Scarf").all())
         cover = coverage_vs_meta(self.members, self.dex, self.usage, n=5)
         self.assertEqual(len(cover), 5)
 
@@ -879,11 +883,17 @@ class TestSpreadTuner(unittest.TestCase):
         self.assertGreaterEqual(bulk.sps["hp"], r.sps["hp"])  # leftovers to bulk, not Sp. Atk
 
     def test_impossible_benchmarks_say_so(self):
+        from dataclasses import replace
         from src.spread import tune
         slow = self.usage.popular_set("Garganacl", self.dex)
         r = tune(slow, self.dex, outspeed=200)
         self.assertIsNone(r.sps)
-        self.assertIn("outspeed", r.problem)
+        self.assertIn("even with 32 Speed points and a Speed-boosting nature", r.problem)  # no nature helps
+        lucario = replace(self.usage.popular_set("Lucario-Mega-Z", self.dex), species="Lucario",
+                          item="Lucarionite Z", nature="Modest")
+        r = tune(lucario, self.dex, outspeed=215)  # Modest tops out at 203, Timid at 223
+        self.assertIsNone(r.sps)
+        self.assertIn("Timid or Jolly", r.problem)  # possible, but only with a Speed nature
 
 
 class TestSimilarTeams(unittest.TestCase):

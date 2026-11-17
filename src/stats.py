@@ -17,7 +17,7 @@ as 252 EVs at level 50.
 
 from __future__ import annotations
 
-from src.dex import STATS, STAT_LABELS
+from src.dex import STATS, STAT_LABELS, to_id
 
 SP_TOTAL = 66
 SP_MAX = 32
@@ -76,3 +76,8 @@ def format_sps(sps: dict) -> str:
     """{'hp': 32, 'spd': 32, 'def': 2} -> '32 HP / 2 Def / 32 SpD' (paste order)."""
     parts = [f"{int(sps[s])} {STAT_LABELS[s]}" for s in STATS if int(sps.get(s, 0))]
     return " / ".join(parts)
+
+
+def effective_speed(spe: int, item: str | None) -> int:
+    """Speed in battle before boosts: Choice Scarf multiplies it by 1.5 (rounded down)."""
+    return spe * 3 // 2 if item and to_id(item) == "choicescarf" else spe

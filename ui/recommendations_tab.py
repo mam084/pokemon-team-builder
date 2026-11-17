@@ -190,7 +190,7 @@ def recommendations_tab(team, members, dex, usage, fmt) -> None:
         if i % 2 == 0:  # a new row per pair keeps 1, 2, 3... in order when columns stack on a phone
             cols = st.columns(2)
         with cols[i % 2]:
-            with st.container(border=True):
+            with st.container(border=True, key=f"rec_card_{i}"):
                 form = dex.get_species(row["form"])
                 img = f"<img class='card-sprite' src='{sprite(form, dex)}' alt=''>" if form is not None else ""
                 sub = f"Usually plays: {row['usually plays']}" if usage else ""
