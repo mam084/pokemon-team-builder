@@ -50,12 +50,14 @@ def attack_stat(pset: PokemonSet, dex: Dex) -> str:
     return "atk" if form is None or form.base_stats["atk"] >= form.base_stats["spa"] else "spa"
 
 
-def speed_points(pset: PokemonSet, dex: Dex, target: int) -> int | None:
-    """Fewest Speed points to be strictly faster than `target` (None if 32 isn't enough)."""
+def speed_points(pset: PokemonSet, dex: Dex, target: int, nature: dict | None = None) -> int | None:
+    """Fewest Speed points to be strictly faster than `target` (None if 32 isn't enough).
+    Choice Scarf counts; `nature` overrides the set's (to test a Speed-boosting one)."""
+    from src.stats import effective_speed
     form = pset.battle_form(dex)
-    nature = dex.get_nature(pset.nature)
+    nature = nature if nature is not None else dex.get_nature(pset.nature)
     for sp in range(SP_MAX + 1):
-        if calc_stat(form.base_stats["spe"], sp, "spe", nature) > target:
+        if effective_speed(calc_stat(form.base_stats["spe"], sp, "spe", nature), pset.item) > target:
             return sp
     return None
 
@@ -74,12 +76,16 @@ def tune(pset: PokemonSet, dex: Dex, outspeed: int | None = None, survive: list[
     if outspeed is not None:
         need = speed_points(pset, dex, outspeed)
         if need is None:
-            return TuneResult(None, problem=f"can't outspeed {outspeed} even with 32 Speed points "
-                                            "(its nature would have to change)")
+            plus = speed_points(pset, dex, outspeed, nature={"plus": "spe", "minus": "atk"})
+            return TuneResult(None, problem=(
+                f"can't outspeed {outspeed} with this nature; a Speed-boosting nature (Timid or Jolly) "
+                f"would need {plus} Speed points" if plus is not None else
+                f"can't outspeed {outspeed} at all, even with 32 Speed points and a Speed-boosting nature"))
         spe = need
+        from src.stats import effective_speed
         form = pset.battle_form(dex)
-        notes.append(f"{spe} Spe → {calc_stat(form.base_stats['spe'], spe, 'spe', dex.get_nature(pset.nature))} "
-                     f"Speed (beats {outspeed})")
+        speed = effective_speed(calc_stat(form.base_stats["spe"], spe, "spe", dex.get_nature(pset.nature)), pset.item)
+        notes.append(f"{spe} Spe → {speed} Speed (beats {outspeed})")
 
     survive = survive or []
     hits = []

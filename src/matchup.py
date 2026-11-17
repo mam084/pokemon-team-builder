@@ -464,36 +464,53 @@ def counter_picks(theirs: list[Member], usage: UsageData, dex: Dex, exclude: set
 # --------------------------------------------------------------------------
 # Individual threats
 # --------------------------------------------------------------------------
+def wins_one_on_one(mine_pct: float, theirs_pct: float, mine_speed: int, theirs_speed: int) -> bool:
+    """Your Pokemon beats theirs head to head: it needs fewer hits to KO than they do, or the
+    same number and it moves first. Percentages are each side's best hit on the other."""
+    if mine_pct <= 0:
+        return False
+    need_mine = math.ceil(100 / mine_pct)
+    need_theirs = math.ceil(100 / theirs_pct) if theirs_pct > 0 else 99
+    return need_mine < need_theirs or (need_mine == need_theirs and mine_speed > theirs_speed)
+
+
 def threat_report(members: list[Member], usage: UsageData, dex: Dex, n: int = 30,
                   doubles: bool = True) -> pd.DataFrame:
     """
     Popular Pokemon (popular sets) ranked by how much trouble they cause this team,
-    using damage calcs in both directions:
+    using damage calcs in both directions and Speed (Choice Scarf counted):
 
         pressured = your Pokemon it 2HKOs (best move does >= 50% on average)
-        answers   = your Pokemon that 2HKO it back while taking under 50%
+        answers   = your Pokemon that win the 1-on-1 (wins_one_on_one)
         threat    = usage % x (pressured + 1) / (answers + 1)
     """
+    from src.stats import effective_speed
     rows = []
     for name, pct in usage.ranked(n):
         opp = opponent_members([name], usage, dex)
         if not opp:
             continue
         threat = opp[0]
-        pressured, answers, key_calcs = [], [], []
+        t_speed = effective_speed(threat.stats["spe"], threat.pset.item if threat.pset else None)
+        pressured, answers, key_calcs, my_hits = [], [], [], []
         for m in members:
             dealt, dealt_move = best_attack(threat, m, doubles)
             taken, taken_move = best_attack(m, threat, doubles)
+            m_speed = effective_speed(m.stats["spe"], m.pset.item if m.pset else None)
             if dealt >= 50:
                 pressured.append(m.label)
                 key_calcs.append((dealt, f"{dealt_move} {dealt:.0f}% to {m.label}"))
-            if taken >= 50 and dealt < 50:
+            if taken_move:
+                my_hits.append((taken, f"{m.label} ({taken_move} {taken:.0f}%)"))
+            if wins_one_on_one(taken, dealt, m_speed, t_speed):
                 answers.append(f"{m.label} ({taken_move} {taken:.0f}%)")
         key_calcs.sort(reverse=True)
+        my_hits.sort(reverse=True)
         rows.append({
             "pokemon": threat.label, "usage %": round(pct, 1),
             "2HKOs": len(pressured), "hardest hits": "; ".join(c for _, c in key_calcs[:2]) or "—",
             "answers": ", ".join(answers) or "none",
+            "your best hits": ", ".join(h for _, h in my_hits[:2]) or "—",
             "threat score": round(pct * (len(pressured) + 1) / (len(answers) + 1), 1),
         })
     df = pd.DataFrame(rows)
