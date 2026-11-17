@@ -135,6 +135,81 @@ def meta_check(pset, dex: Dex, usage: UsageData | None, doubles: bool) -> tuple[
     return [t for _, t in threats[:3]], [h for _, h in handles[:3]]
 
 
+TUNE_POOL = 30  # benchmarks come from the most used Pokémon's popular sets
+
+
+@st.cache_data(show_spinner=False, ttl=3600)
+def _benchmarks(fmt_key: str, set_json: str) -> tuple[list, list]:
+    """(speed options, attack options) for the tuner: the top Pokémon's Speed, and each one's
+    strongest move against this set."""
+    import json
+    from src.analysis import build_members
+    from src.formats import FORMATS
+    from src.matchup import best_attack, opponent_members
+    from src.dex import load_dex
+    from src.team import PokemonSet
+    from src.usage import load_usage
+    fmt = FORMATS[fmt_key]
+    dex = load_dex(fmt.regulation)
+    usage = load_usage(fmt_key)
+    pset = PokemonSet(**json.loads(set_json))
+    me = build_members([pset], dex)
+    speeds, attacks = [], []
+    for name, _ in usage.ranked(TUNE_POOL):
+        opp = opponent_members([name], usage, dex)
+        if not opp or opp[0].pset is None:
+            continue
+        o = opp[0]
+        speeds.append((o.label, o.stats["spe"]))
+        if me:
+            pct, move = best_attack(o, me[0], fmt.is_doubles)
+            if move:
+                attacks.append((o.label, move, round(pct)))
+    speeds.sort(key=lambda x: -x[1])
+    attacks.sort(key=lambda x: -x[2])
+    return speeds, attacks
+
+
+def tuner_section(slot: int, pset, dex: Dex, usage: UsageData | None, fmt_key: str, doubles: bool) -> None:
+    """Pick a Speed to beat and hits to survive; get the fewest points that do it."""
+    import json
+    from dataclasses import asdict
+    from src.spread import Benchmark, tune
+    if usage is None:
+        return
+    with st.expander("Spread tuner: outspeed and survive specific threats"):
+        speeds, attacks = _benchmarks(fmt_key, json.dumps(asdict(pset), sort_keys=True))
+        sp_opts = [None] + [f"{n} ({v})" for n, v in speeds]
+        target = st.selectbox("Outspeed", sp_opts, key=k(slot, "tune_spe"),
+                              format_func=lambda x: "Don't care" if x is None else x,
+                              help="The most used Pokémon, with the Speed of their most popular set.")
+        atk_opts = {f"{n}: {m} ({p}% now)": (n, m) for n, m, p in attacks}
+        hits = st.multiselect("Survive", list(atk_opts), key=k(slot, "tune_hits"), max_selections=3,
+                              placeholder="Pick up to 3 attacks",
+                              help="Each one's strongest move against this set, as it is now. Checked at the "
+                                   "highest damage roll, no crit or boosts.")
+        rest = st.segmented_control("Leftover points", ["Attack", "Bulk"], default="Attack",
+                                    key=k(slot, "tune_rest"))
+        if target is None and not hits:
+            st.caption(f"Keeps the {pset.nature or 'current'} nature; pick a benchmark to see a spread.")
+            return
+        bench = []
+        for h in hits:
+            name, move = atk_opts[h]
+            opp = usage.popular_set(name, dex)
+            if opp is not None:
+                bench.append(Benchmark(opp, move))
+        speed_target = dict(speeds).get(target.rsplit(" (", 1)[0]) if target else None
+        result = tune(pset, dex, speed_target, bench, doubles, "bulk" if rest == "Bulk" else "attack")
+        if result.sps is None:
+            st.warning(f"Not possible: {result.problem}.")
+            return
+        spread = " / ".join(f"{v} {STAT_LABELS[s]}" for s, v in result.sps.items() if v)
+        st.markdown(f"**{spread}**  \n" + "  \n".join(f"- {n}" for n in result.notes))
+        st.button("Use this spread", key=k(slot, "tune_apply"), type="primary",
+                  on_click=apply_spread, args=(slot, result.sps))
+
+
 def load_preset(slot: int, presets: list) -> None:
     """Callback: a preset picked from the menu loads at once; the menu then resets."""
     key = k(slot, "preset")
@@ -275,6 +350,8 @@ def slot_editor(slot: int, dex: Dex, usage: UsageData | None, picks: list[tuple[
             row[2].markdown(f"<div class='stat-final' title='Base {form.base_stats[stat]}'>{stats[stat]}</div>",
                             unsafe_allow_html=True)
 
+    from src.formats import DEFAULT_FORMAT
+    tuner_section(slot, pset, dex, usage, ss.get("format", DEFAULT_FORMAT), doubles)
     threats, handles = meta_check(pset, dex, usage, doubles)
     if threats or handles:
         with st.container(border=True, key=f"meta_box{slot}"):

@@ -850,3 +850,52 @@ class TestRecentUsage(unittest.TestCase):
         self.assertAlmostEqual(u.pair_lift("Incineroar", "Rillaboom")[0], plain.pair_lift("Incineroar", "Rillaboom")[0],
                                places=6)
         self.assertEqual(u.recent["teams"], 1000)
+
+
+class TestSpreadTuner(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        from src.formats import DEFAULT_FORMAT, FORMATS
+        cls.dex = load_dex(FORMATS[DEFAULT_FORMAT].regulation)
+        cls.usage = load_usage(DEFAULT_FORMAT)
+
+    def test_meets_benchmarks_with_fewest_points(self):
+        from dataclasses import replace
+        from src.damage import Battler, Field, calculate
+        from src.spread import Benchmark, tune
+        from src.stats import STATS
+        me = replace(self.usage.popular_set("Lucario-Mega-Z", self.dex), species="Lucario", item="Lucarionite Z")
+        inc = self.usage.popular_set("Incineroar", self.dex)
+        r = tune(me, self.dex, outspeed=172, survive=[Benchmark(inc, "Flare Blitz")])
+        self.assertIsNotNone(r.sps)
+        self.assertEqual(sum(r.sps.values()), 66)
+        self.assertTrue(all(0 <= r.sps[s] <= 32 for s in STATS))
+        tuned = replace(me, sps=r.sps)
+        self.assertGreater(tuned.stats(self.dex)["spe"], 172)
+        hit = calculate(Battler.from_set(inc, self.dex), Battler.from_set(tuned, self.dex),
+                        self.dex.get_move("Flare Blitz"), Field(doubles=True))
+        self.assertLess(hit.max, hit.defender_hp)  # survives the highest roll
+        bulk = tune(me, self.dex, survive=[Benchmark(inc, "Flare Blitz")], rest="bulk")
+        self.assertGreaterEqual(bulk.sps["hp"], r.sps["hp"])  # leftovers to bulk, not Sp. Atk
+
+    def test_impossible_benchmarks_say_so(self):
+        from src.spread import tune
+        slow = self.usage.popular_set("Garganacl", self.dex)
+        r = tune(slow, self.dex, outspeed=200)
+        self.assertIsNone(r.sps)
+        self.assertIn("outspeed", r.problem)
+
+
+class TestSimilarTeams(unittest.TestCase):
+    def test_finds_teams_sharing_most_of_yours(self):
+        from src.evaluate import load_tournament_teams
+        from src.similar_teams import find_similar, ordinal
+        dex = load_dex("regmc")
+        teams = load_tournament_teams("regmc", dex)
+        team, _ = parse_paste(GARGANACL_TEAM, dex)
+        sims, need = find_similar(team, teams, dex)
+        self.assertEqual(need, 4)
+        self.assertTrue(sims)
+        self.assertTrue(all(s.shared >= 4 for s in sims))
+        self.assertEqual([s.shared for s in sims], sorted((s.shared for s in sims), reverse=True))
+        self.assertEqual((ordinal(1), ordinal(2), ordinal(11), ordinal(23)), ("1st", "2nd", "11th", "23rd"))

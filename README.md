@@ -134,6 +134,12 @@ play on the ladder.
   Sinistcha (5.9x)*; *Watch: rarely run next to Garchomp (0.5x)*; *Covers: Ice,
   Dark, Steel*), shows how often players with your team pick it next, and has an
   **Add to team** button that adds its most popular set.
+- **Spread tuner** (Team tab): pick a Speed to beat and up to 3 popular attacks to survive
+  (each threat's strongest move against your set, at the highest roll); it finds the fewest
+  Stat Points that do it, keeps your nature, and puts the rest into attack or bulk.
+- **Tournament teams like yours** (Analysis tab): Limitless team lists that share most of
+  your Pokémon, their combined record against the average, and the best finishes with what
+  they ran differently.
 - **Fit check** (Analysis tab): for each member, how usual it is next to the rest
   and what players most often run in that spot instead. Swaps use the same model:
   each member's second suggestion is the *usual pick* for that spot.
