@@ -60,4 +60,18 @@ jobs:
           git add data/replays/ data/evaluation/regmc_teammates.json
           git diff --cached --quiet && exit 0
           git commit -m "Replays: ${{ github.event.inputs.mode || 'new' }} ($(date -u +%Y-%m-%d))"
-          for i in 1 2 3; do git pull --rebase origin "${GITHUB_REF_NAME}" && git push origin "HEAD:${GITHUB_REF_NAME}" && break; sleep 10; done
+          # Someone may have pushed while this ran (hours, for a backfill). Rebase onto it, and on a
+          # conflict keep this run's files: the replays it downloaded and summaries/model it rebuilt
+          # from all of them. Never drop a batch silently: fail the run if it still can't push.
+          for i in 1 2 3 4 5; do
+            if git pull --rebase -X theirs origin "${GITHUB_REF_NAME}"; then :; else
+              while git diff --name-only --diff-filter=U | grep -q .; do
+                git diff --name-only --diff-filter=U | xargs -r git checkout --theirs --
+                git add -A data/
+                GIT_EDITOR=true git rebase --continue || true
+              done
+            fi
+            git push origin "HEAD:${GITHUB_REF_NAME}" && exit 0
+            sleep 15
+          done
+          echo "::error::Could not push the replays after 5 tries"; exit 1
