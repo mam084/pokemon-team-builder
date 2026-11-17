@@ -127,9 +127,8 @@ def card_lines(parts: dict) -> str:
                     text = ("next to " if lead == "rarely run next to " else "") + text[len(lead):]
                     break
             text = text.replace(" super effectively", "")
-            if key == "cover" and "weak spots:" in text:  # "covers your Grassy Terrain core's weak spots: Ice..."
-                core, _, types = text.partition("weak spots:")
-                text = f"{types.strip()} ({core.replace('covers ', '').strip()} weak spots)"
+            if key == "cover" and "weak spots:" in text:  # the core is named once, above the list
+                text = text.partition("weak spots:")[2].strip()
             if key == "hits":
                 text += " (super effective)"
             if key == "clash":
@@ -181,6 +180,10 @@ def recommendations_tab(team, members, dex, usage, fmt) -> None:
         recs.insert(2, "usually plays", [role_text(meta_roles(n, usage, dex, fmt.is_doubles), 2)
                                           for n in recs["pokemon"]])
     chances = pick_chances(team, dex, usage)
+    mega_note = "second Mega Stone: you pick which one Mega Evolves each game"
+    if (recs.head(10)["note"] == mega_note).any():  # say it once, not on every Mega card
+        st.caption("Picks marked **2nd Mega** would be your second Mega Stone: you choose which one Mega "
+                   "Evolves each game.")
     full = len(team) >= SLOTS
     top = recs.head(10)
     for i, row in top.iterrows():
@@ -193,7 +196,8 @@ def recommendations_tab(team, members, dex, usage, fmt) -> None:
                 sub = f"Usually plays: {row['usually plays']}" if usage else ""
                 st.markdown(  # sprite beside the name (not on its own row) so cards stay short on a phone
                     f"<div class='card-head'>{img}<div><b>{i + 1}. {row['pokemon']}</b> "
-                    f"<span class='rec-score' title='Blended score, 0-100'>{row['score']:.0f}</span><br>"
+                    f"<span class='rec-score' title='Blended score, 0-100'>{row['score']:.0f}</span>"
+                    + (" <span class='rec-score'>2nd Mega</span>" if row["note"] == mega_note else "") + "<br>"
                     f"{type_badges(row['types'].split('/'))}<br>"
                     f"<span class='rec-sub'>{sub}</span></div></div>",
                     unsafe_allow_html=True,
@@ -202,7 +206,7 @@ def recommendations_tab(team, members, dex, usage, fmt) -> None:
                 if chance is not None and chance >= 0.005:
                     st.caption(f"Players with your team pick it next **{chance:.0%}** of the time.")
                 st.markdown(card_lines(row["parts"]) or row["why"][0].upper() + row["why"][1:])
-                if row["note"]:
+                if row["note"] and row["note"] != mega_note:
                     st.caption(f"Note: {row['note']}")
                 if not full:  # a full team is explained once above the list
                     st.button(

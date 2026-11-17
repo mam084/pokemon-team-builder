@@ -61,33 +61,27 @@ def fit_check_section(team, dex, usage) -> None:
     st.subheader("How your team compares to what players build")
     off_meta = rare >= (len(team) + 1) // 2
     if off_meta:
-        st.markdown(f"**Off-meta build.** {rare} of your {len(team)} are on fewer than {HIDDEN_MAX:.0f}% of ladder "
-                    "teams, so the meta's usual pairings mostly don't apply. What still helps: which of your own "
-                    "picks players *do* run together (proven partnerships), and which are new territory.")
+        st.markdown(f"**Off-meta build:** {rare} of your {len(team)} are on fewer than {HIDDEN_MAX:.0f}% of ladder "
+                    "teams. Below, which of your own picks players *do* run together.")
     else:
         natural = sum(1 for r in checks.values() if r["rank"] and r["rank"] <= 15)
-        st.markdown(f"**{natural} of {len(team)}** are natural fits with the rest: among the 15 Pokémon players "
-                    "most often pick next to your other members.")
+        st.markdown(f"**{natural} of {len(team)}** are natural fits: among the 15 Pokémon players most often pick "
+                    "next to the rest of your team.")
     lines = []
     for p, f, r, use in zip(team, forms, roots, share):
         c, link = checks.get(r) or {}, links.get(r)
-        partner = (f"pairs best with **{by_root.get(link[0], link[0])}** ({math.exp(link[1]):.1f}x as likely "
-                   "together)" if link and link[1] >= 0.3 else "no proven partner on your team yet")
-        if not c or c.get("rank") is None:
-            usual = "too rarely used to judge"
-        elif c["rank"] <= 3:
-            usual = f"a top pick next to the rest (#{c['rank']})"
-        elif c["rank"] <= 15:
-            usual = f"a natural pick next to the rest (#{c['rank']})"
-        else:
-            usual = f"rarely seen with this group (#{c['rank']} of {len(tm.vocab)})"
-        if off_meta and not (c and c.get("rank") and c["rank"] <= 15):
-            usual = ""  # on an off-meta build "rare next to this group" says nothing new
-        lines.append(f"- **{p.species}** ({use:.1f}% of teams): {partner}" + (f"; {usual}." if usual else "."))
+        bits = [f"{use:.1f}% of teams"]
+        bits.append(f"pairs best with {by_root.get(link[0], link[0])} ({math.exp(link[1]):.1f}x)"
+                    if link and link[1] >= 0.3 else "no proven partner on your team")
+        rank = c.get("rank") if c else None
+        if rank and rank <= 15:
+            bits.append(f"#{rank} pick next to the rest")
+        elif rank and not off_meta:
+            bits.append("rare with this group")
+        lines.append(f"- **{p.species}**: " + " · ".join(bits))
     st.markdown("\n".join(lines))
-    st.caption("From real tournament team lists and ladder replays. \"4.5x\" means players are 4.5 times as likely "
-               "to run the two together, all else equal. This is about how usual a team is, not how good: an "
-               "off-meta pick can be the surprise that wins games.")
+    st.caption("Learned from tournament team lists and ladder replays. 2.0x = players run the two together twice "
+               "as often as chance. Usual isn't the same as good: an off-meta pick can be your surprise factor.")
     with st.expander("What players usually run in each spot"):
         name = {dex.sheet_id(s): s.name for s in dex.selectable_species() if not dex.is_cosmetic(s)}
         st.caption("For each member: the Pokémon players most often pick alongside your other five instead. "
@@ -104,45 +98,57 @@ def analysis_tab(team, members, dex, usage, fmt) -> None:
     fit_check_section(team, dex, usage)
 
     st.subheader("Defensive matchups")
-    st.caption("Damage each attacking type deals to each member, with Mega forms and type-changing abilities "
-               "(Levitate, Purifying Salt, Thick Fat…) applied. Red = weak, blue = resists.")
     matrix = defense_matrix(members)
-    left, right = st.columns([3, 2])
-    left.plotly_chart(matchup_heatmap(matrix), width="stretch")
     summary = defense_summary(matrix)
     flagged = summary[summary["verdict"] != ""]
-    with right:
-        if flagged.empty:
-            st.success("No shared weaknesses - every type is answered by at least one resist.")
-        else:
-            st.markdown("**Types to watch**")
-            st.dataframe(flagged, width="stretch")
-        st.markdown("**Role checklist**")
-        st.dataframe(role_checklist(members, fmt.is_doubles), hide_index=True, width="stretch",
-                     column_config={"why it matters": st.column_config.TextColumn(width="medium")})
+    if flagged.empty:
+        st.success("No shared weaknesses: every type is resisted by at least one member.")
+    else:
+        st.markdown("  \n".join(
+            f"**{t}:** {r['verdict'].lower()} ({r['weak']} weak" + (f", {r['4x']} take 4x" if r["4x"] else "")
+            + f", {r['resist'] + r['immune']} resist)" for t, r in flagged.iterrows()))
+    st.plotly_chart(matchup_heatmap(matrix), width="stretch")
+    st.caption("Damage each attacking type does to each member (Mega forms and abilities like Levitate or "
+               "Purifying Salt applied). Red = weak, blue = resists.")
+
+    st.subheader("Roles")
+    roles = role_checklist(members, fmt.is_doubles)
+    gaps = roles[roles["status"] != "Yes"]
+    for _, r in gaps.iterrows():
+        msg = f"**{r['role']}**" + (f" (only {r['covered by'].replace(';', ',')})" if r["status"] == "Partly"
+                                    else "") \
+            + f": {r['why it matters']}"
+        (st.warning if r["status"] == "Missing" else st.info)(("Missing " if r["status"] == "Missing" else
+                                                                "Partly covered: ") + msg)
+    covered = roles[roles["status"] == "Yes"]
+    if not covered.empty:
+        with st.expander(f"Covered roles ({len(covered)})" if not gaps.empty else f"All {len(covered)} roles covered"):
+            st.markdown("\n".join(f"- **{r['role']}:** {r['covered by'].replace(';', ',')}"
+                                   for _, r in covered.iterrows()))
 
     st.subheader("Speed tiers")
     tr = st.toggle("Trick Room order (slowest first)", value=False)
-    st.caption("Your team's real Speed stats next to the meta's most common spreads."
+    st.caption("Your Pokémon's Speed (with their Stat Points and nature) next to the meta's most common spreads."
                + ("" if usage else " Add usage data to see meta benchmarks."))
     st.plotly_chart(speed_chart(speed_table(members, dex, usage, n=20), tr), width="stretch")
 
     st.subheader("Offensive coverage")
-    c1, c2 = st.columns([2, 3])
-    with c1:
-        off = offense_by_type(members)
-        st.caption("Best effectiveness your damaging moves get against each type.")
-        st.dataframe(off.assign(best=off["best"].map(lambda x: fmt_mult(x) or "1×")),
-                     width="stretch", height=420)
-    with c2:
-        if usage:
-            st.caption("…and against the 30 most-used Pokémon, in their common battle form.")
-            cov = coverage_vs_meta(members, dex, usage, n=30)
+    off = offense_by_type(members)
+    weak_types = [t for t, r in off.iterrows() if r["best"] < 2]
+    st.markdown(("**No super-effective hit on:** " + ", ".join(
+        f"{t} (best {fmt_mult(off.loc[t, 'best']) or '1×'})" for t in weak_types)) if weak_types
+        else "**Every type** is hit super effectively by at least one of your moves.")
+    cov = coverage_vs_meta(members, dex, usage, n=30) if usage else pd.DataFrame()
+    if not cov.empty:
+        walls = cov[cov["best hit"] < 2]
+        st.markdown(("**Popular Pokémon you can't hit super effectively:** " + ", ".join(
+            f"{r['pokemon']} ({r['usage %']:.0f}%)" for _, r in walls.iterrows())) if not walls.empty
+            else "You hit **all 30** of the most-used Pokémon super effectively.")
+    with st.expander("Full coverage tables and stats"):
+        st.dataframe(off.assign(best=off["best"].map(lambda x: fmt_mult(x) or "1×")).rename(
+            columns={"hit_by": "hit by"}), width="stretch")
+        if not cov.empty:
             cov["best hit"] = cov["best hit"].map(lambda x: fmt_mult(x) or "1×")
-            st.dataframe(cov, hide_index=True, width="stretch", height=420)
-        else:
-            st.info("Coverage against the meta needs usage stats for this format.")
-
-    st.subheader("Stats")
-    rows = [{"Pokémon": m.label, **{STAT_LABELS[s]: m.stats[s] for s in STATS}} for m in members]
-    st.dataframe(pd.DataFrame(rows), hide_index=True, width="stretch")
+            st.dataframe(cov, hide_index=True, width="stretch")
+        rows = [{"Pokémon": m.label, **{STAT_LABELS[s]: m.stats[s] for s in STATS}} for m in members]
+        st.dataframe(pd.DataFrame(rows), hide_index=True, width="stretch")

@@ -20,6 +20,9 @@ from ui.state import add_set_to_team, add_to_team
 def bar_section(title: str, data: dict, dex: Dex, kind: str, n: int = 8) -> None:
     if not data:
         return
+    data = {k: v for k, v in data.items() if v >= 1}  # no 0% bars
+    if not data:
+        return
     names = []
     for key in list(data)[:n]:
         entry = {"items": dex.items, "moves": dex.moves, "abilities": dex.abilities}.get(kind, {}).get(to_id(key))
@@ -95,7 +98,11 @@ def what_wins_section(regulation: str, dex: Dex) -> None:
     model = _model(regulation)
     if model is None:
         return
-    st.subheader("What wins games")
+    with st.expander("What wins games (support tools, from real tournament results)"):
+        _what_wins(model, dex)
+
+
+def _what_wins(model, dex) -> None:
     skill = "skill (Elo)" in model["model"]["features"]
     st.caption(f"Learned from {model['matches']:,} real Limitless matches with both team lists. Each number is "
                "the change in win chance (percentage points, near a 50/50 match) for one more Pokémon with that "
@@ -205,8 +212,10 @@ def meta_tab(dex: Dex, usage: UsageData | None, team_size: int, regulation: str 
         spreads = usage.section(name, "spreads")
         if spreads:
             st.markdown("**Common spreads** (nature: HP/Atk/Def/SpA/SpD/Spe Stat Points)")
-            st.dataframe(pd.DataFrame(list(spreads.items())[:6], columns=["spread", "% of sets"]),
-                         hide_index=True, width="stretch")
+            sp = pd.DataFrame([(k.replace(":", " · ", 1), round(v)) for k, v in list(spreads.items())[:6]],
+                              columns=["spread", "% of sets"])
+            st.dataframe(sp, hide_index=True, width="stretch",
+                         column_config={"% of sets": st.column_config.NumberColumn(format="%d%%")})
         counters = usage.section(name, "counters")
         if counters:
             st.markdown("**Checks & counters** (how often each KOs or forces it out)")
