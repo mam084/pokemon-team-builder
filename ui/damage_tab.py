@@ -36,16 +36,20 @@ def _set_caption(pset: PokemonSet, dex: Dex) -> str:
             f"{format_sps(pset.sps) or 'no Stat Points'}")
 
 
-def _side(label: str, options: dict[str, PokemonSet], default: int, key: str, dex: Dex, stats: list[str]):
+def _pick(label: str, options: dict[str, PokemonSet], default: int, key: str, dex: Dex) -> PokemonSet:
     names = list(options)
     choice = st.selectbox(label, names, index=min(default, len(names) - 1), key=f"calc_{key}")
     pset = options[choice]
     st.caption(_set_caption(pset, dex))
+    return pset
+
+
+def _stages(label: str, key: str, stats: list[str]) -> dict:
     cols = st.columns(len(stats))
-    boosts = {s: cols[i].selectbox(f"{STAT_LABELS[s]} stage", STAGES, index=6, key=f"calc_{key}_{s}",
+    boosts = {s: cols[i].selectbox(f"{label} {STAT_LABELS[s]}", STAGES, index=6, key=f"calc_{key}_{s}",
                                    format_func=lambda v: f"{v:+d}" if v else "0")
               for i, s in enumerate(stats)}
-    return pset, {s: v for s, v in boosts.items() if v}
+    return {s: v for s, v in boosts.items() if v}
 
 
 def damage_tab(team: list[PokemonSet], dex: Dex, usage: UsageData | None, fmt) -> None:
@@ -53,31 +57,39 @@ def damage_tab(team: list[PokemonSet], dex: Dex, usage: UsageData | None, fmt) -
     if len(options) < 2:
         st.info("Add Pokémon to your team (or pick a format with usage data) to run calcs.")
         return
-    how_it_works("Level 50 Champions damage, using the same formula and rounding as Pokémon Showdown "
-                 "(checked roll-for-roll against Showdown's engine in the test suite). Pick any of your Pokémon "
-                 "or a meta Pokémon's most popular set on either side.", "About these numbers")
 
     left, right = st.columns(2)
     with left:
-        attacker, att_boosts = _side("Attacker", options, 0, "att", dex, ["atk", "spa", "def"])
+        attacker = _pick("Attacker", options, 0, "att", dex)
     with right:
-        defender, def_boosts = _side("Defender", options, len(team) if len(team) < len(options) else 1,
-                                     "def", dex, ["def", "spd"])
-        full_hp = st.checkbox("Defender at full HP", value=True,
-                              help="Matters for Multiscale and Shadow Shield.")
+        defender = _pick("Defender", options, len(team) if len(team) < len(options) else 1, "def", dex)
+    results = st.container()  # the numbers come first; the knobs that change them go below
+    both_ways = st.toggle("Also show the defender's attacks", key="calc_both")
 
-    st.markdown("**Field**")
-    fc = st.columns(4)
-    weather = WEATHER[fc[0].selectbox("Weather", list(WEATHER), key="calc_weather")]
-    terrain = TERRAIN[fc[1].selectbox("Terrain", list(TERRAIN), key="calc_terrain")]
-    screen = fc[2].checkbox("Reflect / Light Screen", key="calc_screen")
-    crit = fc[3].checkbox("Critical hit", key="calc_crit")
-    gc = st.columns(4)
-    helping = gc[0].checkbox("Helping Hand", key="calc_hh", disabled=not fmt.is_doubles)
-    spread_both = gc[1].checkbox("Spread moves hit both foes", value=True, key="calc_spread",
-                                 disabled=not fmt.is_doubles,
-                                 help="In doubles, moves that hit both foes do 75% damage.")
-    both_ways = gc[2].checkbox("Also show the defender's attacks", key="calc_both")
+    ss = st.session_state
+    on = sum(1 for k in ("calc_att_atk", "calc_att_spa", "calc_att_def", "calc_def_def", "calc_def_spd")
+             if ss.get(k, 0)) + sum(1 for k in ("calc_screen", "calc_crit", "calc_hh") if ss.get(k)) \
+        + sum(1 for k in ("calc_weather", "calc_terrain") if ss.get(k, "None") != "None") \
+        + (0 if ss.get("calc_full_hp", True) else 1)
+    with st.expander("Stat stages, weather and field" + (f" ({on} set)" if on else "")):
+        att_boosts = _stages("Attacker", "att", ["atk", "spa", "def"])
+        def_boosts = _stages("Defender", "def", ["def", "spd"])
+        fc = st.columns(2)
+        weather = WEATHER[fc[0].selectbox("Weather", list(WEATHER), key="calc_weather")]
+        terrain = TERRAIN[fc[1].selectbox("Terrain", list(TERRAIN), key="calc_terrain")]
+        gc = st.columns(3)
+        screen = gc[0].checkbox("Reflect / Light Screen", key="calc_screen")
+        crit = gc[1].checkbox("Critical hit", key="calc_crit")
+        helping = gc[2].checkbox("Helping Hand", key="calc_hh", disabled=not fmt.is_doubles)
+        hc = st.columns(2)
+        spread_both = hc[0].checkbox("Spread moves hit both foes", value=True, key="calc_spread",
+                                     disabled=not fmt.is_doubles,
+                                     help="In doubles, moves that hit both foes do 75% damage.")
+        full_hp = hc[1].checkbox("Defender at full HP", value=True, key="calc_full_hp",
+                                 help="Matters for Multiscale and Shadow Shield.")
+    how_it_works("Level 50 Champions damage, using the same formula and rounding as Pokémon Showdown "
+                 "(checked roll-for-roll against Showdown's engine in the test suite). Pick any of your Pokémon "
+                 "or a meta Pokémon's most popular set on either side.", "About these numbers")
 
     def table(att: PokemonSet, dfn: PokemonSet, ab: dict, db: dict) -> pd.DataFrame:
         a = Battler.from_set(att, dex, ab)
@@ -91,11 +103,10 @@ def damage_tab(team: list[PokemonSet], dex: Dex, usage: UsageData | None, fmt) -
             spread = fmt.is_doubles and spread_both and move.get("spread", False)
             result = calculate(a, d, move, Field(doubles=fmt.is_doubles, spread=spread, weather=weather,
                                                  terrain=terrain, helping_hand=helping, screen=screen, crit=crit))
-            rows.append({
-                "move": move["name"], "damage": f"{result.min}-{result.max}",
-                "% of HP": f"{result.min_pct:.1f}-{result.max_pct:.1f}%",
-                "max %": min(result.max_pct, 100.0), "result": result.verdict,
-                "notes": "; ".join(result.notes),
+            rows.append({  # most telling first, so a phone shows it without scrolling sideways
+                "move": move["name"], "% of HP": f"{result.min_pct:.1f}-{result.max_pct:.1f}%",
+                "result": result.verdict, "max %": min(result.max_pct, 100.0),
+                "damage": f"{result.min}-{result.max}", "notes": "; ".join(result.notes),
             })
         return pd.DataFrame(rows)
 
@@ -109,11 +120,12 @@ def damage_tab(team: list[PokemonSet], dex: Dex, usage: UsageData | None, fmt) -
                      column_config={"max %": st.column_config.ProgressColumn("max %", min_value=0, max_value=100,
                                                                              format="%.0f%%")})
 
-    show(attacker, defender, att_boosts, def_boosts,
-         f"{attacker.nickname or attacker.species} → {defender.nickname or defender.species}")
-    if both_ways:
-        reverse_att = {s: v for s, v in def_boosts.items() if s in {"atk", "spa"}}
-        show(defender, attacker, reverse_att, {},
-             f"{defender.nickname or defender.species} → {attacker.nickname or attacker.species}")
-    if to_id(attacker.item) == "choicescarf" or to_id(defender.item) == "choicescarf":
-        st.caption("Choice Scarf only changes Speed, so it doesn't affect these numbers.")
+    with results:
+        show(attacker, defender, att_boosts, def_boosts,
+             f"{attacker.nickname or attacker.species} → {defender.nickname or defender.species}")
+        if both_ways:
+            reverse_att = {s: v for s, v in def_boosts.items() if s in {"atk", "spa"}}
+            show(defender, attacker, reverse_att, {},
+                 f"{defender.nickname or defender.species} → {attacker.nickname or attacker.species}")
+        if to_id(attacker.item) == "choicescarf" or to_id(defender.item) == "choicescarf":
+            st.caption("Choice Scarf only changes Speed, so it doesn't affect these numbers.")

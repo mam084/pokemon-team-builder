@@ -14,7 +14,7 @@ from src.dex import load_dex
 from src.formats import FORMATS
 from src.analysis import build_members, mega_variants
 from src.matchup import (best_attack, best_variant, build_archetypes, counter_picks, meta_matchups,
-                         opponent_members, side_support, team_score, threat_report, verdict)
+                         opponent_members, team_score, threat_report, verdict)
 from src.bring_model import load_model as load_bring_model
 from src.bring_model import pick as bring_pick
 from src.gameplan import game_plan
@@ -288,11 +288,9 @@ def matchups_tab(fmt_id, team, members, dex, usage, fmt) -> None:
             c[1].metric("Favorable", sum(p >= FAVORED for p in chances), help=f"{FAVORED:.0%}+ to win")
             c[2].metric("Even", sum(1 - FAVORED < p < FAVORED for p in chances))
             c[3].metric("Unfavorable", sum(p <= 1 - FAVORED for p in chances), help=f"{1 - FAVORED:.0%} or less")
-            st.caption(f"About {avg:.0%} to win against a typical meta team ({chance_verdict(avg).lower()}). "
-                       f"On damage calcs alone: {overall:+.2f} ({verdict(overall).lower()}).")
             table.insert(2, "win chance", [round(100 * p) for p in chances])
             table["verdict"] = [chance_verdict(p) for p in chances]
-            table = table.rename(columns={"score": "calc score"})
+            table = table.drop(columns=["score"])  # one yardstick: win chance
         else:
             c[0].metric("Overall", f"{overall:+.2f}", help="Usage-weighted average of the team scores below")
             c[1].metric("Favorable", int((table["score"] >= 0.25).sum()))
@@ -305,9 +303,9 @@ def matchups_tab(fmt_id, team, members, dex, usage, fmt) -> None:
             if check:
                 k = check["models"]["team vs team (all 6)"]["k"]
                 table.insert(2, "win chance", [round(100 * win_chance(x, k)) for x in table["score"]])
-        score_col = "calc score" if "calc score" in table else "score"
-        first = ["archetype"] + (["win chance"] if "win chance" in table else []) + ["verdict", score_col]
-        table = table[first + [c for c in table.columns if c not in first]]
+        score_col = [c for c in ("score",) if c in table]
+        first = ["archetype"] + (["win chance"] if "win chance" in table else []) + ["verdict"] + score_col
+        table = table[first + [c for c in table.columns if c not in first and c != "with bring"]]
         st.dataframe(
             table, hide_index=True, width="stretch",
             column_config={
@@ -365,58 +363,24 @@ def matchups_tab(fmt_id, team, members, dex, usage, fmt) -> None:
                                                   fmt.pick, picker)
         members_now = next(ms for _, ms in variants if [m.label for m in ms] == list(matrix.index))
         score = team_score(matrix)
-        if len(variants) > 1 and who:
-            st.caption(f"You carry {len(variants)} Mega Stones; against this team, **Mega Evolve {who}** "
-                       "(the other plays in its base forme).")
-        left, right = st.columns([3, 2])
-        with left:
-            model, sides = learned_meta_sides(fmt_id)
-            why = ""
-            if model is not None:
-                mine = team_side(members_now, team, dex, usage, swap_engine_for(fmt_id))
-                theirs_side = sides[names.index(pick)]
-                p_win = predict_match(model, mine, theirs_side)
-                chance = f"about {p_win:.0%} to win, {chance_verdict(p_win).lower()}"
-                pros, cons = explain(model, mine, theirs_side)
-                fmt_pts = lambda items: ", ".join(f"{g} {v:+.0f}" for g, v in items)  # noqa: E731
-                why = ("Win-chance points: " + "; ".join(
-                    x for x in [f"for you: {fmt_pts(pros)}" if pros else "",
-                                f"against you: {fmt_pts(cons)}" if cons else ""] if x) + ".") \
-                    if pros or cons else ""
-            else:
-                chance = win_text(score, match_check(fmt.regulation), "team vs team (all 6)")
-            if model is not None:
-                st.markdown(f"**Your team vs {pick}: {chance}** (calc score {score:+.2f})")
-            else:
-                st.markdown(f"**Your team vs {pick}: {score:+.2f} ({verdict(score)}"
-                            + (f", {chance}" if chance else "") + ")**")
-            if why:
-                st.caption(why)
-            st.plotly_chart(pair_heatmap(matrix), width="stretch")
-            st.caption("Blue = your Pokémon (row) wins that pairing, red = theirs (column) does.")
-        with right:
-            st.markdown(f"**Suggested bring {fmt.pick}:** {', '.join(picks)} ({picked:+.2f})")
-            answers = []
-            for opp in theirs:
-                col = matrix[opp.label]
-                best = col.idxmax()
-                mine = next(m for m in members_now if m.label == best)
-                pct, move = best_attack(mine, opp, doubles, arch.weather)
-                answers.append({
-                    "their Pokémon": opp.label,
-                    "your best answer": best if col.max() >= 0.5 else "—",
-                    "key calc": f"{move} {pct:.0f}%" if col.max() >= 0.5 and move else "—",
-                })
-            st.dataframe(pd.DataFrame(answers), hide_index=True, width="stretch")
+        model, sides = learned_meta_sides(fmt_id)
+        pros = cons = []
+        if model is not None:
+            mine = team_side(members_now, team, dex, usage, swap_engine_for(fmt_id))
+            theirs_side = sides[names.index(pick)]
+            p_win = predict_match(model, mine, theirs_side)
+            pros, cons = explain(model, mine, theirs_side)
+            st.markdown(f"**Your team vs {pick}: about {p_win:.0%} to win ({chance_verdict(p_win).lower()})**")
+        else:
+            chance = win_text(score, match_check(fmt.regulation), "team vs team (all 6)")
+            st.markdown(f"**Your team vs {pick}: {verdict(score).lower()}**" + (f" ({chance})" if chance else ""))
+
         plan_picks, bring_source = picks, ("replays" if use_model else "calcs")
         plan = game_plan(members_now, theirs, matrix, plan_picks, dex, doubles, arch.trick_room, arch.weather)
         plan.bring_source = bring_source
-        plan.support_note = support_note(members_now, theirs, plan_picks)
         summary = replay_summary(fmt_id)
         if summary:
             label = {p.species: m.label for p, m in zip(team, members_now)}
-            bring, lead = usual_picks(summary, [p.species for p in team])
-            plan.usual = ([label.get(s, s) for s in bring], [label.get(s, s) for s in lead], summary["games"])
             # their likely leads: what ladder players lead with (beats the calc guess on replays)
             their_sets = [o.pset for o in theirs if o.pset is not None]
             their_label = {p.species: o.label for p, o in zip(their_sets, [o for o in theirs if o.pset])}
@@ -426,77 +390,69 @@ def matchups_tab(fmt_id, team, members, dex, usage, fmt) -> None:
             if bring_source == "replays":
                 r = bring_model["results"]["lead"]
                 if r["learned"][0] > r["usual picks"][0]:  # the model's own leads test best
-                    plan.lead = bring_pick(bring_model, members_now, theirs, matrix, dex, keep=mega_of(members_now))[1]
+                    plan.lead = bring_pick(bring_model, members_now, theirs, matrix, dex,
+                                           keep=mega_of(members_now))[1]
                     if not set(plan.lead) <= set(plan_picks):
                         plan.lead = [x for x in plan.lead if x in plan_picks][:2]
-                    plan.lead_why = "The pair a model of real players' choices leads with."
                 else:  # players' usual leads among the four
                     _, lead_species = usual_picks(summary, [p.species for p, m in zip(team, members_now)
                                                             if m.label in plan_picks])
                     plan.lead = [label.get(s, s) for s in lead_species]
-                    plan.lead_why = "The pair ladder players lead with most often among these four."
                 plan.back = [b for b in plan.bring if b not in plan.lead]
-        game_plan_box(plan, who if len(variants) > 1 else None)  # who is None unless brought
+        mega_name = None
+        if len(variants) > 1 and who:
+            form = dex.get_species(who)
+            mega_name = form.base_species if form is not None else who
+        game_plan_box(plan, mega_name)
 
-    st.markdown(f"**Counter picks for {pick}**: meta Pokémon (popular sets) with the best average pairing "
-                "against this team" + (", not counting your current team." if team else "."))
-    counters = counter_picks(theirs, usage, dex, exclude={p.species for p in team},
-                             trick_room=arch.trick_room, doubles=doubles, weather=arch.weather)
-    if not counters.empty:
-        counters.insert(1, "usually plays", [role_text(meta_roles(n, usage, dex, doubles), 2)
-                                             for n in counters["pokemon"]])
-        st.dataframe(counters, hide_index=True, width="stretch",
-                     column_config={"avg matchup": st.column_config.NumberColumn(format="%+.2f")})
+        answers = []
+        for opp in theirs:
+            col = matrix[opp.label]
+            best = col.idxmax()
+            mine_m = next(m for m in members_now if m.label == best)
+            pct, move = best_attack(mine_m, opp, doubles, arch.weather)
+            good = col.max() >= 0.5
+            answers.append({"their Pokémon": opp.label, "your best answer": best if good else "none",
+                            "key hit": f"{move} {pct:.0f}%" if good and move else "—"})
+        st.markdown("**Who answers what**")
+        st.dataframe(pd.DataFrame(answers), hide_index=True, width="stretch")
+        with st.expander("Every pairing, and what moves the win chance"):
+            st.plotly_chart(pair_heatmap(matrix), width="stretch")
+            st.caption("Damage calcs both ways for each pair: blue = your Pokémon (row) wins it, red = theirs "
+                       "(column) does.")
+            if pros or cons:
+                pts = lambda items: ", ".join(f"{g} ({v:+.0f})" for g, v in items)  # noqa: E731
+                st.markdown("  \n".join(x for x in [f"**Helping you:** {pts(pros)}" if pros else "",
+                                                     f"**Against you:** {pts(cons)}" if cons else ""] if x))
+                st.caption("Points of win chance, from the model learned on real tournament matches.")
 
     threats = threats_section(fmt_id, team, members, dex, usage, doubles)
     swaps_section(team, dex, usage, fmt, threats)
 
 
-def support_note(members, theirs, picks) -> str:
-    counted = {"Reflect", "Light Screen", "Intimidate"}  # what changes the score (see matchup.py)
-    mine = [n for n in side_support([m for m in members if m.label in picks]).names() if n in counted]
-    their = [n for n in side_support(theirs).names() if n in counted]
-    parts = []
-    if mine:
-        parts.append(f"your bring sets up {', '.join(mine)}")
-    if their:
-        parts.append(f"they can set up {', '.join(their)}")
-    return ("Support counted: " + "; ".join(parts) + ".") if parts else ""
-
-
 def game_plan_box(plan, mega: str | None) -> None:
+    """The plan for this matchup in a few short lines; how each part was chosen sits in one caption."""
     with st.container(border=True):
         st.markdown("**Game plan**")
-        lines = [f"**Bring:** {', '.join(plan.bring)}" + (f" (Mega Evolve {mega})" if mega else "")
-                 + (" (what a model of real players' choices picks)" if plan.bring_source == "replays" else ""),
-                 f"**Lead:** {' + '.join(plan.lead)}. {plan.lead_why}",
-                 f"**In the back:** {', '.join(plan.back)}" if plan.back else "",
-                 f"**Expect them to lead:** {' + '.join(plan.their_leads)}"
-                 + (" (their usual leads in ladder replays)" if plan.their_leads_source == "replays" else ""),
+        lines = [f"**Bring:** {', '.join(plan.bring)}" + (f" · Mega Evolve {mega}" if mega else ""),
+                 f"**Lead:** {' + '.join(plan.lead)}" + (f" · **Back:** {', '.join(plan.back)}" if plan.back else ""),
+                 f"**They usually lead:** {' + '.join(plan.their_leads)}" if plan.their_leads else "",
                  f"**Your strongest piece:** {plan.strongest} ({plan.strongest_why})" if plan.strongest else ""]
-        st.markdown("  \n".join(line for line in lines if line))
-        if plan.support_note:
-            st.caption(plan.support_note)
-        if plan.usual:
-            bring, lead, games = plan.usual
-            st.markdown(f"**What ladder players do:** with these Pokémon they most often bring {', '.join(bring)} "
-                        f"and lead {' + '.join(lead)}.")
-            st.caption(f"From {games:,} Showdown replays: how often each Pokémon is brought and leads when it's on "
-                       "team preview, against any opponent. The calc-based plan above beats picking at random only "
-                       "slightly; players' usual choices match real games a bit better.")
         if plan.watch_out:
-            st.markdown("**Watch out for**  \n" + "  \n".join(
-                f"- **{w['pokemon']}**: {w['hit']}; {w['your best']}." for w in plan.watch_out))
-        else:
-            st.markdown("**Watch out for:** nothing on their team goes unanswered by your bring.")
+            lines.append("**Watch out for:** " + "; ".join(
+                f"{w['pokemon']} ({w['hit']}; {w['your best']})" for w in plan.watch_out))
+        st.markdown("  \n".join(line for line in lines if line))
         order, prev = [], None
         for r in plan.speed:
             name = f"**{r['pokemon']}**" if r["side"] == "yours" else r["pokemon"]
             sep = "" if prev is None else (" = " if r["speed"] == prev else " › ")
             order.append(f"{sep}{name} {r['speed']}")
             prev = r["speed"]
-        st.caption("Speed order (yours in bold): " + "".join(order)
+        st.caption("Speed (yours in bold, with each set's Stat Points and nature): " + "".join(order)
                    + (f". {plan.speed_note}" if plan.speed_note else ""))
+        st.caption(("Bring and lead: what real players choose in this spot, learned from ladder replays. "
+                    if plan.bring_source == "replays" else "Bring and lead: from damage calcs. ")
+                   + "Their leads: what players with their team usually lead.")
 
 
 def threats_section(fmt_id: str, team, members, dex, usage, doubles: bool) -> pd.DataFrame:
@@ -520,10 +476,11 @@ def threats_section(fmt_id: str, team, members, dex, usage, doubles: bool) -> pd
                             f"{row['usage %']:.1f}% usage</div></div>", unsafe_allow_html=True)
                 st.caption(f"2HKOs {row['2HKOs']} of your team. Hardest hits: {row['hardest hits']}. "
                            f"Your answers: {row['answers']}.")
-    st.dataframe(threats, hide_index=True, width="stretch",
-                 column_config={"threat score": st.column_config.ProgressColumn(
-                     "threat score", min_value=0, max_value=float(threats["threat score"].max() or 1),
-                     format="%.1f")})
+    with st.expander(f"All {len(threats)} threats"):
+        st.dataframe(threats, hide_index=True, width="stretch",
+                     column_config={"threat score": st.column_config.ProgressColumn(
+                         "threat score", min_value=0, max_value=float(threats["threat score"].max() or 1),
+                         format="%.1f")})
     return threats
 
 
