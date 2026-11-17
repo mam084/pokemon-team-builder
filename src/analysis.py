@@ -286,7 +286,8 @@ def meta_speed(name: str, usage: UsageData, dex: Dex) -> dict | None:
     if spreads:
         nature_name, sps = parse_spread(next(iter(spreads)))
         common = calc_stat(base, sps["spe"], "spe", dex.get_nature(nature_name))
-    scarf = usage.section(name, "items").get("choicescarf", 0) >= 20
+    scarf_pct = usage.section(name, "items").get("choicescarf", 0)
+    scarf = scarf_pct >= 20
     return {
         "pokemon": form.name,
         "base": base,
@@ -294,6 +295,7 @@ def meta_speed(name: str, usage: UsageData, dex: Dex) -> dict | None:
         "common": common,
         "max": calc_stat(base, 32, "spe", {"plus": "spe"}),
         "scarf": scarf,
+        "scarf_pct": round(scarf_pct),
     }
 
 
@@ -317,6 +319,7 @@ def speed_table(members: list[Member], dex: Dex, usage: UsageData | None, n: int
                 rows.append({"pokemon": info["pokemon"], "speed": info["common"],
                              "who": "Meta (most common spread)", "note": ""})
                 if scarf_speed:
-                    rows.append({"pokemon": f"{info['pokemon']} (Scarf)", "speed": scarf_speed,
+                    rows.append({"pokemon": f"{info['pokemon']} (Scarf, {info['scarf_pct']}% of sets)",
+                                 "speed": scarf_speed,
                                  "who": "Meta (most common spread)", "note": "often Choice Scarf"})
     return pd.DataFrame(rows).sort_values("speed", ascending=False).reset_index(drop=True)
