@@ -40,6 +40,18 @@ MODEL_DIR = Path(__file__).resolve().parent.parent / "data" / "evaluation"
 # teams counted 3x (curated teams; the ladder adds volume and the rarer Pokemon)
 L2 = 2.0
 TOURNAMENT_WEIGHT = 3.0
+# Replays older than this stopped helping as the meta moved: on held-out tournaments, the last
+# 21-30 days scored MRR 0.656-0.657 and 45+ days 0.650 (scripts/synergy_lab.py, Nov 17)
+REPLAY_DAYS = 30
+
+
+def recent_records(records: list[dict], end: float | None = None, days: int = REPLAY_DAYS) -> list[dict]:
+    """Replays uploaded in the `days` before `end` (default: the newest one)."""
+    times = [r["uploadtime"] for r in records if r.get("uploadtime")]
+    if not times:
+        return []
+    end = end if end is not None else max(times)
+    return [r for r in records if r.get("uploadtime") and end - days * 86400 <= r["uploadtime"] < end + 1]
 
 
 @dataclass

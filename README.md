@@ -156,15 +156,15 @@ Tournaments are split by date. The teammate model learned from the 2,251 oldest 
 
 | model | top 1 | top 5 | top 10 | MRR |
 |---|---|---|---|---|
-| tuned weights | 54.7% | 78.2% | 84.8% | 0.653 |
-| hand-set weights | 17.8% | 47.1% | 62.4% | 0.322 |
-| synergy only | 54.7% | 78.2% | 84.8% | 0.653 |
+| tuned weights | 54.9% | 78.0% | 85.0% | 0.653 |
+| hand-set weights | 17.3% | 46.6% | 61.6% | 0.319 |
+| synergy only | 54.9% | 78.0% | 85.0% | 0.653 |
 | popularity only | 6.1% | 35.6% | 49.4% | 0.203 |
 | before: lift synergy | 46.3% | 69.6% | 77.5% | 0.569 |
 | random | 1.5% | 7.3% | 14.7% | 0.071 |
 
 - The tuned weights find the missing Pokémon **first try 55% of the
-  time** and in the top 10 85% of the time: 103% better MRR than the
+  time** and in the top 10 85% of the time: 105% better MRR than the
   weights the recommender originally shipped with.
 <!-- /generated:recommender -->
 - **Two Mega Stones are normal**: 81% of these tournament teams carry two (you
@@ -207,8 +207,9 @@ rest.
 
 `b_c` is how often c gets picked at all, and `W[m, c]` is the pull between two
 Pokémon *after* accounting for the rest of the team. It's fitted on every tournament
-team list (counted 3x) plus ~44,000 ladder and Bo3 teams from replays (each
-player's team once, higher ratings weighted more), with L2 regularisation so
+team list (counted 3x) plus the last 30 days of ladder and Bo3 teams from replays
+(each player's team once, higher ratings weighted more; older replays stopped
+helping as the meta moved: 45+ days scored MRR 0.650 vs 0.656 for 30), with L2 regularisation so
 rarely seen pairs stay near 0. `exp(W)` is the "7.4x" in the app's reasons.
 
 `scripts/synergy_lab.py` compares it with lift on the same held-out tournaments
@@ -344,14 +345,14 @@ replays are saved publicly each day.
 choices on the newest replays (rates and model fitted on older ones):
 
 <!-- generated:bring -->
-127,055 replays; tested on 19,625 team previews.
+174,257 replays; tested on 19,576 team previews.
 
 | | bring-4 | lead pair |
 |---|---|---|
-| learned bring / lead model | 72.0% | 43.9% |
-| players' usual picks (bring / lead rates) | 70.8% | 43.6% |
-| damage-calc game plan | 68.0% | 34.2% |
-| random | 66.6% | 33.5% |
+| learned bring / lead model | 72.0% | 43.3% |
+| players' usual picks (bring / lead rates) | 70.8% | 42.9% |
+| damage-calc game plan | 68.0% | 34.5% |
+| random | 66.7% | 33.2% |
 <!-- /generated:bring -->
 
 The damage-calc plan barely beats random: real choices depend on more than
