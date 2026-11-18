@@ -312,6 +312,14 @@ matches, and it's tested once on the newest 3,750
 - **Who's playing matters most**, but the team adds real signal on top: log-loss
   gain -0.0014 to +0.0043 over ratings alone (95% paired bootstrap).
 <!-- /generated:learned -->
+
+**Upgrades tried and rejected (Nov 2026, `scripts/match_lab.py`, `scripts/match_lab2.py`).** None beat
+the model above on the held-out tournaments, so none shipped: one-on-one "answers" counts, walls,
+cubed matchup scores, gradient-boosted trees (worse), and training on ~100,000 rated ladder and Bo3
+replays as well (no gain on tournaments). On replays the team features add nothing beyond the
+players' ratings, even in Bo3 where the real sets are known. Teams in real play are close enough that
+the player decides most games; a matchup as lopsided as all-Fire vs all-Grass is beyond every one of
+~112,000 real matches, so how the model handles it can't be tested.
 - **Per-Pokémon effects were mostly player skill.** Without ratings they helped
   (e.g. "Alakazam teams win 3 points more than their calcs say"); with ratings in
   the model they no longer improved cross-validated predictions, so they're out.
