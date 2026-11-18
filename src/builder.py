@@ -47,7 +47,11 @@ def _set_for(name: str, team: list[PokemonSet], dex: Dex, usage: UsageData) -> P
     return usage.popular_set(name, dex, taken_items=taken, allow_mega=megas < MAX_MEGAS, team=team)
 
 
-ANCHOR_WEIGHT = 1.0  # how many times the core's pairings count while filling (tested: builder_lab)
+# The core's pairings count twice while filling, so a team built around a rarely used Pokemon keeps
+# pairing with it instead of with its popular teammates (picks pairing with the core: 86-91% -> 93-96%).
+# Held-out (scripts/builder_lab.py): no loss; a gain toward winning teams (+0.047, 95% -0.003 to
+# +0.102) that didn't quite clear zero. On by choice, for building around the core you picked.
+ANCHOR_WEIGHT = 2.0
 
 
 def _complete(team: list[PokemonSet], reasons: list[str], dex: Dex, usage: UsageData, doubles: bool,

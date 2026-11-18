@@ -460,7 +460,8 @@ much as the average common one (+0.64); Popular picks chases usage, not wins.
 already runs Trick Room, or the reverse (Staraptor's Tailwind "helping" the Trick Room setter). Neutral
 builds with both fell from 33% to 21% and leaned toward the week's winning teams a little more (+0.084 to
 +0.101). Counting the core's pairings twice made 93-96% of picks pair with the core (from 86-91%), but its
-gain toward winners (+0.047, 95% -0.003 to +0.102) didn't clear zero, so it is off (`ANCHOR_WEIGHT = 1`).
+gain toward winners (+0.047, 95% -0.003 to +0.102) didn't clear zero. It is on anyway
+(`ANCHOR_WEIGHT = 2`), by choice: no measured loss, and teams built around a core should pair with it.
 
 ## Battle replays
 
