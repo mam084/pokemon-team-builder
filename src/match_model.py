@@ -455,9 +455,48 @@ def train_and_report(regulation: str = CURRENT.regulation, format_id: str = CURR
 # --------------------------------------------------------------------------
 # Predicting a matchup in the app
 # --------------------------------------------------------------------------
-def load_model(regulation: str) -> dict | None:
+def load_model(regulation: str, trust: bool = True) -> dict | None:
+    """The learned model. With trust (the default), predictions stay inside what real tournament
+    teams reach: the bounds saved by `python -m src.team_rating` (see trust_bounds)."""
     path = EVAL_DIR / f"{regulation}_match_model.json"
-    return json.loads(path.read_text()) if path.exists() else None
+    if not path.exists():
+        return None
+    model = json.loads(path.read_text())
+    ref = EVAL_DIR / f"{regulation}_team_rating.json"
+    if trust and ref.exists():
+        model["trust"] = json.loads(ref.read_text()).get("trust")
+    return model
+
+
+# --------------------------------------------------------------------------
+# Trust region: don't extrapolate past real teams
+# --------------------------------------------------------------------------
+# The model is additive, so a search over swaps (keep applying the best one) finds teams that stack
+# every effect past anything in the data: four Wide Guard users scored 66% vs the meta when the best
+# of 5,376 real tournament teams scores 59%, and nobody has ever played that team. Nothing in the
+# data says what a third or fourth Wide Guard is worth (0.1% of team sheets even have two), and on
+# 75,000 Bo3 games the extra copies of most support tools didn't help at all. So each feature's push
+# is capped at what real teams reach against the meta teams, and so is the total; a team past those
+# bounds is flagged as untested instead of shown as better. Real teams sit inside the bounds by
+# construction, so this changes almost nothing about how real teams are rated (src/team_check.py).
+def trust_bounds(pushes: list[dict[str, float]], chances: list[float]) -> dict:
+    """Bounds from real teams: pushes are raw contributions (log-odds) of real teams vs meta teams,
+    one dict per (team, meta team); chances are the real teams' usage-weighted chances vs the meta."""
+    # Symmetric (+-the largest real push either way), so swapping the two teams still exactly
+    # flips the prediction. Rounded outward, so a real team never lands just outside.
+    up, down = (lambda x: math.ceil(x * 1e5) / 1e5), (lambda x: math.floor(x * 1e5) / 1e5)
+    names = sorted({k for p in pushes for k in p})
+    feats = {n: up(max(abs(p.get(n, 0.0)) for p in pushes)) for n in names}
+    total = up(max(abs(sum(p.values())) for p in pushes))
+    return {"features": {n: [-b, b] for n, b in feats.items()},
+            "total": [-total, total],
+            "chance": [down(min(chances)), up(max(chances))], "teams": len(chances)}
+
+
+def cap_chance(model: dict | None, p: float) -> float:
+    """A usage-weighted chance vs the meta, kept inside the real teams' range."""
+    t = (model or {}).get("trust")
+    return float(min(max(p, t["chance"][0]), t["chance"][1])) if t else p
 
 
 def team_side(members: list[Member], sets, dex: Dex, usage, engine: SwapEngine | None,
@@ -478,12 +517,32 @@ GROUPS = {"Damage calcs": ["matchup score", "bring-4 score", "best damage (mean 
 
 
 def predict_match(model: dict, a: dict, b: dict, parts: dict | None = None) -> float:
-    """P(team a beats team b) from the learned model."""
-    return 1 / (1 + math.exp(-sum(c for _, c in contributions(model, a, b, parts))))
+    """P(team a beats team b) from the learned model (inside the trust bounds, if the model has them)."""
+    total = sum(c for _, c in contributions(model, a, b, parts))
+    t = model.get("trust")
+    if t:
+        total = min(max(total, t["total"][0]), t["total"][1])
+    return 1 / (1 + math.exp(-total))
 
 
-def contributions(model: dict, a: dict, b: dict, parts: dict | None = None) -> list[tuple[str, float]]:
-    """Each feature's push on the log-odds that a wins (positive = toward a)."""
+def beyond(model: dict, a: dict, b: dict, parts: dict | None = None) -> set[str]:
+    """Features where team a vs team b goes past every real team (empty without trust bounds);
+    "total" when only the combination does."""
+    t = model.get("trust")
+    if not t:
+        return set()
+    raw = contributions(model, a, b, parts, clip=False)
+    out = {n for n, c in raw if n in t["features"] and not t["features"][n][0] <= c <= t["features"][n][1]}
+    total = sum(c for _, c in contributions(model, a, b, parts))
+    if not out and not t["total"][0] <= total <= t["total"][1]:
+        out.add("total")
+    return out
+
+
+def contributions(model: dict, a: dict, b: dict, parts: dict | None = None,
+                  clip: bool = True) -> list[tuple[str, float]]:
+    """Each feature's push on the log-odds that a wins (positive = toward a). With clip, each push
+    stays inside the model's trust bounds (what real teams reach), when it has them."""
     m = model["model"]
     row = matchup_features(parts if parts is not None else pair_parts(a["members"], b["members"]),
                            a["members"], b["members"])
@@ -502,7 +561,11 @@ def contributions(model: dict, a: dict, b: dict, parts: dict | None = None) -> l
         if s in index:
             sp[index[s]] -= 1
     names = m["features"] + [f"species: {s}" for s in m["species"]]
-    return [(n, float(c) * v) for n, c, v in zip(names, m["coef"], x + sp) if v]
+    out = [(n, float(c) * v) for n, c, v in zip(names, m["coef"], x + sp) if v]
+    bounds = (model.get("trust") or {}).get("features") if clip else None
+    if bounds:
+        out = [(n, min(max(c, bounds[n][0]), bounds[n][1]) if n in bounds else c) for n, c in out]
+    return out
 
 
 def explain(model: dict, a: dict, b: dict, parts: dict | None = None, top: int = 3) -> tuple[list, list]:

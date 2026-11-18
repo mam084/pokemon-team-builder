@@ -103,7 +103,8 @@ class SwapEngine:
                        for side, rows in mine)
             total += best * f.weight
             weights += f.weight
-        return total / weights if weights else None
+        from src.match_model import cap_chance  # past the best real team counts as no better (trust region)
+        return cap_chance(self.model, total / weights) if weights else None
 
     def overall(self, team: list[PokemonSet] | list[Member]) -> float:
         """Usage-weighted score vs the meta teams. Given PokemonSets, a team with two Mega

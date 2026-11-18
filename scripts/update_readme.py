@@ -92,6 +92,36 @@ def bring(r: dict) -> str:
             "| | bring-4 | lead pair |\n|---|---|---|\n" + rows)
 
 
+def team_check(r: dict) -> str:
+    raw, guarded = r["ranking"]["without bounds"], r["ranking"]["with bounds"]
+    names = ["lowest quarter", "2nd quarter", "3rd quarter", "highest quarter"]
+    rows = "\n".join(f"| {n} | {a['predicted']:.1%} | {a['actual']:.1%} | {b['predicted']:.1%} | {b['actual']:.1%} |"
+                     for n, a, b in zip(names, raw["quarters"], guarded["quarters"]))
+    search = "\n".join(f"| {s['start']} | {s['without bounds']['to']:.1%} | {s['with bounds']['to']:.1%} |"
+                        for s in r["search"])
+    lo = min(s["without bounds"]["to"] for s in r["search"])
+    hi = max(s["without bounds"]["to"] for s in r["search"])
+    return f"""Fitted on data before {r['cut']}; bounds from {r['reference_teams']:,} real teams from before then
+(the best scores {r['best_real_team']:.1%} vs the meta). **Ranking the {r['held_out_teams']:,} held-out teams**
+by win chance vs the meta, then checking how they actually did:
+
+| teams, by win chance | without bounds: said | won | with bounds: said | won |
+|---|---|---|---|---|
+{rows}
+
+Rank correlation with real records: {raw['spearman']:.3f} without bounds, {guarded['spearman']:.3f} with. The
+bounds moved {r['changed_share']:.1%} of real teams by more than 0.1 points.
+
+**Keep applying the best swap** (Neutral, any role) from the most popular meta teams:
+
+| start | ends at, without bounds | with bounds |
+|---|---|---|
+{search}
+
+Without bounds the search walks to {lo:.0%}-{hi:.0%}, past every real team; with them it stops at the best
+real team's score."""
+
+
 def replace(text: str, name: str, body: str) -> str:
     pattern = re.compile(rf"(<!-- generated:{name} -->\n).*?(\n<!-- /generated:{name} -->)", re.S)
     if not pattern.search(text):
@@ -105,7 +135,8 @@ def main() -> None:
     for name, fn, file in (("recommender", recommender, "regmc.json"),
                            ("validation", validation, "regmc_matches.json"),
                            ("learned", learned, "regmc_match_model.json"),
-                           ("bring", bring, "regmc_bring_model.json")):
+                           ("bring", bring, "regmc_bring_model.json"),
+                           ("teamcheck", team_check, "regmc_team_check.json")):
         data = load(file)
         if data:
             text = replace(text, name, fn(data))

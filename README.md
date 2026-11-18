@@ -156,20 +156,20 @@ Pokémon ranks** among about 68 candidates. This is repeated
 for every member of every team.
 
 <!-- generated:recommender -->
-Tournaments are split by date. The teammate model learned from the 2,236 oldest teams (plus replays from before the next tournaments) and the weights were tuned by grid search on the next 1,448. Every number below comes from
-1,692 teams in the 36 newest tournaments (2026-11-11 to
-2026-11-17), which neither ever saw.
+Tournaments are split by date. The teammate model learned from the 2,223 oldest teams (plus replays from before the next tournaments) and the weights were tuned by grid search on the next 1,471. Every number below comes from
+1,694 teams in the 36 newest tournaments (2026-11-11 to
+2026-11-18), which neither ever saw.
 
 | model | top 1 | top 5 | top 10 | MRR |
 |---|---|---|---|---|
-| tuned weights | 56.6% | 79.2% | 85.9% | 0.668 |
-| hand-set weights | 17.8% | 46.8% | 62.5% | 0.325 |
-| synergy only | 56.6% | 79.2% | 85.9% | 0.668 |
-| popularity only | 6.3% | 36.4% | 50.5% | 0.208 |
-| before: lift synergy | 47.6% | 71.3% | 79.2% | 0.584 |
+| tuned weights | 56.0% | 78.9% | 85.7% | 0.664 |
+| hand-set weights | 17.5% | 46.7% | 62.1% | 0.322 |
+| synergy only | 56.0% | 78.9% | 85.7% | 0.664 |
+| popularity only | 6.3% | 36.3% | 50.3% | 0.208 |
+| before: lift synergy | 47.2% | 70.6% | 78.8% | 0.579 |
 | random | 1.5% | 7.3% | 14.7% | 0.071 |
 
-- The tuned weights find the missing Pokémon **first try 57% of the
+- The tuned weights find the missing Pokémon **first try 56% of the
   time** and in the top 10 86% of the time: 106% better MRR than the
   weights the recommender originally shipped with.
 <!-- /generated:recommender -->
@@ -238,17 +238,17 @@ size, so recommendations use who players pair, not pair win rates.
 
 The Matchups tab scores your team against others with damage calcs and Speed.
 <!-- generated:validation -->
-`src/validate.py` checks that score against **11,981 real Limitless
+`src/validate.py` checks that score against **12,018 real Limitless
 matches** where both players' team lists are known: each pair of teams is
 scored against each other, a win-chance curve is fitted on the older
-8,109 matches, and it's judged on the newest 3,872
-(2026-11-11 to 2026-11-17).
+8,134 matches, and it's judged on the newest 3,884
+(2026-11-11 to 2026-11-18).
 
 | model | picks the winner | log loss |
 |---|---|---|
-| team vs team (bring 4) | 51.6% | 0.6934 |
-| team vs team (all 6) | 51.7% | 0.6931 |
-| score vs the meta | 51.4% | 0.6926 |
+| team vs team (bring 4) | 51.6% | 0.6935 |
+| team vs team (all 6) | 51.5% | 0.6932 |
+| score vs the meta | 51.4% | 0.6927 |
 | popularity | 50.8% | 0.6927 |
 | coin flip | 50.0% | 0.6931 |
 
@@ -296,21 +296,21 @@ Each match becomes a row of differences (player 1 minus player 2):
 An L2-regularized logistic regression is fitted on both orientations of every
 match (so swapping the players exactly flips the prediction). Its settings are
 <!-- generated:learned -->
-chosen by forward-chaining cross-validation inside the older 8,177
-matches, and it's tested once on the newest 3,804
-(2026-11-11 to 2026-11-17):
+chosen by forward-chaining cross-validation inside the older 8,195
+matches, and it's tested once on the newest 3,823
+(2026-11-12 to 2026-11-18):
 
 | model | picks the winner | log loss | AUC |
 |---|---|---|---|
-| learned model (skill + team) | 58.8% | 0.6678 | 0.621 |
-| player skill only | 58.4% | 0.6690 | 0.619 |
-| team only | 53.4% | 0.6905 | 0.541 |
-| damage-calc matchup score | 51.5% | 0.6928 | 0.520 |
-| popularity only | 50.8% | 0.6927 | 0.520 |
+| learned model (skill + team) | 58.8% | 0.6685 | 0.619 |
+| player skill only | 57.9% | 0.6692 | 0.618 |
+| team only | 53.2% | 0.6910 | 0.538 |
+| damage-calc matchup score | 51.5% | 0.6930 | 0.519 |
+| popularity only | 50.8% | 0.6926 | 0.521 |
 | coin flip | 50.0% | 0.6931 | 0.500 |
 
 - **Who's playing matters most**, but the team adds real signal on top: log-loss
-  gain -0.0016 to +0.0039 over ratings alone (95% paired bootstrap).
+  gain -0.0021 to +0.0036 over ratings alone (95% paired bootstrap).
 <!-- /generated:learned -->
 
 **Upgrades tried and rejected (Nov 2026, `scripts/match_lab.py`, `scripts/match_lab2.py`).** None beat
@@ -349,6 +349,60 @@ predicts with both players rated equal, so win chances compare *teams*.
 `python -m src.ratings` and `python -m src.match_model` reproduce this; the
 monthly refresh retrains it.
 
+## Is the "best" team really that good? (trust bounds)
+
+Keep tapping the top swap and the model used to walk any team to about **66% vs the meta**, always the
+same way: Armarouge, Araquanid, Swampert and Bastiodon, **four Wide Guard users**. The model counts each
+tool user (about +2 points each), so four of them were worth +8 points of the +16, while the damage calcs
+added nothing. No tournament team has ever run more than two (0.1% of team sheets have two), nobody had
+played even three of those six Pokémon together, and the best of 5,376 real teams scores 59%. The search
+was finding where the model is most wrong, not a better team.
+
+**Diminishing returns can't be learned from tournaments.** Counting tool users capped at 1 or 2, square-rooted
+or logged all tie the linear count on the held-out week (log-loss differences within ±0.001), because there
+are almost no teams that stack. Capping alone doesn't fix the search either: it then collects one of every
+favored tool at once (Trick Room, Wide Guard, Yawn, a setup move, no Fake Out), each within what real teams do
+but adding up to +16 points when the best real team gets +6.
+
+**Bo3 replays** (`scripts/tool_count_lab.py`; 75,599 rated games with open team sheets, never used to fit the
+model) do show diminishing returns: extra Intimidate (-1.8 points each), redirection (-1.4), Helping Hand (-5.2)
+and terrain (-3.3) users hurt, and only Tailwind gains from a second setter (+2.4). They also show the
+tournament-learned tool effects don't carry over: on those games they predict worse than player ratings alone,
+counted linearly or capped.
+
+So the fix is in the search, not the model: **trust bounds** (`src/match_model.trust_bounds`). Each feature's
+push, the total, and the win chance vs the meta are capped at what real tournament teams reach (rebuilt with
+the team rating reference, `python -m src.team_rating`). A team past them gets a one-line *Untested* note on
+the Matchups tab, and swaps can't climb past the best real team. `python -m src.team_check` tests this on
+the held-out week:
+
+<!-- generated:teamcheck -->
+Fitted on data before 2026-11-12; bounds from 1,200 real teams from before then
+(the best scores 58.0% vs the meta). **Ranking the 1,669 held-out teams**
+by win chance vs the meta, then checking how they actually did:
+
+| teams, by win chance | without bounds: said | won | with bounds: said | won |
+|---|---|---|---|---|
+| lowest quarter | 45.4% | 46.4% | 45.4% | 46.4% |
+| 2nd quarter | 49.3% | 47.6% | 49.3% | 47.6% |
+| 3rd quarter | 51.1% | 48.5% | 51.1% | 48.5% |
+| highest quarter | 52.9% | 53.1% | 52.9% | 53.1% |
+
+Rank correlation with real records: 0.096 without bounds, 0.096 with. The
+bounds moved 0.2% of real teams by more than 0.1 points.
+
+**Keep applying the best swap** (Neutral, any role) from the most popular meta teams:
+
+| start | ends at, without bounds | with bounds |
+|---|---|---|
+| Goodstuffs (Sneasler + Kingambit) | 62.7% | 58.0% |
+| Sun (Charizard-Mega-Y + Garchomp) | 62.5% | 58.0% |
+| Rain + Tailwind (Archaludon + Pelipper) | 63.3% | 58.0% |
+
+Without bounds the search walks to 62%-63%, past every real team; with them it stops at the best
+real team's score.
+<!-- /generated:teamcheck -->
+
 ## Battle replays
 
 A daily GitHub Action (`scripts/fetch_replays.py`, **Fetch replays** workflow)
@@ -364,14 +418,14 @@ replays are saved publicly each day.
 choices on the newest replays (rates and model fitted on older ones):
 
 <!-- generated:bring -->
-174,257 replays; tested on 19,576 team previews.
+175,424 replays; tested on 19,647 team previews.
 
 | | bring-4 | lead pair |
 |---|---|---|
-| learned bring / lead model | 72.0% | 43.3% |
-| players' usual picks (bring / lead rates) | 70.8% | 42.9% |
-| damage-calc game plan | 68.0% | 34.5% |
-| random | 66.7% | 33.2% |
+| learned bring / lead model | 72.0% | 43.5% |
+| players' usual picks (bring / lead rates) | 70.8% | 43.0% |
+| damage-calc game plan | 68.0% | 34.4% |
+| random | 66.7% | 33.5% |
 <!-- /generated:bring -->
 
 The damage-calc plan barely beats random: real choices depend on more than
@@ -480,7 +534,9 @@ The tests check:
 │   ├── cooccurrence.py       tournament team pairings as a second synergy source
 │   ├── evaluate.py           hide-one-member evaluation on real tournament teams
 │   ├── validate.py           does the matchup score predict real match winners?
-│   ├── match_model.py        learned win-chance model from real matches
+│   ├── match_model.py        learned win-chance model from real matches, with trust bounds
+│   ├── team_rating.py        team rating vs real tournament teams; builds the trust bounds
+│   ├── team_check.py         held-out team ranking and swap-search check (trust bounds)
 │   ├── ratings.py            leak-free Elo ratings for tournament players
 │   ├── replay_parse.py       Showdown battle log -> compact record
 │   ├── replays.py            replay stats; does the game plan match real choices?
@@ -490,6 +546,7 @@ The tests check:
 │   ├── fetch_usage.py        Smogon → data/usage
 │   ├── fetch_tournaments.py  Limitless → data/tournaments
 │   ├── evaluate.py           runs the evaluation → data/evaluation
+│   ├── tool_count_lab.py     diminishing returns for support tools (tournaments and Bo3)
 │   └── make_damage_vectors.js  Showdown → damage test vectors
 ├── data/                     generated data (committed so the app runs without setup)
 ├── tests/                    unittest suite and fixtures
@@ -512,3 +569,4 @@ The tests check:
 - [x] Learned win-chance model (support tools, Pokémon effects) from 12,000 real matches
 - [x] Learned teammate model (whole-team synergy from tournament and ladder teams), measured with the same evaluation
 - [x] Deploy to Streamlit Community Cloud
+- [x] Trust bounds: the swap search can't rate a team past the best real tournament team

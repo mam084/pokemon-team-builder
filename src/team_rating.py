@@ -15,7 +15,8 @@ top quarter won 55.9% of games vs 45.2% for the bottom quarter. The damage-calc 
 which the builder used to sort by, was the weakest of the app's signals.
 
 The z-scores and percentiles are against tournament teams from the current regulation, saved by
-`python -m src.team_rating` (data/evaluation/<regulation>_team_rating.json).
+`python -m src.team_rating` (data/evaluation/<regulation>_team_rating.json), along with the
+match model's trust bounds: how far real teams' scores vs the meta reach (src/match_model.py).
 """
 
 from __future__ import annotations
@@ -30,7 +31,7 @@ from src.analysis import mega_variants
 from src.dex import Dex
 from src.formats import CURRENT
 from src.match_model import load_model as load_match_model
-from src.match_model import predict_match, team_side
+from src.match_model import cap_chance, contributions, predict_match, team_side, trust_bounds
 from src.matchup import build_archetypes, opponent_members
 from src.synergy import root_of
 
@@ -56,10 +57,21 @@ def meta_sides(archetypes, usage, dex: Dex) -> tuple[list[dict], np.ndarray]:
 
 
 def learned_vs_meta(sets, dex: Dex, usage, model: dict, sides: list[dict], weights: np.ndarray) -> float:
-    """Usage-weighted learned win chance against the meta teams (best Mega choice per opponent)."""
+    """Usage-weighted learned win chance against the meta teams (best Mega choice per opponent),
+    kept inside what real teams reach when the model has trust bounds."""
     mine = [team_side(m, sets, dex, usage, None, meta=0.0) for _, m in mega_variants(sets, dex)]
     chances = np.array([max(predict_match(model, a, b) for a in mine) for b in sides])
-    return float(chances @ weights)
+    return cap_chance(model, float(chances @ weights))
+
+
+def raw_pushes(sets, dex: Dex, usage, model: dict, sides: list[dict]) -> list[dict[str, float]]:
+    """Unclipped feature pushes of one team vs each meta team (its best Mega choice per opponent)."""
+    mine = [team_side(m, sets, dex, usage, None, meta=0.0) for _, m in mega_variants(sets, dex)]
+    out = []
+    for b in sides:
+        options = [dict(contributions(model, a, b, clip=False)) for a in mine]
+        out.append(max(options, key=lambda d: sum(d.values())))
+    return out
 
 
 def load_reference(regulation: str = CURRENT.regulation) -> dict | None:
@@ -84,20 +96,22 @@ def build_reference(regulation: str = CURRENT.regulation, format_id: str = CURRE
     from src.usage import load_usage
 
     dex, usage = load_dex(regulation), load_usage(format_id)
-    tm, model = load_teammates(regulation), load_match_model(regulation)
+    tm, model = load_teammates(regulation), load_match_model(regulation, trust=False)  # bounds come from raw scores
     teams = load_tournament_teams(regulation, dex, usage=usage)
     random.Random(0).shuffle(teams)
     sides, weights = meta_sides(build_archetypes(usage, dex, team_size=6), usage, dex)
-    fits, chances = [], []
+    fits, chances, pushes = [], [], []
     for t in teams[:SAMPLE]:
         f = teammate_fit(t["sets"], dex, tm)
         if f is None:
             continue
         fits.append(f)
         chances.append(learned_vs_meta(t["sets"], dex, usage, model, sides, weights))
+        pushes += raw_pushes(t["sets"], dex, usage, model, sides)
+    trust = trust_bounds(pushes, chances)
     fits, chances = np.array(fits), np.array(chances)
     ref = {"teams": int(len(fits)), "fit_mean": float(fits.mean()), "fit_sd": float(fits.std()),
-           "chance_mean": float(chances.mean()), "chance_sd": float(chances.std())}
+           "chance_mean": float(chances.mean()), "chance_sd": float(chances.std()), "trust": trust}
     ref["combined_sorted"] = sorted(round(combined(f, c, ref), 4) for f, c in zip(fits, chances))
     return ref
 

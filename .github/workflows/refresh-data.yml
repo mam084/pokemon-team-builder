@@ -95,6 +95,11 @@ jobs:
         timeout-minutes: 15
         continue-on-error: true
 
+      - name: Held-out team check (ranking real teams, and the swap search with trust bounds)
+        run: python -m src.team_check
+        timeout-minutes: 30
+        continue-on-error: true
+
       - name: Retrain the bring / lead model on replays
         run: python -m src.bring_model
         timeout-minutes: 60
