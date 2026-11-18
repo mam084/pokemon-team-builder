@@ -23,8 +23,14 @@ import pandas as pd
 from src.dex import Dex, Species, to_id
 from src.stats import calc_stat, parse_spread
 from src.team import PokemonSet
-from src.type_chart import ALL_TYPES, ability_defensive_multiplier
+from src.type_chart import ALL_TYPES, ability_defensive_multiplier, move_type
 from src.usage import UsageData
+
+
+# Power set by weight, Speed, HP or item rather than a fixed number; type effectiveness still applies.
+# (Fixed-damage moves like Seismic Toss or Super Fang ignore type matchups, so they aren't here.)
+VARIABLE_POWER = {"lowkick", "grassknot", "heatcrash", "heavyslam", "hardpress", "gyroball", "electroball",
+                  "reversal", "flail", "beatup", "fling"}
 
 
 # --------------------------------------------------------------------------
@@ -44,6 +50,12 @@ class Member:
     @property
     def damaging_moves(self) -> list[dict]:
         return [m for m in self.moves if m["category"] != "Status" and (m["basePower"] or 0) > 0]
+
+    @property
+    def coverage_moves(self) -> list[dict]:
+        """Moves that hit by type matchup: damaging moves plus those whose power varies (Low Kick,
+        Grass Knot, Gyro Ball...), which the dex lists at base power 0."""
+        return self.damaging_moves + [m for m in self.moves if m["id"] in VARIABLE_POWER]
 
 
 def build_members(team: list[PokemonSet], dex: Dex, evolve: int | None | str = "all") -> list[Member]:
@@ -126,8 +138,8 @@ def defense_summary(matrix: pd.DataFrame) -> pd.DataFrame:
 def _best_hit(members: list[Member], defending_types: list[str], ability_id: str = "") -> tuple[float, list[str]]:
     best, hitters = 0.0, []
     for m in members:
-        for mv in m.damaging_moves:
-            mult = ability_defensive_multiplier(defending_types, mv["type"].lower(), ability_id)
+        for mv in m.coverage_moves:
+            mult = ability_defensive_multiplier(defending_types, move_type(mv, m.ability_id).lower(), ability_id)
             if mult > best:
                 best, hitters = mult, [f"{m.label} ({mv['name']})"]
             elif mult == best and mult > 1:

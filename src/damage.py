@@ -31,7 +31,7 @@ from itertools import product
 from src.dex import Dex, Species, to_id
 from src.stats import calc_stats
 from src.team import PokemonSet
-from src.type_chart import defensive_multiplier
+from src.type_chart import ATE_ABILITIES, NO_ATE, defensive_multiplier
 
 # --- integer helpers matching Showdown ------------------------------------
 
@@ -82,10 +82,6 @@ RESIST_BERRIES = {
     "kasibberry": "Ghost", "habanberry": "Dragon", "colburberry": "Dark", "babiriberry": "Steel",
     "roseliberry": "Fairy",
 }
-ATE_ABILITIES = {"pixilate": "Fairy", "aerilate": "Flying", "refrigerate": "Ice", "galvanize": "Electric",
-                 "dragonize": "Dragon"}
-NO_ATE = {"weatherball", "terrainpulse", "judgment", "multiattack", "naturalgift", "revelationdance",
-          "technoblast"}
 IMMUNITY_ABILITIES = {
     "levitate": "Ground", "eartheater": "Ground", "flashfire": "Fire", "wellbakedbody": "Fire",
     "waterabsorb": "Water", "stormdrain": "Water", "dryskin": "Water", "voltabsorb": "Electric",
