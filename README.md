@@ -315,7 +315,8 @@ matches, and it's tested once on the newest 3,750
 
 **Upgrades tried and rejected (Nov 2026, `scripts/match_lab.py`, `scripts/match_lab2.py`).** None beat
 the model above on the held-out tournaments, so none shipped: one-on-one "answers" counts, walls,
-cubed matchup scores, gradient-boosted trees (worse), and training on ~100,000 rated ladder and Bo3
+cubed matchup scores, Choice Scarf speed in the matchup scores (changed 40% of matches' speed
+feature, held-out log loss 0.0002 worse), gradient-boosted trees (worse), and training on ~100,000 rated ladder and Bo3
 replays as well (no gain on tournaments). On replays the team features add nothing beyond the
 players' ratings, even in Bo3 where the real sets are known. Teams in real play are close enough that
 the player decides most games; a matchup as lopsided as all-Fire vs all-Grass is beyond every one of
