@@ -361,6 +361,19 @@ class TestPresetsRolesMatchups(unittest.TestCase):
         singles = [t.label for t in meta_roles("Rillaboom", self.usage, self.dex, doubles=False)]
         self.assertNotIn("Fake Out support", singles)
 
+    def test_mega_sol_is_not_a_sun_setter(self):
+        # Mega Sol only powers Mega Meganium's own moves as if in sun; it never sets sun for the team
+        from src.roles import RULES
+        from src.matchup import SETTERS
+        sun_rule = next(r for r in RULES if r.label == "Sun setter")
+        self.assertNotIn("megasol", sun_rule.abilities)
+        self.assertNotIn("megasol", dict((l, a) for l, a, _ in SETTERS)["Sun"])
+
+    def test_roles_never_blank_for_attackers(self):
+        from src.roles import _never_blank
+        moves = {"hydropump": 100.0, "icebeam": 100.0, "flashcannon": 100.0, "protect": 100.0}
+        self.assertEqual([t.label for t in _never_blank([], moves, self.dex)], ["Special attacker"])
+
     def test_set_roles(self):
         team, _ = parse_paste(GARGANACL_TEAM, self.dex)
         self.assertIn("Redirector", [t.label for t in set_roles(team[3], self.dex)])

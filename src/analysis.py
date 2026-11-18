@@ -215,7 +215,7 @@ ROLES = [
          frozenset({"sunnyday", "raindance", "sandstorm", "snowscape", "grassyterrain",
                     "psychicterrain", "electricterrain", "mistyterrain"}),
          frozenset({"drought", "drizzle", "sandstream", "snowwarning", "grassysurge", "psychicsurge",
-                    "electricsurge", "mistysurge", "megasol", "orichalcumpulse", "hadronengine"})),
+                    "electricsurge", "mistysurge", "orichalcumpulse", "hadronengine"})),
     Role("status", "Disruption", "Taunt, Encore, sleep or burns break up opposing plans.",
          frozenset({"taunt", "encore", "spore", "sleeppowder", "yawn", "willowisp", "thunderwave",
                     "disable", "imprison", "haze", "clearsmog", "roar", "whirlwind"})),

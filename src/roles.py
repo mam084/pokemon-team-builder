@@ -41,7 +41,7 @@ RULES = [
              abilities=frozenset({"lightningrod", "stormdrain"}), doubles_only=True),
     RoleRule("Intimidate", abilities=frozenset({"intimidate"})),
     RoleRule("Rain setter", moves=frozenset({"raindance"}), abilities=frozenset({"drizzle"})),
-    RoleRule("Sun setter", moves=frozenset({"sunnyday"}), abilities=frozenset({"drought", "megasol"})),
+    RoleRule("Sun setter", moves=frozenset({"sunnyday"}), abilities=frozenset({"drought"})),
     RoleRule("Sand setter", moves=frozenset({"sandstorm"}), abilities=frozenset({"sandstream"})),
     RoleRule("Snow setter", moves=frozenset({"snowscape"}), abilities=frozenset({"snowwarning"})),
     RoleRule("Terrain setter", moves=frozenset({"grassyterrain", "psychicterrain", "electricterrain",
@@ -148,7 +148,7 @@ def meta_roles(name: str, usage: UsageData, dex: Dex, doubles: bool = True) -> l
     spreads = entry.get("spreads") or {}
     sps = parse_spread(next(iter(spreads)))[1] if spreads else None
     tags.sort(key=lambda t: -t.strength)
-    return tags + _attacker_profile(moves, sps, dex)
+    return _never_blank(tags + _attacker_profile(moves, sps, dex), moves, dex)
 
 
 def species_roles(species: str, usage: UsageData, dex: Dex, doubles: bool = True) -> list[RoleTag]:
@@ -166,7 +166,13 @@ def set_roles(pset: PokemonSet, dex: Dex, doubles: bool = True) -> list[RoleTag]
     tags = _apply_rules(moves, abilities, items, doubles) + _priority_and_spread(moves, dex)
     if form is not None:
         tags += _attacker_profile(moves, pset.sps if sum(pset.sps.values()) else None, dex)
-    return tags
+    return _never_blank(tags, moves, dex)
+
+
+def _never_blank(tags: list[RoleTag], moves: dict[str, float], dex: Dex) -> list[RoleTag]:
+    """A plain attacker with a split spread (e.g. Empoleon: 30 HP / 19 SpA) matches no rule;
+    call it an attacker by its attacks rather than show nothing."""
+    return tags or _attacker_profile(moves, None, dex)
 
 
 def role_text(tags: list[RoleTag], n: int = 3, show_pct: bool = False) -> str:

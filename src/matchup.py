@@ -82,7 +82,7 @@ def _root(species: Species) -> int:
 
 SETTERS = [  # (label, abilities, moves) - first match names the archetype
     ("Rain", {"drizzle"}, {"raindance"}),
-    ("Sun", {"drought", "megasol"}, {"sunnyday"}),
+    ("Sun", {"drought"}, {"sunnyday"}),  # not Mega Sol: it powers only its own moves
     ("Sand", {"sandstream"}, {"sandstorm"}),
     ("Snow", {"snowwarning"}, {"snowscape"}),
     ("Trick Room", set(), {"trickroom"}),
