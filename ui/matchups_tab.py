@@ -431,10 +431,9 @@ def matchups_tab(fmt_id, team, members, dex, usage, fmt) -> None:
                                                      f"**Against you:** {pts(cons)}" if cons else ""] if x))
                 st.caption("Points of win chance, from the model learned on real tournament matches. **Damage "
                            "calcs**: how your Pokémon and theirs hit each other. **Speed**: who moves first, "
-                           "including Trick Room and Tailwind fit. **Bulk**: average defenses. **Strength vs the "
-                           "meta**: how your team does against the popular teams overall, how often its Pokémon "
-                           "are used, and whether it has a Mega. The rest are support tools (Wide Guard, Fake "
-                           "Out...).")
+                           "including Trick Room and Tailwind fit. **Bulk**: average defenses. The rest are support tools (Wide Guard, Fake Out...). "
+                           "How popular your Pokémon are doesn't count: we tested it and it didn't help predict "
+                           "real results.")
 
     threats = threats_section(fmt_id, team, members, dex, usage, doubles)
     swaps_section(team, dex, usage, fmt, threats)

@@ -212,7 +212,9 @@ def build_dataset(regulation: str = CURRENT.regulation, format_id: str = CURRENT
 # Feature sets and models
 # --------------------------------------------------------------------------
 MATCHUP = ["matchup score", "bring-4 score", "best damage (mean %)", "OHKOs", "2HKOs", "outspeeds (share)"]
-CONTEXT = ["score vs meta", "popularity", "base speed (mean)", "bulk (mean)", "has Mega"]
+# "score vs meta", "popularity" and "has Mega" were tested and dropped (Nov 2026): removing them
+# changed held-out log loss by -0.0003 (90% CI -0.0011 to +0.0006), i.e. they added nothing.
+CONTEXT = ["base speed (mean)", "bulk (mean)"]
 SUPPORT = [f"tool: {t}" for t in TOOLS]
 INTERACT = ["Trick Room x slow team", "Tailwind x fast team"]
 SKILL = ["skill (Elo)", "experience"]
@@ -472,7 +474,7 @@ def team_side(members: list[Member], sets, dex: Dex, usage, engine: SwapEngine |
 
 GROUPS = {"Damage calcs": ["matchup score", "bring-4 score", "best damage (mean %)", "OHKOs", "2HKOs"],
           "Speed": ["outspeeds (share)", "base speed (mean)", "Trick Room x slow team", "Tailwind x fast team"],
-          "Bulk": ["bulk (mean)"], "Strength vs the meta": ["score vs meta", "popularity", "has Mega"]}
+          "Bulk": ["bulk (mean)"]}
 
 
 def predict_match(model: dict, a: dict, b: dict, parts: dict | None = None) -> float:

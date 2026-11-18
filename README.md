@@ -291,7 +291,7 @@ Each match becomes a row of differences (player 1 minus player 2):
 - **support tools**: how many Pokémon on each side carry Fake Out, Intimidate,
   Tailwind, Trick Room, screens, redirection, Wide Guard, sleep, Encore, setup,
   recovery, priority, weather, terrain and more
-- **context**: bulk, score against the meta, popularity, Trick Room on a slow team
+- **context**: bulk and base Speed, Trick Room on a slow team, Tailwind on a fast one (score vs the meta, popularity and having a Mega were tested and dropped: they didn't improve held-out predictions)
 
 An L2-regularized logistic regression is fitted on both orientations of every
 match (so swapping the players exactly flips the prediction). Its settings are
@@ -302,15 +302,15 @@ matches, and it's tested once on the newest 3,750
 
 | model | picks the winner | log loss | AUC |
 |---|---|---|---|
-| learned model (skill + team) | 59.0% | 0.6684 | 0.621 |
+| learned model (skill + team) | 59.0% | 0.6681 | 0.621 |
 | player skill only | 58.4% | 0.6696 | 0.618 |
-| team only | 53.5% | 0.6901 | 0.546 |
+| team only | 53.4% | 0.6904 | 0.543 |
 | damage-calc matchup score | 51.8% | 0.6927 | 0.522 |
 | popularity only | 50.9% | 0.6926 | 0.521 |
 | coin flip | 50.0% | 0.6931 | 0.500 |
 
 - **Who's playing matters most**, but the team adds real signal on top: log-loss
-  gain -0.0018 to +0.0042 over ratings alone (95% paired bootstrap).
+  gain -0.0014 to +0.0043 over ratings alone (95% paired bootstrap).
 <!-- /generated:learned -->
 - **Per-Pokémon effects were mostly player skill.** Without ratings they helped
   (e.g. "Alakazam teams win 3 points more than their calcs say"); with ratings in
