@@ -19,6 +19,22 @@ def k(slot: int, field: str) -> str:
     return f"s{slot}_{field}"
 
 
+# Choices on one tab that must survive a visit to another (they have no widget default).
+KEEP = {"rec_mode", "swap_mode", "swap_focus", "slot_tab_index"}
+
+
+def keep_state() -> None:
+    """Only the open tab is built, and Streamlit drops the values of widgets it didn't draw this
+    run, including the team itself, which lives in the Team tab's widgets. Re-saving them at the
+    start of each run makes them app state, so they survive. Call before any widget is drawn."""
+    ss = st.session_state
+    fields = ["species", "item", "ability", "nature", "nick"] + [f"move{i}" for i in range(4)] + \
+             [f"sp_{stat}" for stat in STATS]
+    for key in [k(slot, f) for slot in range(SLOTS) for f in fields] + sorted(KEEP):
+        if key in ss:
+            ss[key] = ss[key]
+
+
 def write_slot(slot: int, pset: PokemonSet | None) -> None:
     ss = st.session_state
     ss[k(slot, "species")] = pset.species if pset else NONE

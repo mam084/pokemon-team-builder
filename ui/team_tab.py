@@ -44,8 +44,25 @@ def quick_picks(dex: Dex, usage: UsageData | None) -> list[tuple[str, str]]:
 
 def empty_slot(slot: int, dex: Dex, usage: UsageData | None, picks: list[tuple[str, str]]) -> None:
     team = current_team()
+    if not team:  # the ways to start come first; single Pokémon to add come after
+        c = st.columns(2)
+        c[0].button("Load the example team", width="stretch", type="primary",
+                    on_click=load_example, args=(dex,), key=k(slot, "example"))
+        with c[1].popover("Paste a team", width="stretch"):
+            text = st.text_area("Showdown paste", height=180, key=k(slot, "paste"),
+                                placeholder="Paste a Showdown team here…", label_visibility="collapsed")
+            st.button("Import", width="stretch", disabled=not text.strip(), key=k(slot, "paste_go"),
+                      on_click=import_paste, args=(dex, k(slot, "paste")))
+        if slot == 0:  # the builder, the app's main job, right on the empty screen
+            from src.formats import FORMATS
+            from ui.recommendations_tab import team_builder_section, weights_for
+            mode = st.session_state.get("rec_mode", "neutral")
+            fmt = FORMATS[st.session_state["format"]]
+            team_builder_section(team, dex, usage, fmt, mode, weights_for(mode))
+        else:
+            st.caption("Or build a whole team around one Pokémon on the Recommendations tab.")
     if picks:
-        st.markdown("<div class='box-title'>" + ("Popular starting points" if not team else
+        st.markdown("<div class='box-title'>" + ("Or start from a popular Pokémon" if not team else
                     "Top picks for your team") + "</div>", unsafe_allow_html=True)
         for n, (name, why) in enumerate(picks):
             if n % 2 == 0:  # a new row per pair keeps the order when columns stack on a phone
@@ -60,16 +77,6 @@ def empty_slot(slot: int, dex: Dex, usage: UsageData | None, picks: list[tuple[s
                           on_click=fill_slot, args=(slot, name, dex, usage))
         if team:
             st.caption("More picks, and why, on the Recommendations tab.")
-    if not team:
-        c = st.columns(2)
-        c[0].button("Load the example team", width="stretch", type="primary",
-                    on_click=load_example, args=(dex,), key=k(slot, "example"))
-        with c[1].popover("Paste a team", width="stretch"):
-            text = st.text_area("Showdown paste", height=180, key=k(slot, "paste"),
-                                placeholder="Paste a Showdown team here…", label_visibility="collapsed")
-            st.button("Import", width="stretch", disabled=not text.strip(), key=k(slot, "paste_go"),
-                      on_click=import_paste, args=(dex, k(slot, "paste")))
-        st.caption("Or build a whole team around one Pokémon on the Recommendations tab.")
 
 
 SPREADS = {  # 66 points each; "atk" is whichever attacking stat the moves use

@@ -92,8 +92,9 @@ play on the ladder.
   see each move's damage range, % of HP and KO chance.
 
 **Build around a Pokémon, and fix what's weak**
-- **Build a whole team around one Pokémon**: pick a core (or use your own set
-  for it) and get three different complete teams. Each is filled one Pokémon at
+- **Build a whole team around one Pokémon**, right on the empty Team screen (and on the
+  Recommendations tab): pick a core (or use your own set for it) and get three different
+  complete teams. Each is filled one Pokémon at
   a time with the top recommendation, using popular sets that keep Item Clause
   and one Mega, then rated against the meta teams.
 - **Suggested swaps** (Matchups tab): "Garchomp → Emboar: Close Combat 116% to
