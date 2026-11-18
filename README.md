@@ -156,20 +156,20 @@ Pokémon ranks** among about 68 candidates. This is repeated
 for every member of every team.
 
 <!-- generated:recommender -->
-Tournaments are split by date. The teammate model learned from the 2,311 oldest teams (plus replays from before the next tournaments) and the weights were tuned by grid search on the next 1,401. Every number below comes from
-1,731 teams in the 36 newest tournaments (2026-11-11 to
+Tournaments are split by date. The teammate model learned from the 2,236 oldest teams (plus replays from before the next tournaments) and the weights were tuned by grid search on the next 1,448. Every number below comes from
+1,692 teams in the 36 newest tournaments (2026-11-11 to
 2026-11-17), which neither ever saw.
 
 | model | top 1 | top 5 | top 10 | MRR |
 |---|---|---|---|---|
-| tuned weights | 55.7% | 79.1% | 85.9% | 0.663 |
-| hand-set weights | 17.4% | 46.9% | 62.6% | 0.322 |
-| synergy only | 55.7% | 79.1% | 85.9% | 0.663 |
+| tuned weights | 56.6% | 79.2% | 85.9% | 0.668 |
+| hand-set weights | 17.8% | 46.8% | 62.5% | 0.325 |
+| synergy only | 56.6% | 79.2% | 85.9% | 0.668 |
 | popularity only | 6.3% | 36.4% | 50.5% | 0.208 |
-| before: lift synergy | 47.4% | 70.5% | 78.9% | 0.581 |
+| before: lift synergy | 47.6% | 71.3% | 79.2% | 0.584 |
 | random | 1.5% | 7.3% | 14.7% | 0.071 |
 
-- The tuned weights find the missing Pokémon **first try 56% of the
+- The tuned weights find the missing Pokémon **first try 57% of the
   time** and in the top 10 86% of the time: 106% better MRR than the
   weights the recommender originally shipped with.
 <!-- /generated:recommender -->
@@ -238,23 +238,23 @@ size, so recommendations use who players pair, not pair win rates.
 
 The Matchups tab scores your team against others with damage calcs and Speed.
 <!-- generated:validation -->
-`src/validate.py` checks that score against **12,071 real Limitless
+`src/validate.py` checks that score against **11,981 real Limitless
 matches** where both players' team lists are known: each pair of teams is
 scored against each other, a win-chance curve is fitted on the older
-8,113 matches, and it's judged on the newest 3,958
+8,109 matches, and it's judged on the newest 3,872
 (2026-11-11 to 2026-11-17).
 
 | model | picks the winner | log loss |
 |---|---|---|
-| team vs team (bring 4) | 51.8% | 0.6933 |
-| team vs team (all 6) | 51.8% | 0.6931 |
-| score vs the meta | 51.5% | 0.6928 |
-| popularity | 50.7% | 0.6932 |
+| team vs team (bring 4) | 51.6% | 0.6934 |
+| team vs team (all 6) | 51.7% | 0.6931 |
+| score vs the meta | 51.4% | 0.6926 |
+| popularity | 50.8% | 0.6927 |
 | coin flip | 50.0% | 0.6931 |
 
 Split into fifths by score, the side the model favors most strongly won
-**53%** and the side it disfavors most strongly
-**49%**, close to the fitted curve
+**54%** and the side it disfavors most strongly
+**50%**, close to the fitted curve
 (55% / 45%).
 <!-- /generated:validation -->
 
@@ -296,21 +296,21 @@ Each match becomes a row of differences (player 1 minus player 2):
 An L2-regularized logistic regression is fitted on both orientations of every
 match (so swapping the players exactly flips the prediction). Its settings are
 <!-- generated:learned -->
-chosen by forward-chaining cross-validation inside the older 8,321
-matches, and it's tested once on the newest 3,750
+chosen by forward-chaining cross-validation inside the older 8,177
+matches, and it's tested once on the newest 3,804
 (2026-11-11 to 2026-11-17):
 
 | model | picks the winner | log loss | AUC |
 |---|---|---|---|
-| learned model (skill + team) | 59.0% | 0.6681 | 0.621 |
-| player skill only | 58.4% | 0.6696 | 0.618 |
-| team only | 53.4% | 0.6904 | 0.543 |
-| damage-calc matchup score | 51.8% | 0.6927 | 0.522 |
-| popularity only | 50.9% | 0.6926 | 0.521 |
+| learned model (skill + team) | 58.8% | 0.6678 | 0.621 |
+| player skill only | 58.4% | 0.6690 | 0.619 |
+| team only | 53.4% | 0.6905 | 0.541 |
+| damage-calc matchup score | 51.5% | 0.6928 | 0.520 |
+| popularity only | 50.8% | 0.6927 | 0.520 |
 | coin flip | 50.0% | 0.6931 | 0.500 |
 
 - **Who's playing matters most**, but the team adds real signal on top: log-loss
-  gain -0.0014 to +0.0043 over ratings alone (95% paired bootstrap).
+  gain -0.0016 to +0.0039 over ratings alone (95% paired bootstrap).
 <!-- /generated:learned -->
 
 **Upgrades tried and rejected (Nov 2026, `scripts/match_lab.py`, `scripts/match_lab2.py`).** None beat

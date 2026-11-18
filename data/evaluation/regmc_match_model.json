@@ -1,8 +1,8 @@
 {
  "regulation": "regmc",
- "matches": 12071,
- "train_matches": 8321,
- "test_matches": 3750,
+ "matches": 11981,
+ "train_matches": 8177,
+ "test_matches": 3804,
  "test_dates": [
   "2026-11-11",
   "2026-11-17"
@@ -10,43 +10,43 @@
  "settings": {
   "C": 0.003,
   "shrink": 1.0,
-  "cv_log_loss": 0.67653,
+  "cv_log_loss": 0.67775,
   "species_effects": false,
-  "cv_without_species": 0.67653,
-  "cv_with_species": 0.67761,
+  "cv_without_species": 0.67775,
+  "cv_with_species": 0.6786,
   "elo_k": 32.0,
   "elo_new_boost": 1.0
  },
  "test": {
   "learned model (skill + team)": {
-   "accuracy": 0.5904,
-   "log_loss": 0.6681,
-   "brier": 0.2379,
-   "auc": 0.6211
+   "accuracy": 0.5883,
+   "log_loss": 0.6678,
+   "brier": 0.2378,
+   "auc": 0.6208
   },
   "player skill only": {
-   "accuracy": 0.5835,
-   "log_loss": 0.6696,
-   "brier": 0.2386,
-   "auc": 0.6182
+   "accuracy": 0.5839,
+   "log_loss": 0.669,
+   "brier": 0.2383,
+   "auc": 0.6189
   },
   "team only": {
-   "accuracy": 0.5339,
-   "log_loss": 0.6904,
-   "brier": 0.2486,
-   "auc": 0.5427
+   "accuracy": 0.5342,
+   "log_loss": 0.6905,
+   "brier": 0.2487,
+   "auc": 0.5412
   },
   "damage-calc matchup score": {
-   "accuracy": 0.5179,
-   "log_loss": 0.6927,
+   "accuracy": 0.5152,
+   "log_loss": 0.6928,
    "brier": 0.2498,
-   "auc": 0.5216
+   "auc": 0.5199
   },
   "popularity only": {
-   "accuracy": 0.5091,
-   "log_loss": 0.6926,
-   "brier": 0.2497,
-   "auc": 0.5215
+   "accuracy": 0.5076,
+   "log_loss": 0.6927,
+   "brier": 0.2498,
+   "auc": 0.5198
   },
   "coin flip": {
    "accuracy": 0.5,
@@ -57,39 +57,39 @@
  },
  "gain_ci95": {
   "team beyond skill": [
-   -0.00141,
-   0.00431
+   -0.0016,
+   0.00385
   ],
   "learned vs damage-calc score": [
-   0.01855,
-   0.03041
+   0.01934,
+   0.03126
   ]
  },
  "calibration": [
   {
    "predicted": 0.366,
-   "actual": 0.365,
-   "matches": 750
+   "actual": 0.368,
+   "matches": 761
   },
   {
    "predicted": 0.459,
-   "actual": 0.455,
-   "matches": 750
+   "actual": 0.459,
+   "matches": 761
   },
   {
    "predicted": 0.507,
-   "actual": 0.511,
-   "matches": 750
+   "actual": 0.512,
+   "matches": 761
   },
   {
    "predicted": 0.554,
-   "actual": 0.571,
-   "matches": 750
+   "actual": 0.556,
+   "matches": 761
   },
   {
-   "predicted": 0.643,
-   "actual": 0.656,
-   "matches": 750
+   "predicted": 0.644,
+   "actual": 0.667,
+   "matches": 760
   }
  ],
  "model": {
@@ -129,296 +129,296 @@
   ],
   "species": [],
   "coef": [
-   0.812266,
-   0.000568,
-   0.069743,
-   0.027879,
-   0.141078,
-   0.044285,
-   0.023515,
-   0.299939,
-   -0.003041,
-   0.245054,
-   -0.004429,
-   0.04984,
-   -0.058233,
-   0.068349,
-   0.039773,
-   -0.047648,
-   0.00518,
-   0.085777,
-   0.054517,
-   -0.090444,
-   0.058981,
-   0.008665,
-   0.053201,
-   -0.505685,
-   -0.103149,
-   0.022255,
-   0.007304,
-   -0.049759,
-   0.055262,
-   -0.093572,
-   -0.248065,
-   0.020584
+   0.820747,
+   0.000216,
+   0.063825,
+   0.022474,
+   0.120811,
+   0.048269,
+   0.028958,
+   0.325042,
+   -0.003201,
+   0.237451,
+   -0.001759,
+   0.046141,
+   -0.057591,
+   0.066383,
+   0.041038,
+   -0.04918,
+   0.003635,
+   0.084078,
+   0.056391,
+   -0.071009,
+   0.05901,
+   0.008568,
+   0.039689,
+   -0.586882,
+   -0.08273,
+   0.02337,
+   0.014318,
+   -0.052239,
+   0.060227,
+   -0.084417,
+   -0.241231,
+   0.026198
   ]
  },
  "effects": [
   {
    "feature": "skill (Elo)",
-   "coef": 0.81227,
-   "lo90": 0.73191,
-   "hi90": 0.89231,
-   "points": 20.31,
-   "differs_in": 0.9322
+   "coef": 0.82075,
+   "lo90": 0.74975,
+   "hi90": 0.89769,
+   "points": 20.52,
+   "differs_in": 0.9325
   },
   {
    "feature": "experience",
-   "coef": 0.00057,
-   "lo90": -0.02563,
-   "hi90": 0.02475,
+   "coef": 0.00022,
+   "lo90": -0.02395,
+   "hi90": 0.02799,
    "points": 0.01,
-   "differs_in": 0.7966
+   "differs_in": 0.7936
   },
   {
    "feature": "matchup score",
-   "coef": 0.06974,
-   "lo90": -0.01515,
-   "hi90": 0.13932,
-   "points": 1.74,
-   "differs_in": 0.9888
+   "coef": 0.06382,
+   "lo90": -0.02752,
+   "hi90": 0.14737,
+   "points": 1.6,
+   "differs_in": 0.989
   },
   {
    "feature": "bring-4 score",
-   "coef": 0.02788,
-   "lo90": -0.00429,
-   "hi90": 0.0609,
-   "points": 0.7,
+   "coef": 0.02247,
+   "lo90": -0.01178,
+   "hi90": 0.05449,
+   "points": 0.56,
    "differs_in": 0.9956
   },
   {
    "feature": "best damage (mean %)",
-   "coef": 0.14108,
-   "lo90": -0.10321,
-   "hi90": 0.33345,
-   "points": 3.53,
+   "coef": 0.12081,
+   "lo90": -0.08124,
+   "hi90": 0.35332,
+   "points": 3.02,
    "differs_in": 0.9966
   },
   {
    "feature": "OHKOs",
-   "coef": 0.04429,
-   "lo90": -0.03472,
-   "hi90": 0.13689,
-   "points": 1.11,
-   "differs_in": 0.8951
+   "coef": 0.04827,
+   "lo90": -0.04264,
+   "hi90": 0.12474,
+   "points": 1.21,
+   "differs_in": 0.895
   },
   {
    "feature": "2HKOs",
-   "coef": 0.02351,
-   "lo90": -0.02565,
-   "hi90": 0.06532,
-   "points": 0.59,
-   "differs_in": 0.9148
+   "coef": 0.02896,
+   "lo90": -0.01559,
+   "hi90": 0.07419,
+   "points": 0.72,
+   "differs_in": 0.9144
   },
   {
    "feature": "outspeeds (share)",
-   "coef": 0.29994,
-   "lo90": 0.14282,
-   "hi90": 0.42807,
-   "points": 7.5,
-   "differs_in": 0.9616
+   "coef": 0.32504,
+   "lo90": 0.20507,
+   "hi90": 0.46276,
+   "points": 8.13,
+   "differs_in": 0.9612
   },
   {
    "feature": "base speed (mean)",
-   "coef": -0.00304,
-   "lo90": -0.00581,
-   "hi90": 0.0004,
+   "coef": -0.0032,
+   "lo90": -0.0061,
+   "hi90": 0.00032,
    "points": -0.08,
-   "differs_in": 0.9882
+   "differs_in": 0.988
   },
   {
    "feature": "bulk (mean)",
-   "coef": 0.24505,
-   "lo90": 0.0909,
-   "hi90": 0.38418,
-   "points": 6.13,
-   "differs_in": 0.9955
+   "coef": 0.23745,
+   "lo90": 0.10005,
+   "hi90": 0.41494,
+   "points": 5.94,
+   "differs_in": 0.9953
   },
   {
    "feature": "tool: Fake Out",
-   "coef": -0.00443,
-   "lo90": -0.02973,
-   "hi90": 0.02841,
-   "points": -0.11,
-   "differs_in": 0.7031
+   "coef": -0.00176,
+   "lo90": -0.03144,
+   "hi90": 0.02613,
+   "points": -0.04,
+   "differs_in": 0.7038
   },
   {
    "feature": "tool: Intimidate",
-   "coef": 0.04984,
-   "lo90": -0.00036,
-   "hi90": 0.0882,
-   "points": 1.25,
-   "differs_in": 0.5097
-  },
-  {
-   "feature": "tool: Tailwind",
-   "coef": -0.05823,
-   "lo90": -0.12006,
-   "hi90": 0.00459,
-   "points": -1.46,
-   "differs_in": 0.5053
-  },
-  {
-   "feature": "tool: Trick Room",
-   "coef": 0.06835,
-   "lo90": 0.01895,
-   "hi90": 0.11892,
-   "points": 1.71,
-   "differs_in": 0.4478
-  },
-  {
-   "feature": "tool: Reflect",
-   "coef": 0.03977,
-   "lo90": -0.03689,
-   "hi90": 0.12044,
-   "points": 0.99,
-   "differs_in": 0.2625
-  },
-  {
-   "feature": "tool: Light Screen",
-   "coef": -0.04765,
-   "lo90": -0.12854,
-   "hi90": 0.01605,
-   "points": -1.19,
-   "differs_in": 0.2728
-  },
-  {
-   "feature": "tool: Redirection",
-   "coef": 0.00518,
-   "lo90": -0.0293,
-   "hi90": 0.03855,
-   "points": 0.13,
+   "coef": 0.04614,
+   "lo90": 0.00298,
+   "hi90": 0.08663,
+   "points": 1.15,
    "differs_in": 0.5095
   },
   {
+   "feature": "tool: Tailwind",
+   "coef": -0.05759,
+   "lo90": -0.10817,
+   "hi90": -0.00125,
+   "points": -1.44,
+   "differs_in": 0.505
+  },
+  {
+   "feature": "tool: Trick Room",
+   "coef": 0.06638,
+   "lo90": 0.00759,
+   "hi90": 0.11401,
+   "points": 1.66,
+   "differs_in": 0.4493
+  },
+  {
+   "feature": "tool: Reflect",
+   "coef": 0.04104,
+   "lo90": -0.04814,
+   "hi90": 0.12592,
+   "points": 1.03,
+   "differs_in": 0.2622
+  },
+  {
+   "feature": "tool: Light Screen",
+   "coef": -0.04918,
+   "lo90": -0.13337,
+   "hi90": 0.0303,
+   "points": -1.23,
+   "differs_in": 0.2725
+  },
+  {
+   "feature": "tool: Redirection",
+   "coef": 0.00363,
+   "lo90": -0.03274,
+   "hi90": 0.04864,
+   "points": 0.09,
+   "differs_in": 0.5089
+  },
+  {
    "feature": "tool: Wide Guard",
-   "coef": 0.08578,
-   "lo90": 0.03852,
-   "hi90": 0.1437,
-   "points": 2.14,
-   "differs_in": 0.2914
+   "coef": 0.08408,
+   "lo90": 0.03878,
+   "hi90": 0.13545,
+   "points": 2.1,
+   "differs_in": 0.2898
   },
   {
    "feature": "tool: Sleep",
-   "coef": 0.05452,
-   "lo90": 0.00148,
-   "hi90": 0.11344,
-   "points": 1.36,
-   "differs_in": 0.2417
+   "coef": 0.05639,
+   "lo90": -0.00387,
+   "hi90": 0.10704,
+   "points": 1.41,
+   "differs_in": 0.2436
   },
   {
    "feature": "tool: Taunt",
-   "coef": -0.09044,
-   "lo90": -0.22778,
-   "hi90": 0.0322,
-   "points": -2.26,
-   "differs_in": 0.0482
+   "coef": -0.07101,
+   "lo90": -0.17134,
+   "hi90": 0.05732,
+   "points": -1.78,
+   "differs_in": 0.0471
   },
   {
    "feature": "tool: Encore",
-   "coef": 0.05898,
-   "lo90": -0.00222,
-   "hi90": 0.12302,
-   "points": 1.47,
-   "differs_in": 0.3242
+   "coef": 0.05901,
+   "lo90": 0.00427,
+   "hi90": 0.11927,
+   "points": 1.48,
+   "differs_in": 0.3236
   },
   {
    "feature": "tool: Helping Hand",
-   "coef": 0.00867,
-   "lo90": -0.0448,
-   "hi90": 0.04783,
-   "points": 0.22,
+   "coef": 0.00857,
+   "lo90": -0.04478,
+   "hi90": 0.05216,
+   "points": 0.21,
    "differs_in": 0.4211
   },
   {
    "feature": "tool: Speed drops",
-   "coef": 0.0532,
-   "lo90": -0.01089,
-   "hi90": 0.11101,
-   "points": 1.33,
-   "differs_in": 0.2823
+   "coef": 0.03969,
+   "lo90": -0.02273,
+   "hi90": 0.09812,
+   "points": 0.99,
+   "differs_in": 0.283
   },
   {
    "feature": "tool: Paralysis",
-   "coef": -0.50569,
-   "lo90": -0.88835,
-   "hi90": -0.23599,
-   "points": -12.64,
-   "differs_in": 0.0064
+   "coef": -0.58688,
+   "lo90": -1.00372,
+   "hi90": -0.27924,
+   "points": -14.67,
+   "differs_in": 0.006
   },
   {
    "feature": "tool: Burn",
-   "coef": -0.10315,
-   "lo90": -0.2227,
-   "hi90": 0.01364,
-   "points": -2.58,
-   "differs_in": 0.0546
+   "coef": -0.08273,
+   "lo90": -0.22311,
+   "hi90": 0.05642,
+   "points": -2.07,
+   "differs_in": 0.0548
   },
   {
    "feature": "tool: Priority attack",
-   "coef": 0.02226,
-   "lo90": -0.00155,
-   "hi90": 0.04688,
-   "points": 0.56,
-   "differs_in": 0.6455
+   "coef": 0.02337,
+   "lo90": -0.00102,
+   "hi90": 0.0501,
+   "points": 0.58,
+   "differs_in": 0.6459
   },
   {
    "feature": "tool: Weather",
-   "coef": 0.0073,
-   "lo90": -0.03969,
-   "hi90": 0.05381,
-   "points": 0.18,
-   "differs_in": 0.5493
+   "coef": 0.01432,
+   "lo90": -0.02424,
+   "hi90": 0.06613,
+   "points": 0.36,
+   "differs_in": 0.5495
   },
   {
    "feature": "tool: Terrain",
-   "coef": -0.04976,
-   "lo90": -0.10058,
-   "hi90": -0.00888,
-   "points": -1.24,
-   "differs_in": 0.5043
+   "coef": -0.05224,
+   "lo90": -0.09694,
+   "hi90": 0.00825,
+   "points": -1.31,
+   "differs_in": 0.5045
   },
   {
    "feature": "tool: Setup",
-   "coef": 0.05526,
-   "lo90": 0.02971,
-   "hi90": 0.07697,
-   "points": 1.38,
-   "differs_in": 0.6529
+   "coef": 0.06023,
+   "lo90": 0.03583,
+   "hi90": 0.08941,
+   "points": 1.51,
+   "differs_in": 0.6536
   },
   {
    "feature": "tool: Recovery",
-   "coef": -0.09357,
-   "lo90": -0.1569,
-   "hi90": -0.02889,
-   "points": -2.34,
-   "differs_in": 0.2129
+   "coef": -0.08442,
+   "lo90": -0.14386,
+   "hi90": -0.02357,
+   "points": -2.11,
+   "differs_in": 0.2139
   },
   {
    "feature": "Trick Room x slow team",
-   "coef": -0.24806,
-   "lo90": -0.34667,
-   "hi90": -0.13429,
-   "points": -6.2,
-   "differs_in": 0.4316
+   "coef": -0.24123,
+   "lo90": -0.34961,
+   "hi90": -0.11727,
+   "points": -6.03,
+   "differs_in": 0.4332
   },
   {
    "feature": "Tailwind x fast team",
-   "coef": 0.02058,
-   "lo90": -0.05501,
-   "hi90": 0.11548,
-   "points": 0.51,
-   "differs_in": 0.7853
+   "coef": 0.0262,
+   "lo90": -0.06587,
+   "hi90": 0.11088,
+   "points": 0.65,
+   "differs_in": 0.7857
   }
  ]
 }
