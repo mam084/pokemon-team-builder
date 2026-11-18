@@ -12,8 +12,9 @@ team: the best pick overall, then the best setter of each game plan the core
 already benefits from (a sand setter for Garganacl, Trick Room for slow
 attackers), then the next best picks. After that each team is filled greedily.
 
-The finished teams are then scored against the rebuilt meta teams with the
-same damage-based matchup engine as the Matchups tab, and ordered by that score.
+The finished teams are then ordered by src/team_rating.py: teammate fit plus the learned win
+chance against the meta teams, the combination that tracked real tournament results best
+(scripts/app_vs_results.py). Without that model, by the damage-calc score vs the meta.
 """
 
 from __future__ import annotations
@@ -34,6 +35,8 @@ class BuiltTeam:
     sets: list[PokemonSet]
     reasons: list[str] = field(default_factory=list)   # why each added Pokemon was picked
     meta_score: float | None = None
+    rating: float | None = None                        # src.team_rating combined z-score
+    percentile: float | None = None                    # share of tournament teams it rates above
     theme: str = ""                                    # e.g. "Sand" when seeded by a sand setter
 
 
@@ -62,7 +65,7 @@ def _complete(team: list[PokemonSet], reasons: list[str], dex: Dex, usage: Usage
 
 def build_teams(core: PokemonSet | str, dex: Dex, usage: UsageData, doubles: bool = True,
                 mode: str = "popular", weights: dict | None = None, alternatives: int = 3,
-                archetypes=None) -> list[BuiltTeam]:
+                archetypes=None, regulation: str | None = None) -> list[BuiltTeam]:
     if isinstance(core, str):
         core = usage.popular_set(core, dex)
         if core is None:
@@ -94,6 +97,8 @@ def build_teams(core: PokemonSet | str, dex: Dex, usage: UsageData, doubles: boo
         ):
             teams.append(built)
 
+    if archetypes and regulation and _rate(teams, dex, usage, archetypes, regulation):
+        return teams
     if archetypes:
         from src.matchup import meta_matchups
         for t in teams:
@@ -102,3 +107,21 @@ def build_teams(core: PokemonSet | str, dex: Dex, usage: UsageData, doubles: boo
             t.meta_score = float((table["score"] * w).sum() / w.sum()) if len(table) else 0.0
         teams.sort(key=lambda t: -(t.meta_score or 0))
     return teams
+
+
+def _rate(teams: list[BuiltTeam], dex: Dex, usage: UsageData, archetypes, regulation: str) -> bool:
+    """Order by the tested team rating; False when its models aren't available."""
+    from src import team_rating as R
+    from src.match_model import load_model
+    ref, model = R.load_reference(regulation), load_model(regulation)
+    if ref is None or model is None or usage.teammates is None:
+        return False
+    sides, weights = R.meta_sides(archetypes, usage, dex)
+    for t in teams:
+        fit = R.teammate_fit(t.sets, dex, usage.teammates)
+        if fit is None:
+            return False
+        t.rating = R.combined(fit, R.learned_vs_meta(t.sets, dex, usage, model, sides, weights), ref)
+        t.percentile = R.percentile(t.rating, ref)
+    teams.sort(key=lambda t: -t.rating)
+    return True

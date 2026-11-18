@@ -87,6 +87,11 @@ jobs:
         timeout-minutes: 40
         continue-on-error: true
 
+      - name: Rebuild the team rating reference (auto-builder ranking)
+        run: python -m src.team_rating
+        timeout-minutes: 15
+        continue-on-error: true
+
       - name: Retrain the bring / lead model on replays
         run: python -m src.bring_model
         timeout-minutes: 60

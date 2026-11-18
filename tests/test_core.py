@@ -573,6 +573,15 @@ class TestPlanBuilderSwaps(unittest.TestCase):
             self.assertFalse([i for i in check_team(t.sets, self.dex) if i.level == "error"])
             self.assertLessEqual(sum(p.is_mega(self.dex) for p in t.sets), 2)
 
+    def test_team_rating(self):
+        from src.team_rating import combined, percentile
+        ref = {"fit_mean": -2.0, "fit_sd": 0.5, "chance_mean": 0.5, "chance_sd": 0.02,
+               "combined_sorted": [-2.0, -1.0, 0.0, 1.0, 2.0]}
+        self.assertAlmostEqual(combined(-1.5, 0.52, ref), 2.0)
+        self.assertEqual(percentile(0.5, ref), 60.0)
+        self.assertEqual(percentile(-5, ref), 0.0)
+        self.assertEqual(percentile(5, ref), 100.0)
+
     def test_swaps(self):
         team, _ = parse_paste(GARGANACL_TEAM, self.dex)
         engine = SwapEngine(build_archetypes(self.usage, self.dex, keep=4), self.usage, self.dex)

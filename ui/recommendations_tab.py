@@ -77,15 +77,16 @@ def team_builder_section(team, dex, usage, fmt, mode, weights) -> None:
         mine = next((p for p in team if to_id(p.species) == to_id(core_name)), None)
         use_mine = st.checkbox(f"Use my {core_name} set", value=mine is not None, disabled=mine is None,
                                key="build_use_mine")
-        st.caption("Three different teams. Each is filled one Pokémon at a time with the top "
-                   "recommendation (in the style picked above), then rated against the meta teams on the "
-                   "Matchups tab. Loading a team replaces your current one.")
+        st.caption("Three different teams, each filled one Pokémon at a time with the top recommendation "
+                   "(in the style picked above). They're ranked by how well they fit together and how they'd "
+                   "do against the meta teams, the mix that best matched real tournament results. "
+                   "Loading a team replaces your current one.")
         if st.button(f"Build teams around {core_name}", type="primary", width="stretch"):
             core = mine if (use_mine and mine) else core_name
             with st.spinner("Building teams…"):
                 st.session_state["built_teams"] = build_teams(
                     core, dex, usage, doubles=fmt.is_doubles, mode=mode, weights=weights,
-                    archetypes=archetypes_for(fmt.id))
+                    archetypes=archetypes_for(fmt.id), regulation=fmt.regulation)
             st.session_state["built_for"] = (core_name, mode)
         built = st.session_state.get("built_teams") or []
         if built:
@@ -93,9 +94,13 @@ def team_builder_section(team, dex, usage, fmt, mode, weights) -> None:
             st.markdown(f"**Teams around {core_label}** ({MODES.get(built_mode, built_mode)} style)")
         for n, t in enumerate(built):
             with st.container(border=True):
-                score = t.meta_score or 0.0
                 theme = f" · {t.theme} team" if t.theme else ""
-                st.markdown(f"**Team {n + 1}**{theme} · vs meta {score:+.2f} ({verdict(score)})")
+                if t.percentile is not None:
+                    rated = f"rates above {t.percentile:.0f}% of tournament teams"
+                else:
+                    score = t.meta_score or 0.0
+                    rated = f"vs meta {score:+.2f} ({verdict(score)})"
+                st.markdown(f"**Team {n + 1}**{theme} · {rated}")
                 cards = []
                 for p in t.sets:
                     form = p.battle_form(dex)
