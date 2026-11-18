@@ -638,6 +638,30 @@ class TestPlanBuilderSwaps(unittest.TestCase):
             new_team = team[:row["slot"]] + [row["_set"]] + team[row["slot"] + 1:]
             self.assertFalse([i for i in check_team(new_team, self.dex) if i.level == "error"], row["swap in"])
 
+    def test_team_grade(self):
+        from src.team_rating import grade
+        self.assertEqual([grade(p)[0] for p in (100, 75, 74.9, 50, 49, 25, 24, 0)],
+                         ["Strong", "Strong", "Solid", "Solid", "Shaky", "Shaky", "Weak", "Weak"])
+
+    def test_swaps_by_team_score(self):
+        """With the team rating attached, best swaps rank by it and only ever raise it."""
+        from src.match_model import load_model
+        from src.synergy import load_model as load_teammates
+        from src.team_rating import load_reference
+        model, ref, tm = load_model("regmc"), load_reference("regmc"), load_teammates("regmc")
+        if not (model and ref and tm):
+            self.skipTest("learned models not built")
+        team, _ = parse_paste(GARGANACL_TEAM, self.dex)
+        engine = SwapEngine(build_archetypes(self.usage, self.dex, keep=4), self.usage, self.dex)
+        engine.attach_model(model)
+        engine.attach_rating(ref, tm)
+        swaps = suggest_swaps(team, self.dex, self.usage, engine, top_n=5)
+        base = swaps.attrs["base_score"]
+        self.assertIsNotNone(base)
+        self.assertTrue((swaps["rating change"] > 0).all())
+        self.assertTrue(swaps["rating change"].is_monotonic_decreasing)
+        self.assertTrue(((swaps["score"] >= 0) & (swaps["score"] <= 100)).all())
+
     def test_swaps_same_role(self):
         team, _ = parse_paste(GARGANACL_TEAM, self.dex)
         engine = SwapEngine(build_archetypes(self.usage, self.dex, keep=4), self.usage, self.dex)

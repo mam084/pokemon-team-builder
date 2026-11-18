@@ -43,6 +43,7 @@ from src.usage import UsageData
 
 MAX_OVERALL_LOSS = 0.05
 MAX_WIN_LOSS = 0.5  # win-chance points a threat fix may cost overall
+MAX_SCORE_LOSS = 0.15  # the same for the team rating (z units: about half a point of win chance)
 
 
 PLAN_ROLE = {"rain": "Rain setter", "sun": "Sun setter", "sand": "Sand setter", "snow": "Snow setter",
@@ -84,6 +85,19 @@ class SwapEngine:
         self.sides = [] if model is None else [
             team_side(f.theirs, [m.pset for m in f.theirs if m.pset is not None], self.dex, self.usage, self)
             for f in self.fields]
+
+    def attach_rating(self, ref: dict | None, teammates) -> None:
+        """Judge swaps by the team rating (src/team_rating.py): teammate fit plus the win chance vs
+        the meta. On the held-out week it tracked real results better than win chance alone
+        (scripts/app_vs_results.py)."""
+        self.rating_ref, self.teammates = ref, teammates
+
+    def rating(self, team: list[PokemonSet], win: float | None) -> tuple[float, float] | None:
+        """(combined rating, percentile among tournament teams), or None without the models."""
+        if getattr(self, "rating_ref", None) is None or getattr(self, "teammates", None) is None:
+            return None
+        from src.team_rating import rate
+        return rate(team, self.dex, self.teammates, win, self.rating_ref)
 
     def win_chance(self, team: list[PokemonSet], meta: float | None = None) -> float | None:
         """Usage-weighted learned win chance against the meta teams (best Mega per opponent)."""
@@ -155,6 +169,7 @@ def suggest_swaps(team: list[PokemonSet], dex: Dex, usage: UsageData, engine: Sw
         return pd.DataFrame()
     base_overall = engine.overall(team)
     base_win = engine.win_chance(team, meta=base_overall)  # None without a learned model
+    base_rating = engine.rating(team, base_win)            # None without the team rating models
     threat = None
     if focus:
         opp = opponent_members([focus], usage, dex)
@@ -199,9 +214,15 @@ def suggest_swaps(team: list[PokemonSet], dex: Dex, usage: UsageData, engine: Sw
             new_team = rest[:i] + [pset] + rest[i:]
             overall = engine.overall(new_team)
             win = engine.win_chance(new_team, meta=overall) if base_win is not None else None
-            # judged on the learned win chance when there is one, else on the calc score
-            change = (win - base_win) * 100 if win is not None else overall - base_overall
-            if change < -(MAX_WIN_LOSS if win is not None else MAX_OVERALL_LOSS) and not per_member:
+            rating = engine.rating(new_team, win) if base_rating is not None else None
+            # judged on the team rating when there is one, else the learned win chance, else the calc score
+            if rating is not None:
+                change, max_loss = rating[0] - base_rating[0], MAX_SCORE_LOSS
+            elif win is not None:
+                change, max_loss = (win - base_win) * 100, MAX_WIN_LOSS
+            else:
+                change, max_loss = overall - base_overall, MAX_OVERALL_LOSS
+            if change < -max_loss and not per_member:
                 continue
             focus_gain, key_calc = 0.0, ""
             if threat is not None:
@@ -234,7 +255,10 @@ def suggest_swaps(team: list[PokemonSet], dex: Dex, usage: UsageData, engine: Sw
                 "overall": round(overall, 2),
                 "overall change": round(overall - base_overall, 2),
                 "win chance": round(win, 4) if win is not None else None,
-                "win change": round(change, 2) if win is not None else None,
+                "win change": round((win - base_win) * 100, 2) if win is not None else None,
+                "rating change": round(change, 4) if rating is not None else None,
+                "score": round(rating[1]) if rating is not None else None,
+                "score change": round(rating[1] - base_rating[1]) if rating is not None else None,
                 "vs threat": round(focus_gain, 1) if threat is not None else None,
                 "key calc": key_calc,
                 "set": f"{pset.item or 'no item'} · {', '.join(pset.moves)}",
@@ -243,7 +267,8 @@ def suggest_swaps(team: list[PokemonSet], dex: Dex, usage: UsageData, engine: Sw
     df = pd.DataFrame(rows)
     if df.empty:
         return df
-    main = "win change" if base_win is not None else "overall change"
+    main = ("rating change" if base_rating is not None else
+            "win change" if base_win is not None else "overall change")
     sort = ["vs threat", main] if threat is not None else [main]
     df = df.sort_values(sort, ascending=False)
     if per_member:
@@ -271,6 +296,7 @@ def suggest_swaps(team: list[PokemonSet], dex: Dex, usage: UsageData, engine: Sw
         df = df.drop_duplicates("swap in").head(top_n).reset_index(drop=True)
     df.attrs["base_overall"] = base_overall
     df.attrs["base_win"] = base_win
+    df.attrs["base_score"] = base_rating[1] if base_rating is not None else None
     df.attrs["base_focus"] = base_focus
     return df
 

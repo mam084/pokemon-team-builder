@@ -89,6 +89,31 @@ def percentile(score: float, ref: dict) -> float:
     return float(100 * np.searchsorted(s, score) / len(s))
 
 
+# The team grade: the combined rating in four plain words, by where it falls among real tournament
+# teams. Quarters, not an exact percentile: on the held-out week the top quarter won ~55% and the
+# bottom ~45%, but the middle two quarters weren't reliably apart (scripts/app_vs_results.py).
+GRADES = [(75, "Strong", "rates higher than most tournament teams"),
+          (50, "Solid", "a bit above the average tournament team"),
+          (25, "Shaky", "a bit below the average tournament team"),
+          (0, "Weak", "rates lower than most tournament teams")]
+
+
+def grade(pct: float) -> tuple[str, str]:
+    """(word, plain explanation) for a team's percentile among tournament teams."""
+    return next((w, e) for floor, w, e in GRADES if pct >= floor)
+
+
+def rate(sets, dex: Dex, tm, chance: float | None, ref: dict | None) -> tuple[float, float] | None:
+    """(combined rating, percentile) from teammate fit and a win chance vs the meta, or None."""
+    if chance is None or ref is None:
+        return None
+    fit = teammate_fit(sets, dex, tm)
+    if fit is None:
+        return None
+    score = combined(fit, chance, ref)
+    return score, percentile(score, ref)
+
+
 def build_reference(regulation: str = CURRENT.regulation, format_id: str = CURRENT.id) -> dict:
     from src.dex import load_dex
     from src.evaluate import load_tournament_teams

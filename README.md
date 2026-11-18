@@ -98,9 +98,13 @@ play on the ladder.
   and one Mega, then rated against the meta teams.
 - **Suggested swaps** (Matchups tab): "Garchomp → Emboar: Close Combat 116% to
   Incineroar, takes 22%". Pick a threat to fix, or ask for the best overall
-  improvement. Every member × candidate swap is scored with the damage-based
-  matchup engine, and a swap is only offered if it doesn't make the overall
-  matchup worse. One tap applies it.
+  improvement. Every member × candidate swap is scored by **team score** (0-100:
+  how the team compares with real tournament teams, from teammate fit plus the
+  learned win chance vs the meta), and a swap is only offered if it doesn't make
+  the team noticeably worse. One tap applies it.
+- **Team grade** (Matchups tab): Strong, Solid, Shaky or Weak, by where the team
+  score falls among real tournament teams (quarters, the precision the held-out
+  test supports).
 - **Recommendation style**, shared by recommendations, the builder and swaps:
   - *Popular picks*: the data-tuned defaults, which lean on proven meta Pokémon.
   - *Neutral*: popularity counts for nothing and every Pokémon with ladder data
@@ -384,8 +388,8 @@ by win chance vs the meta, then checking how they actually did:
 | teams, by win chance | without bounds: said | won | with bounds: said | won |
 |---|---|---|---|---|
 | lowest quarter | 45.4% | 46.4% | 45.4% | 46.4% |
-| 2nd quarter | 49.3% | 47.5% | 49.3% | 47.5% |
-| 3rd quarter | 51.1% | 48.6% | 51.1% | 48.6% |
+| 2nd quarter | 49.3% | 47.6% | 49.3% | 47.6% |
+| 3rd quarter | 51.1% | 48.5% | 51.1% | 48.5% |
 | highest quarter | 52.9% | 53.1% | 52.9% | 53.1% |
 
 Rank correlation with real records: 0.096 without bounds, 0.096 with. The
@@ -401,6 +405,27 @@ bounds moved 0.2% of real teams by more than 0.1 points.
 
 Without bounds the search walks to 62%-63%, past every real team; with them it stops at the best
 real team's score.
+
+**What swaps are judged by.** Ranking the same 1,669 held-out teams by **team score** (teammate fit
+plus win chance, `src/team_rating.py`) vs **win chance alone**, with the teammate model also fitted before
+2026-11-12:
+
+| teams, by | win chance alone: won | team score: won |
+|---|---|---|
+| lowest quarter | 46.4% | 43.2% |
+| 2nd quarter | 47.6% | 48.6% |
+| 3rd quarter | 48.5% | 48.4% |
+| highest quarter | 53.1% | 55.0% |
+
+Rank correlation with real records: 0.096 by win chance, 0.158
+by team score (paired 95% interval for the gain: +0.029 to +0.095). So swaps are judged by
+team score. Keep applying the best swap that way (any role, bounds on):
+
+| start | team score | win chance at the end | real teams sharing 5+ of its six |
+|---|---|---|---|
+| Goodstuffs (Sneasler + Kingambit) | 46 → 99 | 56.4% | 3 |
+| Sun (Charizard-Mega-Y + Garchomp) | 44 → 100 | 56.6% | 103 |
+| Rain + Tailwind (Archaludon + Pelipper) | 61 → 90 | 55.4% | 5 |
 <!-- /generated:teamcheck -->
 
 ## Battle replays
@@ -570,3 +595,4 @@ The tests check:
 - [x] Learned teammate model (whole-team synergy from tournament and ladder teams), measured with the same evaluation
 - [x] Deploy to Streamlit Community Cloud
 - [x] Trust bounds: the swap search can't rate a team past the best real tournament team
+- [x] Swaps judged by team score (fit + win chance), plus a plain-word team grade

@@ -163,6 +163,18 @@ def untested_label(feature: str) -> str:
                                                                             "this combination" if feature == "total" else feature)
 
 
+def team_grade(fmt_id: str, team, dex, usage, chance: float) -> None:
+    """Strong / Solid / Shaky / Weak: the team rating among real tournament teams."""
+    from src.team_rating import grade, load_reference, rate
+    rated = rate(team, dex, usage.teammates, chance, load_reference(FORMATS[fmt_id].regulation))
+    if rated is None or len(team) < 6:
+        return
+    word, meaning = grade(rated[1])
+    st.markdown(f"#### Team grade: {word}")
+    st.caption(f"Your team {meaning}, judged by how often strong players bring these Pokémon together and "
+               "its win chance against the meta teams. It's a rough guide: who's playing matters more.")
+
+
 FAVORED = 0.53  # a matchup counts as favorable at 53%+ to win (unfavorable at 47% or less)
 
 
@@ -307,9 +319,12 @@ def matchups_tab(fmt_id, team, members, dex, usage, fmt) -> None:
             table = table.drop(columns=["mega evolve"])
         weights = table["popularity"]
         overall = float((table["score"] * weights).sum() / weights.sum()) if len(table) else 0.0
-        c = st.container(key="metric_row").columns(4)
         check = match_check(fmt.regulation)
         chances = learned_chances(fmt_id, team_key(team))
+        if chances:
+            team_grade(fmt_id, team, dex, usage, cap_chance(learned_meta_sides(fmt_id)[0],
+                                                            float(np.average(chances, weights=weights))))
+        c = st.container(key="metric_row").columns(4)
         if chances:
             # one yardstick everywhere: the learned win chance (the calc score stays as a column)
             avg = cap_chance(learned_meta_sides(fmt_id)[0], float(np.average(chances, weights=weights)))
@@ -527,7 +542,9 @@ def threats_section(fmt_id: str, team, members, dex, usage, doubles: bool) -> pd
 def swap_engine_for(fmt_id: str) -> SwapEngine:
     fmt = FORMATS[fmt_id]
     engine = SwapEngine(archetypes_for(fmt_id), load_usage(fmt_id), load_dex(fmt.regulation), fmt.is_doubles)
-    engine.attach_model(load_model(fmt.regulation))  # swaps judged on learned win chance when available
+    engine.attach_model(load_model(fmt.regulation))  # learned win chance vs the meta, when available
+    from src.team_rating import load_reference
+    engine.attach_rating(load_reference(fmt.regulation), load_usage(fmt_id).teammates)  # swaps judged on it
     return engine
 
 
@@ -552,12 +569,13 @@ def swaps_section(team, dex, usage, fmt, threats: pd.DataFrame) -> None:
     mode = st.segmented_control("Candidates", list(MODES), format_func=MODES.get, key="swap_mode",
                                 help=candidate_help(usage, dex)) or "neutral"
     how_it_works(
-        f"Candidates follow the **{MODES[mode]}** style. Each swap is judged by your team's **win chance against "
-        "the meta teams** from the learned model (damage calcs, Speed, bulk and support tools, between equal "
-        "players), "
-        "using the newcomer's popular set (keeping Item Clause and at most two Mega Stones). In Best swaps, a "
-        "swap that costs more than half a point of win chance is never shown. Each Pokémon is suggested as the "
-        "best upgrade for one member at most.",
+        f"Candidates follow the **{MODES[mode]}** style. Each swap is judged by your **team score**: how your "
+        "team compares with real tournament teams, from two things. **Fit**: how often strong players bring "
+        "each Pokémon with the other five. **Win chance** against the meta teams, from the learned model "
+        "(damage calcs, Speed, bulk and support tools). Together they tracked real tournament results better "
+        "than win chance alone. Each newcomer uses its popular set (keeping Item Clause and at most two Mega "
+        "Stones). In Best swaps, a swap that makes the team noticeably worse is never shown. Each Pokémon is "
+        "suggested as the best upgrade for one member at most.",
         "How swaps are chosen")
     threat_names = list(threats["pokemon"].head(10)) if not threats.empty else []
     others = [n for n, _ in usage.ranked(60) if n not in threat_names]
@@ -583,13 +601,11 @@ def swaps_section(team, dex, usage, fmt, threats: pd.DataFrame) -> None:
         return
     if swaps.empty:
         engine = swap_engine_for(fmt.id)
-        trust = (getattr(engine, "model", None) or {}).get("trust")
-        at_cap = (not focus_name and trust is not None
-                  and (engine.win_chance(team) or 0) >= trust["chance"][1] - 1e-9)
+        rated = engine.rating(team, engine.win_chance(team)) if not focus_name else None
         st.success("No single swap improves this without hurting the overall matchup. Your team already "
                    "handles it about as well as one change can." if focus_name else
-                   "Your team is already rated as high as any real tournament team. Past that the data can't "
-                   "tell teams apart, so no swap is shown as better." if at_cap else
+                   f"No single swap raises your team score ({rated[1]:.0f} out of 100). That's about as good "
+                   "as one change can make it." if rated else
                    "No single swap improves the overall matchup.")
         return
     st.caption(base_text(swaps))
@@ -618,7 +634,11 @@ def swap_detail(row) -> str:
 
 
 def change_text(row) -> str:
-    """'+2.3 points of win chance' (learned model) or '+0.12 score' (calcs only)."""
+    """'team score 64 (+6)' (team rating), '+2.3 points of win chance' (learned model) or '+0.12 score'."""
+    score, delta_s = row.get("score"), row.get("score change")
+    if score is not None and not pd.isna(score):
+        return (f"team score {score:.0f} (about the same)" if abs(delta_s) < 1 else
+                f"team score {score:.0f} ({delta_s:+.0f})")
     win = row.get("win change")
     if win is not None and not pd.isna(win):
         if abs(win) < 0.2:
@@ -632,6 +652,11 @@ def change_text(row) -> str:
 
 def base_text(swaps: pd.DataFrame) -> str:
     win, base = swaps.attrs.get("base_win"), swaps.attrs.get("base_overall")
+    score = swaps.attrs.get("base_score")
+    if score is not None:
+        from src.team_rating import grade
+        return (f"Your team now: **{grade(score)[0]}**, team score {score:.0f} out of 100 (higher than "
+                f"{score:.0f}% of tournament teams).")
     if win is not None:
         return f"Your team now: about {win:.0%} to win against the meta teams."
     return f"Your team now: {base:+.2f} vs the meta ({verdict(base)})." if base is not None else ""
@@ -639,7 +664,7 @@ def base_text(swaps: pd.DataFrame) -> str:
 
 def member_alternatives(team, swaps: pd.DataFrame, focus_name: str | None, same_role: bool) -> None:
     """The closest alternatives for every member, whether or not they improve the team."""
-    st.caption("Who else could fill each spot, and how your win chance against the meta would change. "
+    st.caption("Who else could fill each spot, and how your team score would change. "
                + (base_text(swaps) if not swaps.empty else ""))
     for slot, pset in enumerate(team):
         rows = swaps[swaps["slot"] == slot] if not swaps.empty else swaps
