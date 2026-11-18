@@ -267,7 +267,9 @@ def enabler_score(profile: Profile, members, plans: list[Plan], dex: Dex) -> tup
 
 
 def profile_from(form: Species, abilities, moves, dex: Dex) -> Profile:
+    from src.type_chart import move_type
     move_ids = {to_id(m) for m in moves}
-    attack_types = {dex.moves[m]["type"] for m in move_ids
+    ability_ids = {to_id(a) for a in abilities}
+    attack_types = {move_type(dex.moves[m], ability_ids) for m in move_ids
                     if m in dex.moves and dex.moves[m]["category"] != "Status" and (dex.moves[m]["basePower"] or 0) >= 50}
     return Profile(form, {to_id(a) for a in abilities}, move_ids, attack_types)

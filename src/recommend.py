@@ -40,7 +40,7 @@ from src.analysis import ROLES, Member, defense_matrix, meta_form, provides_role
 from src.dex import Dex, to_id
 from src.team import MAX_MEGAS
 from src.plan import enabler_score, plan_score, plan_users, profile_from, team_plans
-from src.type_chart import ALL_TYPES, ability_defensive_multiplier
+from src.type_chart import ALL_TYPES, ability_defensive_multiplier, move_type
 from src.usage import UsageData
 
 # Tuned on 4,003 real tournament teams and validated on 1,546 newer ones (5-signal grid, then a
@@ -105,10 +105,11 @@ def attack_prevalence(usage: UsageData, dex: Dex, n: int = 60) -> dict[str, floa
     if key not in _PREVALENCE:
         totals = {t: 0.0 for t in ALL_TYPES}
         for name, pct in usage.ranked(n):
+            ability = meta_form(name, usage, dex)[1]
             for move_id, move_pct in usage.section(name, "moves").items():
                 mv = dex.moves.get(to_id(move_id))
                 if mv and mv["category"] != "Status" and (mv["basePower"] or 0) > 0:
-                    totals[mv["type"].lower()] += pct * move_pct / 100
+                    totals[move_type(mv, ability).lower()] += pct * move_pct / 100
         mean = sum(totals.values()) / len(totals) or 1.0
         _PREVALENCE[key] = {t: v / mean for t, v in totals.items()}
     return _PREVALENCE[key]
@@ -142,8 +143,8 @@ def team_needs(members: list[Member], dex: Dex, usage: UsageData | None, doubles
                 continue
             types = [t.lower() for t in form.types]
             hit = any(
-                ability_defensive_multiplier(types, mv["type"].lower(), ability) >= 2
-                for m in members for mv in m.damaging_moves
+                ability_defensive_multiplier(types, move_type(mv, m.ability_id).lower(), ability) >= 2
+                for m in members for mv in m.coverage_moves
             )
             if not hit:
                 unhit.append((form.name, types, pct))
@@ -205,7 +206,7 @@ def _build_profile(name: str, dex: Dex, usage: UsageData | None):
     for mid in move_ids:
         mv = dex.moves.get(mid)
         if mv and mv["category"] != "Status" and (mv["basePower"] or 0) >= 60 and usage is not None:
-            atk_types.add(mv["type"].lower())
+            atk_types.add(move_type(mv, ability).lower())
     spread = any(dex.moves.get(mid, {}).get("spread") and dex.moves[mid]["category"] != "Status" for mid in move_ids)
     plan_profile = profile_from(form, plan_abilities, move_ids, dex)
     return form, ability, move_ids, abilities, atk_types, spread, plan_profile

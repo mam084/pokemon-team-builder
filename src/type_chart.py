@@ -117,3 +117,20 @@ def ability_defensive_multiplier(
     if ability_id:
         multiplier *= ABILITY_DEFENSE.get(ability_id, {}).get(attacking_type, 1.0)
     return multiplier
+
+
+# -ate abilities turn Normal moves into another type (Pixilate Hyper Voice is a Fairy move).
+ATE_ABILITIES = {"pixilate": "Fairy", "aerilate": "Flying", "refrigerate": "Ice", "galvanize": "Electric",
+                 "dragonize": "Dragon"}
+NO_ATE = {"weatherball", "terrainpulse", "judgment", "multiattack", "naturalgift", "revelationdance",
+          "technoblast"}
+
+
+def move_type(move: dict, abilities) -> str:
+    """The type a move actually hits with, given the user's ability id (or a set of possible ones)."""
+    if move["type"] != "Normal" or move.get("id") in NO_ATE:
+        return move["type"]
+    for ability in ([abilities] if isinstance(abilities, str) else abilities or ()):
+        if ability in ATE_ABILITIES:
+            return ATE_ABILITIES[ability]
+    return move["type"]
