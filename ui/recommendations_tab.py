@@ -78,7 +78,7 @@ def team_builder_section(team, dex, usage, fmt, mode, weights) -> None:
         use_mine = st.checkbox(f"Use my {core_name} set", value=mine is not None, disabled=mine is None,
                                key="build_use_mine")
         st.caption("Three different teams, each filled one Pokémon at a time with the top recommendation "
-                   "(in the style picked above). They're ranked by how well they fit together and how they'd "
+                   f"({MODES[mode]} style). They're ranked by how well they fit together and how they'd "
                    "do against the meta teams, the mix that best matched real tournament results. "
                    "Loading a team replaces your current one.")
         if st.button(f"Build teams around {core_name}", type="primary", width="stretch"):
@@ -96,7 +96,8 @@ def team_builder_section(team, dex, usage, fmt, mode, weights) -> None:
             with st.container(border=True):
                 theme = f" · {t.theme} team" if t.theme else ""
                 if t.percentile is not None:
-                    rated = f"rates above {t.percentile:.0f}% of tournament teams"
+                    from src.team_rating import grade
+                    rated = f"{grade(t.percentile)[0]} · team score {t.percentile:.0f}"
                 else:
                     score = t.meta_score or 0.0
                     rated = f"vs meta {score:+.2f} ({verdict(score)})"

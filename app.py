@@ -30,7 +30,7 @@ from ui.matchups_tab import matchups_tab  # noqa: E402
 from ui.meta_tab import meta_tab  # noqa: E402
 from ui.recommendations_tab import recommendations_tab  # noqa: E402
 from ui.sidebar import notices, sidebar  # noqa: E402
-from ui.state import current_team  # noqa: E402
+from ui.state import current_team, keep_state  # noqa: E402
 from ui.team_tab import team_tab  # noqa: E402
 from ui.theme import inject_css, status_html, team_stage, title_row  # noqa: E402
 from ui.url_state import restore_from_url, sync_url  # noqa: E402
@@ -86,6 +86,7 @@ def reload_if_data_changed() -> None:
 
 def main() -> None:
     reload_if_data_changed()
+    keep_state()        # only the open tab is built: keep the team when another tab is open
     restore_from_url()  # a team in the link loads before any widget renders
     fmt_id, dex, usage = sidebar()
     fmt = FORMATS[fmt_id]
@@ -105,18 +106,17 @@ def main() -> None:
     notices()
 
     tabs = st.tabs(["Team", "Analysis", "Matchups", "Damage calc", "Recommendations", "Meta"], key="main_tabs", on_change="rerun")
-    with tabs[0]:
-        team_tab(dex, usage)
-    with tabs[1]:
-        analysis_tab(team, members, dex, usage, fmt)
-    with tabs[2]:
-        matchups_tab(fmt_id, team, members, dex, usage, fmt)
-    with tabs[3]:
-        damage_tab(team, dex, usage, fmt)
-    with tabs[4]:
-        recommendations_tab(team, members, dex, usage, fmt)
-    with tabs[5]:
-        meta_tab(dex, usage, len(team), fmt.regulation, fmt.id)
+    # Only the open tab is built: each edit used to recompute every tab, swaps included (~4 s).
+    pages = [lambda: team_tab(dex, usage),
+             lambda: analysis_tab(team, members, dex, usage, fmt),
+             lambda: matchups_tab(fmt_id, team, members, dex, usage, fmt),
+             lambda: damage_tab(team, dex, usage, fmt),
+             lambda: recommendations_tab(team, members, dex, usage, fmt),
+             lambda: meta_tab(dex, usage, len(team), fmt.regulation, fmt.id)]
+    for tab, page in zip(tabs, pages):
+        if tab.open:
+            with tab:
+                page()
 
     # Keep the address bar in step with the team (read again: tab buttons may have changed it).
     sync_url(current_team(), fmt_id)

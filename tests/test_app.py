@@ -22,6 +22,15 @@ def click(at: AppTest, key: str | None = None, label: str | None = None) -> AppT
     return button.click().run()
 
 
+TABS = ["Team", "Analysis", "Matchups", "Damage calc", "Recommendations", "Meta"]
+
+
+def open_tab(at: AppTest, name: str) -> AppTest:
+    """Only the open tab is built, so open it as a user would."""
+    at.session_state["main_tabs"] = name
+    return at.run()
+
+
 class TestApp(unittest.TestCase):
     def assertClean(self, at: AppTest):
         self.assertFalse(at.exception, [e.value for e in at.exception])
@@ -29,16 +38,24 @@ class TestApp(unittest.TestCase):
     def test_example_team_renders_every_tab(self):
         at = click(fresh(), label="Example team")
         self.assertClean(at)
-        self.assertEqual(at.session_state["s0_species"], "Garganacl")
+        self.assertEqual(at.session_state["s0_species"], "Aerodactyl")
         self.assertFalse(at.error, [e.value for e in at.error])  # the example team is legal
+        team = [at.session_state[f"s{i}_species"] for i in range(6)]
+        for name in TABS[1:] + ["Team"]:
+            at = open_tab(at, name)
+            self.assertClean(at)
+            self.assertFalse(at.error, (name, [e.value for e in at.error]))
+        # only the open tab is built, and the team (held in the Team tab's widgets) must survive
+        self.assertEqual([at.session_state[f"s{i}_species"] for i in range(6)], team)
+        self.assertEqual(at.session_state["s1_move0"], "Hyper Voice")
 
     def test_add_from_recommendations_and_remove(self):
-        at = fresh()
+        at = open_tab(fresh(), "Recommendations")
         add = next(b for b in at.button if b.key and b.key.startswith("rec_add_"))
         at = add.click().run()
         self.assertClean(at)
         self.assertNotEqual(at.session_state["s0_species"], "—")
-        at = click(at, key="s0_rm")
+        at = click(open_tab(at, "Team"), key="s0_rm")
         self.assertClean(at)
         self.assertEqual(at.session_state["s0_species"], "—")
 
@@ -56,7 +73,7 @@ class TestApp(unittest.TestCase):
     def test_quick_picks_fill_the_slot(self):
         at = click(fresh(), key="s0_example")  # the in-page example button (the sidebar is hidden on a phone)
         self.assertClean(at)
-        self.assertEqual(at.session_state["s0_species"], "Garganacl")
+        self.assertEqual(at.session_state["s0_species"], "Aerodactyl")
         at = click(at, key="s5_rm")
         at = click(at, key="s5_quick0")  # a top pick for the team, straight into that slot
         self.assertClean(at)

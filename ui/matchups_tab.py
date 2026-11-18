@@ -164,15 +164,43 @@ def untested_label(feature: str) -> str:
 
 
 def team_grade(fmt_id: str, team, dex, usage, chance: float) -> None:
-    """Strong / Solid / Shaky / Weak: the team rating among real tournament teams."""
+    """Strong / Solid / Shaky / Weak: the team rating among real tournament teams, and why."""
     from src.team_rating import grade, load_reference, rate
-    rated = rate(team, dex, usage.teammates, chance, load_reference(FORMATS[fmt_id].regulation))
+    ref = load_reference(FORMATS[fmt_id].regulation)
+    rated = rate(team, dex, usage.teammates, chance, ref)
     if rated is None or len(team) < 6:
         return
     word, meaning = grade(rated[1])
     st.markdown(f"#### Team grade: {word}")
     st.caption(f"Your team {meaning}, judged by how often strong players bring these Pokémon together and "
                "its win chance against the meta teams. It's a rough guide: who's playing matters more.")
+    why = grade_reasons(team, dex, usage.teammates, chance, ref)
+    if why:
+        st.markdown(f"**Why:** {why}")
+
+
+def grade_reasons(team, dex, tm, chance: float, ref: dict) -> str:
+    """One plain sentence on what lifts or holds back the grade: its two parts, fit and matchups."""
+    from src.team_rating import teammate_fit
+    fit = teammate_fit(team, dex, tm)
+    z_fit = (fit - ref["fit_mean"]) / ref["fit_sd"]
+    z_win = (chance - ref["chance_mean"]) / ref["chance_sd"]
+    roots = [dex.sheet_id(p.battle_form(dex)) for p in team]
+    rare = [p.species for p, c in zip(team, tm.fit_check(roots)) if c["rank"] and c["rank"] > 15]
+    parts = []
+    if z_fit < -0.5 and rare:
+        names = " and ".join(rare[:2]) if len(rare) <= 2 else f"{', '.join(rare[:2])} and {len(rare) - 2} more"
+        parts.append(f"strong players rarely run {names} with the rest of this team (the Analysis tab shows "
+                     "who they run instead)")
+    elif z_fit > 0.5:
+        parts.append("these six are a combination strong players run often")
+    else:
+        parts.append("these six are a fairly usual combination")
+    parts.append("its matchups against the meta teams are a strength" if z_win > 0.5 else
+                 "its matchups against the meta teams hold it back" if z_win < -0.5 else
+                 "its matchups against the meta teams are about average")
+    text = "; ".join(parts) + "."
+    return text[0].upper() + text[1:]
 
 
 FAVORED = 0.53  # a matchup counts as favorable at 53%+ to win (unfavorable at 47% or less)
@@ -623,6 +651,17 @@ def swaps_section(team, dex, usage, fmt, threats: pd.DataFrame) -> None:
                            on_click=write_slot, args=(int(row["slot"]), row["_set"]))
 
 
+def pick_label(row) -> str:
+    """'Best upgrade' only when it really raises the team; otherwise it's the best alternative."""
+    if row["pick"] != "Best upgrade":
+        return row["pick"]
+    for col in ("rating change", "win change", "overall change"):
+        value = row.get(col)
+        if value is not None and not pd.isna(value):
+            return "Best upgrade" if value > 0 else "Best alternative"
+    return row["pick"]
+
+
 def swap_detail(row) -> str:
     detail = row["set"]
 
@@ -680,7 +719,7 @@ def member_alternatives(team, swaps: pd.DataFrame, focus_name: str | None, same_
                 cols = st.columns([5, 2], vertical_alignment="center")
                 extra = f" · vs {focus_name} {row['vs threat']:+.1f}" if focus_name else ""
                 jobs = f" ({row['in job']})" if row["in job"] != row["out job"] else ""
-                cols[0].markdown(f"{row['pick']}: **{row['swap in']}**{jobs} · "
+                cols[0].markdown(f"{pick_label(row)}: **{row['swap in']}**{jobs} · "
                                  f"{change_text(row)}{extra}")
                 cols[0].caption(swap_detail(row))
                 cols[1].button("Apply swap", key=f"alt_{slot}_{i}_{row['swap in']}", width="stretch",

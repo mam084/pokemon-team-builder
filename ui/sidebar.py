@@ -11,64 +11,70 @@ from src.usage import UsageData, load_usage
 from ui.state import current_team, load_team
 from ui.url_state import share_link
 
-SAMPLE_TEAM = """Garganacl @ Leftovers
-Ability: Purifying Salt
-EVs: 32 HP / 2 Def / 32 SpD
-Careful Nature
-- Salt Cure
-- Body Press
-- Iron Defense
+# A real winning team: 1st of 121 players (10-1) at a Limitless tournament on 2026-11-14. The app
+# grades it Strong; the old example (Garganacl, 0.1% of teams) graded Weak, a poor first impression.
+SAMPLE_TEAM = """Aerodactyl @ Aerodactylite
+Ability: Unnerve
+EVs: 2 HP / 32 Atk / 32 Spe
+Jolly Nature
+- Rock Slide
+- Dual Wingbeat
+- Tailwind
 - Wide Guard
 
-Garchomp @ Garchompite Z
-Ability: Rough Skin
-EVs: 2 HP / 32 SpA / 32 Spe
-Timid Nature
-- Draco Meteor
-- Earth Power
-- Flamethrower
-- Protect
+Sylveon @ Fairy Feather
+Ability: Pixilate
+EVs: 25 HP / 28 Def / 10 SpA / 3 Spe
+Modest Nature
+- Hyper Voice
+- Quick Attack
+- Hyper Beam
+- Detect
 
-Rillaboom @ Miracle Seed
-Ability: Grassy Surge
-EVs: 32 HP / 32 Atk / 2 SpD
-Adamant Nature
-- Fake Out
-- Grassy Glide
-- Wood Hammer
-- U-turn
-
-Sinistcha @ Mental Herb
-Ability: Hospitality
-EVs: 32 HP / 32 Def / 2 SpD
-Bold Nature
-- Matcha Gotcha
-- Rage Powder
-- Strength Sap
-- Protect
-
-Incineroar @ Sitrus Berry
-Ability: Intimidate
-EVs: 32 HP / 2 Atk / 32 SpD
-Careful Nature
-- Fake Out
-- Flare Blitz
-- Parting Shot
-- Throat Chop
-
-Gholdengo @ Life Orb
-Ability: Good as Gold
+Charizard @ Charizardite Y
+Ability: Blaze
 EVs: 2 HP / 32 SpA / 32 Spe
 Modest Nature
-- Make It Rain
-- Shadow Ball
-- Nasty Plot
+- Heat Wave
+- Weather Ball
+- Solar Beam
+- Protect
+
+Kingambit @ Focus Sash
+Ability: Defiant
+EVs: 32 HP / 32 Atk / 2 SpD
+Adamant Nature
+- Kowtow Cleave
+- Sucker Punch
+- Iron Head
+- Low Kick
+
+Farigiraf @ Sitrus Berry
+Ability: Armor Tail
+EVs: 32 HP / 20 Def / 14 SpD
+Relaxed Nature
+- Psychic
+- Thunderbolt
+- Trick Room
+- Protect
+
+Garchomp @ Life Orb
+Ability: Rough Skin
+EVs: 2 HP / 32 Atk / 32 Spe
+Jolly Nature
+- Dragon Claw
+- Stomping Tantrum
+- Earthquake
 - Protect
 """
 
 
+EXAMPLE_NOTE = "Loaded the example: the team that won a 121-player tournament on Nov 14 (10-1)."
+
+
 def load_example(dex: Dex) -> None:
     load_team(parse_paste(SAMPLE_TEAM, dex)[0])
+    st.session_state["url_notice"] = EXAMPLE_NOTE
 
 
 def import_paste(dex: Dex, key: str) -> None:
