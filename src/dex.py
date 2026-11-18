@@ -73,6 +73,7 @@ class Species:
     tier: str
     doubles_tier: str
     learnset: frozenset = field(repr=False)
+    weightkg: float = 0.0     # for Low Kick, Grass Knot, Heavy Slam and Heat Crash
 
     @property
     def bst(self) -> int:
@@ -113,6 +114,7 @@ class Dex:
                 tier=s.get("tier", ""),
                 doubles_tier=s.get("doublesTier", ""),
                 learnset=frozenset(s["learnset"]),
+                weightkg=float(s.get("weightkg") or 0.0),
             )
             for sid, s in raw["species"].items()
         }

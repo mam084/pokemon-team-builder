@@ -70,7 +70,10 @@ play on the ladder.
 - Every pairing is decided by **real damage calcs in both directions**, using
   both sides' actual sets: **pair score** = log2(hits they need to KO you ÷
   hits you need to KO them), ±0.5 for Speed (reversed under Trick Room).
-  Weather teams are scored in their weather. **Team score** = how well you
+  Weather teams are scored in their weather. Moves whose power depends on
+  weight or Speed (Low Kick, Grass Knot, Heavy Slam, Heat Crash, Gyro Ball,
+  Electro Ball) use each side's real weight and Speed; Reversal, Flail and
+  Hard Press assume full HP. **Team score** = how well you
   answer their Pokémon minus how well they answer yours, so a mirror match
   scores exactly 0.
 - For each meta team you get a verdict, the best **bring 4** (or bring 3 in
@@ -307,15 +310,15 @@ matches, and it's tested once on the newest 3,900
 
 | model | picks the winner | log loss | AUC |
 |---|---|---|---|
-| learned model (skill + team) | 59.0% | 0.6686 | 0.620 |
+| learned model (skill + team) | 59.0% | 0.6686 | 0.619 |
 | player skill only | 58.1% | 0.6691 | 0.620 |
 | team only | 53.0% | 0.6914 | 0.535 |
-| damage-calc matchup score | 51.3% | 0.6933 | 0.516 |
+| damage-calc matchup score | 51.2% | 0.6934 | 0.514 |
 | popularity only | 50.9% | 0.6927 | 0.520 |
 | coin flip | 50.0% | 0.6931 | 0.500 |
 
 - **Who's playing matters most**, but the team adds real signal on top: log-loss
-  gain -0.0022 to +0.0032 over ratings alone (95% paired bootstrap).
+  gain -0.0022 to +0.0031 over ratings alone (95% paired bootstrap).
 <!-- /generated:learned -->
 
 **Upgrades tried and rejected (Nov 2026, `scripts/match_lab.py`, `scripts/match_lab2.py`).** None beat
@@ -383,26 +386,26 @@ the held-out week:
 
 <!-- generated:teamcheck -->
 Fitted on data before 2026-11-12; bounds from 1,200 real teams from before then
-(the best scores 56.7% vs the meta). **Ranking the 1,704 held-out teams**
+(the best scores 56.6% vs the meta). **Ranking the 1,704 held-out teams**
 by win chance vs the meta, then checking how they actually did:
 
 | teams, by win chance | without bounds: said | won | with bounds: said | won |
 |---|---|---|---|---|
-| lowest quarter | 45.4% | 46.6% | 45.4% | 46.6% |
-| 2nd quarter | 49.3% | 47.4% | 49.3% | 47.4% |
-| 3rd quarter | 51.1% | 48.7% | 51.1% | 48.7% |
+| lowest quarter | 45.4% | 46.5% | 45.4% | 46.5% |
+| 2nd quarter | 49.3% | 47.7% | 49.3% | 47.7% |
+| 3rd quarter | 51.2% | 48.5% | 51.2% | 48.5% |
 | highest quarter | 52.9% | 53.0% | 52.9% | 53.0% |
 
-Rank correlation with real records: 0.091 without bounds, 0.091 with. The
-bounds moved 0.4% of real teams by more than 0.1 points.
+Rank correlation with real records: 0.092 without bounds, 0.092 with. The
+bounds moved 0.5% of real teams by more than 0.1 points.
 
 **Keep applying the best swap** (Neutral, any role) from the most popular meta teams:
 
 | start | ends at, without bounds | with bounds |
 |---|---|---|
-| Goodstuffs (Sneasler + Kingambit) | 63.1% | 56.7% |
-| Sun (Charizard-Mega-Y + Garchomp) | 62.5% | 56.7% |
-| Rain + Tailwind (Archaludon + Pelipper) | 63.2% | 56.7% |
+| Goodstuffs (Sneasler + Kingambit) | 63.0% | 56.6% |
+| Sun (Charizard-Mega-Y + Garchomp) | 62.4% | 56.6% |
+| Rain + Tailwind (Archaludon + Pelipper) | 63.2% | 56.6% |
 
 Without bounds the search walks to 62%-63%, past every real team; with them it stops at the best
 real team's score.
@@ -413,20 +416,20 @@ plus win chance, `src/team_rating.py`) vs **win chance alone**, with the teammat
 
 | teams, by | win chance alone: won | team score: won |
 |---|---|---|
-| lowest quarter | 46.6% | 43.5% |
-| 2nd quarter | 47.4% | 48.6% |
-| 3rd quarter | 48.7% | 48.4% |
-| highest quarter | 53.0% | 54.8% |
+| lowest quarter | 46.5% | 43.5% |
+| 2nd quarter | 47.7% | 48.7% |
+| 3rd quarter | 48.5% | 48.5% |
+| highest quarter | 53.0% | 54.5% |
 
-Rank correlation with real records: 0.091 by win chance, 0.156
-by team score (paired 95% interval for the gain: +0.031 to +0.099). So swaps are judged by
+Rank correlation with real records: 0.092 by win chance, 0.157
+by team score (paired 95% interval for the gain: +0.030 to +0.099). So swaps are judged by
 team score. Keep applying the best swap that way (any role, bounds on):
 
 | start | team score | win chance at the end | real teams sharing 5+ of its six |
 |---|---|---|---|
-| Goodstuffs (Sneasler + Kingambit) | 45 → 99 | 56.4% | 3 |
-| Sun (Charizard-Mega-Y + Garchomp) | 40 → 100 | 56.5% | 104 |
-| Rain + Tailwind (Archaludon + Pelipper) | 61 → 88 | 55.4% | 5 |
+| Goodstuffs (Sneasler + Kingambit) | 46 → 98 | 56.2% | 3 |
+| Sun (Charizard-Mega-Y + Garchomp) | 41 → 100 | 56.4% | 104 |
+| Rain + Tailwind (Archaludon + Pelipper) | 61 → 87 | 55.2% | 5 |
 <!-- /generated:teamcheck -->
 
 ## Two lenses: proven, and on paper
@@ -560,7 +563,8 @@ The tests check:
 - the Champions stat formula, including nature rounding, and the Stat Point limits
 - paste import and export round-trips, including Megas named directly in a paste
 - every legality rule
-- the damage calculator, roll-for-roll against Showdown's engine
+- the damage calculator, roll-for-roll against Showdown's engine, and the weight- and
+  Speed-based power rules against Showdown's own code
 - chaos-file parsing (using a fixture in Smogon's real layout)
 - the analysis views, matchups, threats, recommender and evaluation harness
 - the app itself, driven headlessly through adding, removing, presets and format

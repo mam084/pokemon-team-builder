@@ -197,8 +197,57 @@ class DamageResult:
 # --- the calculation ------------------------------------------------------------
 
 
-def _move_type_and_power(move: dict, att: Battler, f: Field) -> tuple[str, int, list[int], bool]:
+# Moves whose power depends on weight, Speed or HP (the dex lists them at base power 0). The calc
+# assumes full HP, as it does elsewhere. Rules as Pokemon Showdown's basePowerCallback.
+VARIABLE_POWER = {"lowkick", "grassknot", "heavyslam", "heatcrash", "gyroball", "electroball",
+                  "reversal", "flail", "hardpress"}
+
+
+def weight(b: "Battler") -> float:
+    w = b.form.weightkg or 0.1
+    if b.ability == "heavymetal":
+        w *= 2
+    elif b.ability == "lightmetal":
+        w /= 2
+    if b.item == "floatstone":
+        w /= 2
+    return max(0.1, w)
+
+
+def speed(b: "Battler") -> int:
+    s = boosted(b.stats["spe"], b.boosts.get("spe", 0))
+    if b.item == "choicescarf":
+        s = int(s * 1.5)
+    elif b.item == "ironball":
+        s = int(s / 2)
+    return s
+
+
+def variable_power(move: dict, att: "Battler", dfn: "Battler") -> int:
+    mid = move["id"]
+    if mid in ("lowkick", "grassknot"):
+        w = weight(dfn)
+        return next(bp for limit, bp in ((200, 120), (100, 100), (50, 80), (25, 60), (10, 40), (0, 20)) if w >= limit)
+    if mid in ("heavyslam", "heatcrash"):
+        ratio = weight(att) / weight(dfn)
+        return next(bp for limit, bp in ((5, 120), (4, 100), (3, 80), (2, 60), (0, 40)) if ratio >= limit)
+    if mid == "gyroball":
+        return min(150, int(25 * speed(dfn) / max(1, speed(att))) + 1)
+    if mid == "electroball":
+        ratio = speed(att) // max(1, speed(dfn))
+        return (40, 60, 80, 120, 150)[min(ratio, 4)]
+    if mid in ("reversal", "flail"):
+        return 20      # at full HP
+    if mid == "hardpress":
+        return 100     # the target at full HP
+    return 0
+
+
+def _move_type_and_power(move: dict, att: Battler, f: Field,
+                         dfn: Battler | None = None) -> tuple[str, int, list[int], bool]:
     mtype, bp, bp_mods, ate = move["type"], move["basePower"] or 0, [], False
+    if move["id"] in VARIABLE_POWER and dfn is not None:
+        bp = variable_power(move, att, dfn)
     weather = "sun" if att.ability == "megasol" else f.weather
     if move["id"] == "weatherball" and weather:
         mtype = {"sun": "Fire", "rain": "Water", "sand": "Rock", "snow": "Ice"}[weather]
@@ -212,11 +261,13 @@ def calculate(att: Battler, dfn: Battler, move: dict, f: Field | None = None) ->
     f = f or Field()
     hp = dfn.stats["hp"]
     notes: list[str] = []
-    if move["category"] == "Status" or not move.get("basePower"):
+    if move["category"] == "Status" or not (move.get("basePower") or move["id"] in VARIABLE_POWER):
         return DamageResult([0] * 16, hp, notes=["Status move or fixed-damage move"])
 
     physical = move["category"] == "Physical"
-    mtype, bp, _, ate = _move_type_and_power(move, att, f)
+    mtype, bp, _, ate = _move_type_and_power(move, att, f, dfn)
+    if move["id"] in VARIABLE_POWER:
+        notes.append(f"{bp} base power")
     contact = "contact" in move.get("flags", [])
     weather = f.weather
     att_weather = "sun" if att.ability == "megasol" else weather
@@ -404,7 +455,9 @@ def calculate(att: Battler, dfn: Battler, move: dict, f: Field | None = None) ->
         notes.append(f"{hits} hits, each rolled the same (estimate)")
     elif isinstance(multihit, list):
         notes.append(f"hits {multihit[0]}-{multihit[1]} times; shown per hit")
-    if move.get("variablePower"):
+    if move["id"] in ("reversal", "flail", "hardpress"):
+        notes.append("power depends on HP; shown at full HP")
+    elif move.get("variablePower") and move["id"] not in VARIABLE_POWER:  # weight/Speed ones are exact
         notes.append("power changes during battle; shown at base power")
     if move["id"] == "saltcure":
         extra = "1/4" if {"Water", "Steel"} & set(dfn.types) else "1/8"
