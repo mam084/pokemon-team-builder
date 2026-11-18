@@ -6,159 +6,159 @@
   "2026-11-18"
  ],
  "reference_teams": 1200,
- "best_real_team": 0.58,
- "held_out_teams": 1669,
- "changed_share": 0.0024,
+ "best_real_team": 0.567,
+ "held_out_teams": 1704,
+ "changed_share": 0.0041,
  "ranking": {
   "without bounds": {
-   "spearman": 0.0963,
+   "spearman": 0.0908,
    "quarters": [
     {
-     "predicted": 0.4537,
-     "actual": 0.4636,
-     "teams": 418,
-     "games": 1965
+     "predicted": 0.4539,
+     "actual": 0.4657,
+     "teams": 426,
+     "games": 1999
     },
     {
      "predicted": 0.4929,
-     "actual": 0.476,
-     "teams": 417,
-     "games": 2000
+     "actual": 0.4738,
+     "teams": 426,
+     "games": 2043
     },
     {
-     "predicted": 0.5111,
-     "actual": 0.4854,
-     "teams": 417,
-     "games": 1982
+     "predicted": 0.511,
+     "actual": 0.4874,
+     "teams": 426,
+     "games": 2025
     },
     {
-     "predicted": 0.529,
-     "actual": 0.5311,
-     "teams": 417,
-     "games": 2156
+     "predicted": 0.5289,
+     "actual": 0.5298,
+     "teams": 426,
+     "games": 2199
     }
    ],
-   "max": 0.5782
+   "max": 0.5772
   },
   "with bounds": {
-   "spearman": 0.0962,
+   "spearman": 0.0907,
    "quarters": [
     {
-     "predicted": 0.4537,
-     "actual": 0.4636,
-     "teams": 418,
-     "games": 1965
+     "predicted": 0.454,
+     "actual": 0.4657,
+     "teams": 426,
+     "games": 1999
     },
     {
      "predicted": 0.4929,
-     "actual": 0.476,
-     "teams": 417,
-     "games": 2000
+     "actual": 0.4738,
+     "teams": 426,
+     "games": 2043
     },
     {
-     "predicted": 0.5111,
-     "actual": 0.4854,
-     "teams": 417,
-     "games": 1982
+     "predicted": 0.511,
+     "actual": 0.4872,
+     "teams": 426,
+     "games": 2026
     },
     {
-     "predicted": 0.529,
-     "actual": 0.5311,
-     "teams": 417,
-     "games": 2156
+     "predicted": 0.5288,
+     "actual": 0.53,
+     "teams": 426,
+     "games": 2198
     }
    ],
-   "max": 0.5782
+   "max": 0.567
   }
  },
  "objective": {
-  "teams": 1669,
+  "teams": 1704,
   "win chance": {
-   "spearman": 0.0962,
+   "spearman": 0.0907,
    "quarters": [
     {
-     "predicted": 0.4537,
-     "actual": 0.4636,
-     "teams": 418,
-     "games": 1965
+     "predicted": 0.454,
+     "actual": 0.4657,
+     "teams": 426,
+     "games": 1999
     },
     {
      "predicted": 0.4929,
-     "actual": 0.476,
-     "teams": 417,
-     "games": 2000
+     "actual": 0.4738,
+     "teams": 426,
+     "games": 2043
     },
     {
-     "predicted": 0.5111,
-     "actual": 0.4854,
-     "teams": 417,
-     "games": 1982
+     "predicted": 0.511,
+     "actual": 0.4872,
+     "teams": 426,
+     "games": 2026
     },
     {
-     "predicted": 0.529,
-     "actual": 0.5311,
-     "teams": 417,
-     "games": 2156
+     "predicted": 0.5288,
+     "actual": 0.53,
+     "teams": 426,
+     "games": 2198
     }
    ]
   },
   "team score": {
-   "spearman": 0.1577,
+   "spearman": 0.1562,
    "quarters": [
     {
-     "predicted": -2.6535,
-     "actual": 0.4317,
-     "teams": 418,
-     "games": 1888
+     "predicted": -2.5537,
+     "actual": 0.4346,
+     "teams": 426,
+     "games": 1928
     },
     {
-     "predicted": -0.26,
-     "actual": 0.486,
-     "teams": 417,
-     "games": 1969
+     "predicted": -0.242,
+     "actual": 0.4861,
+     "teams": 426,
+     "games": 2014
     },
     {
-     "predicted": 0.9116,
-     "actual": 0.4844,
-     "teams": 417,
-     "games": 2077
+     "predicted": 0.8949,
+     "actual": 0.4839,
+     "teams": 426,
+     "games": 2108
     },
     {
-     "predicted": 1.6803,
-     "actual": 0.5496,
-     "teams": 417,
-     "games": 2169
+     "predicted": 1.635,
+     "actual": 0.5478,
+     "teams": 426,
+     "games": 2216
     }
    ]
   },
   "gain_ci": [
-   0.0293,
-   0.0947
+   0.031,
+   0.0994
   ]
  },
  "search": [
   {
    "start": "Goodstuffs (Sneasler + Kingambit)",
    "without bounds": {
-    "from": 0.4949,
-    "to": 0.6274,
-    "swaps": 6,
+    "from": 0.4952,
+    "to": 0.6308,
+    "swaps": 7,
     "team": [
      "Swampert",
      "Hippowdon",
-     "Baxcalibur",
-     "Tauros-Paldea-Blaze",
+     "Dragonite",
      "Araquanid",
+     "Arcanine",
      "Sylveon"
     ]
    },
    "with bounds": {
-    "from": 0.4949,
-    "to": 0.58,
+    "from": 0.4952,
+    "to": 0.567,
     "swaps": 3,
     "team": [
      "Swampert",
-     "Sylveon",
+     "Archaludon",
      "Baxcalibur",
      "Incineroar",
      "Basculegion-M",
@@ -166,9 +166,9 @@
     ]
    },
    "team score": {
-    "from": 46,
+    "from": 45,
     "to": 99,
-    "win": 0.564,
+    "win": 0.5637,
     "swaps": 4,
     "team": [
      "Garchomp",
@@ -184,7 +184,7 @@
   {
    "start": "Sun (Charizard-Mega-Y + Garchomp)",
    "without bounds": {
-    "from": 0.5033,
+    "from": 0.503,
     "to": 0.6246,
     "swaps": 6,
     "team": [
@@ -197,11 +197,11 @@
     ]
    },
    "with bounds": {
-    "from": 0.5033,
-    "to": 0.58,
-    "swaps": 3,
+    "from": 0.503,
+    "to": 0.567,
+    "swaps": 2,
     "team": [
-     "Salamence",
+     "Charizard",
      "Garchomp",
      "Kingambit",
      "Sylveon",
@@ -210,9 +210,9 @@
     ]
    },
    "team score": {
-    "from": 44,
+    "from": 40,
     "to": 100,
-    "win": 0.5659,
+    "win": 0.5654,
     "swaps": 3,
     "team": [
      "Charizard",
@@ -222,15 +222,15 @@
      "Incineroar",
      "Venusaur"
     ],
-    "real_5of6": 103
+    "real_5of6": 104
    }
   },
   {
    "start": "Rain + Tailwind (Archaludon + Pelipper)",
    "without bounds": {
     "from": 0.4861,
-    "to": 0.6335,
-    "swaps": 6,
+    "to": 0.6323,
+    "swaps": 7,
     "team": [
      "Tinkaton",
      "Araquanid",
@@ -242,10 +242,10 @@
    },
    "with bounds": {
     "from": 0.4861,
-    "to": 0.58,
+    "to": 0.567,
     "swaps": 3,
     "team": [
-     "Sylveon",
+     "Incineroar",
      "Pelipper",
      "Golisopod",
      "Sneasler",
@@ -255,8 +255,8 @@
    },
    "team score": {
     "from": 61,
-    "to": 90,
-    "win": 0.5539,
+    "to": 88,
+    "win": 0.5535,
     "swaps": 3,
     "team": [
      "Archaludon",
