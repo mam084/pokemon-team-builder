@@ -156,20 +156,20 @@ Pokémon ranks** among about 68 candidates. This is repeated
 for every member of every team.
 
 <!-- generated:recommender -->
-Tournaments are split by date. The teammate model learned from the 2,236 oldest teams (plus replays from before the next tournaments) and the weights were tuned by grid search on the next 1,448. Every number below comes from
-1,692 teams in the 36 newest tournaments (2026-11-11 to
-2026-11-17), which neither ever saw.
+Tournaments are split by date. The teammate model learned from the 2,223 oldest teams (plus replays from before the next tournaments) and the weights were tuned by grid search on the next 1,471. Every number below comes from
+1,694 teams in the 36 newest tournaments (2026-11-11 to
+2026-11-18), which neither ever saw.
 
 | model | top 1 | top 5 | top 10 | MRR |
 |---|---|---|---|---|
-| tuned weights | 56.6% | 79.2% | 85.9% | 0.668 |
-| hand-set weights | 17.8% | 46.8% | 62.5% | 0.325 |
-| synergy only | 56.6% | 79.2% | 85.9% | 0.668 |
-| popularity only | 6.3% | 36.4% | 50.5% | 0.208 |
-| before: lift synergy | 47.6% | 71.3% | 79.2% | 0.584 |
+| tuned weights | 56.0% | 78.9% | 85.7% | 0.664 |
+| hand-set weights | 17.5% | 46.7% | 62.1% | 0.322 |
+| synergy only | 56.0% | 78.9% | 85.7% | 0.664 |
+| popularity only | 6.3% | 36.3% | 50.3% | 0.208 |
+| before: lift synergy | 47.2% | 70.6% | 78.8% | 0.579 |
 | random | 1.5% | 7.3% | 14.7% | 0.071 |
 
-- The tuned weights find the missing Pokémon **first try 57% of the
+- The tuned weights find the missing Pokémon **first try 56% of the
   time** and in the top 10 86% of the time: 106% better MRR than the
   weights the recommender originally shipped with.
 <!-- /generated:recommender -->
@@ -238,17 +238,17 @@ size, so recommendations use who players pair, not pair win rates.
 
 The Matchups tab scores your team against others with damage calcs and Speed.
 <!-- generated:validation -->
-`src/validate.py` checks that score against **11,981 real Limitless
+`src/validate.py` checks that score against **12,018 real Limitless
 matches** where both players' team lists are known: each pair of teams is
 scored against each other, a win-chance curve is fitted on the older
-8,109 matches, and it's judged on the newest 3,872
-(2026-11-11 to 2026-11-17).
+8,134 matches, and it's judged on the newest 3,884
+(2026-11-11 to 2026-11-18).
 
 | model | picks the winner | log loss |
 |---|---|---|
-| team vs team (bring 4) | 51.6% | 0.6934 |
-| team vs team (all 6) | 51.7% | 0.6931 |
-| score vs the meta | 51.4% | 0.6926 |
+| team vs team (bring 4) | 51.6% | 0.6935 |
+| team vs team (all 6) | 51.5% | 0.6932 |
+| score vs the meta | 51.4% | 0.6927 |
 | popularity | 50.8% | 0.6927 |
 | coin flip | 50.0% | 0.6931 |
 
@@ -296,21 +296,21 @@ Each match becomes a row of differences (player 1 minus player 2):
 An L2-regularized logistic regression is fitted on both orientations of every
 match (so swapping the players exactly flips the prediction). Its settings are
 <!-- generated:learned -->
-chosen by forward-chaining cross-validation inside the older 8,177
-matches, and it's tested once on the newest 3,804
-(2026-11-11 to 2026-11-17):
+chosen by forward-chaining cross-validation inside the older 8,195
+matches, and it's tested once on the newest 3,823
+(2026-11-12 to 2026-11-18):
 
 | model | picks the winner | log loss | AUC |
 |---|---|---|---|
-| learned model (skill + team) | 58.8% | 0.6678 | 0.621 |
-| player skill only | 58.4% | 0.6690 | 0.619 |
-| team only | 53.4% | 0.6905 | 0.541 |
-| damage-calc matchup score | 51.5% | 0.6928 | 0.520 |
-| popularity only | 50.8% | 0.6927 | 0.520 |
+| learned model (skill + team) | 58.8% | 0.6685 | 0.619 |
+| player skill only | 57.9% | 0.6692 | 0.618 |
+| team only | 53.2% | 0.6910 | 0.538 |
+| damage-calc matchup score | 51.5% | 0.6930 | 0.519 |
+| popularity only | 50.8% | 0.6926 | 0.521 |
 | coin flip | 50.0% | 0.6931 | 0.500 |
 
 - **Who's playing matters most**, but the team adds real signal on top: log-loss
-  gain -0.0016 to +0.0039 over ratings alone (95% paired bootstrap).
+  gain -0.0021 to +0.0036 over ratings alone (95% paired bootstrap).
 <!-- /generated:learned -->
 
 **Upgrades tried and rejected (Nov 2026, `scripts/match_lab.py`, `scripts/match_lab2.py`).** None beat
@@ -373,29 +373,29 @@ the Matchups tab, and swaps can't climb past the best real team. `python -m src.
 the held-out week:
 
 <!-- generated:teamcheck -->
-Fitted on data before 2026-11-11; bounds from 1,200 real teams from before then
-(the best scores 58.5% vs the meta). **Ranking the 1,660 held-out teams**
+Fitted on data before 2026-11-12; bounds from 1,200 real teams from before then
+(the best scores 58.0% vs the meta). **Ranking the 1,669 held-out teams**
 by win chance vs the meta, then checking how they actually did:
 
 | teams, by win chance | without bounds: said | won | with bounds: said | won |
 |---|---|---|---|---|
-| lowest quarter | 45.6% | 46.0% | 45.6% | 46.0% |
-| 2nd quarter | 49.5% | 48.1% | 49.5% | 48.1% |
-| 3rd quarter | 51.4% | 48.6% | 51.4% | 48.6% |
-| highest quarter | 53.2% | 53.2% | 53.2% | 53.2% |
+| lowest quarter | 45.4% | 46.4% | 45.4% | 46.4% |
+| 2nd quarter | 49.3% | 47.6% | 49.3% | 47.6% |
+| 3rd quarter | 51.1% | 48.5% | 51.1% | 48.5% |
+| highest quarter | 52.9% | 53.1% | 52.9% | 53.1% |
 
-Rank correlation with real records: 0.097 without bounds, 0.097 with. The
-bounds moved 0.5% of real teams by more than 0.1 points.
+Rank correlation with real records: 0.096 without bounds, 0.096 with. The
+bounds moved 0.2% of real teams by more than 0.1 points.
 
 **Keep applying the best swap** (Neutral, any role) from the most popular meta teams:
 
 | start | ends at, without bounds | with bounds |
 |---|---|---|
-| Goodstuffs (Sneasler + Kingambit) | 63.5% | 58.5% |
-| Sun (Charizard-Mega-Y + Garchomp) | 62.5% | 58.5% |
-| Rain + Tailwind (Archaludon + Pelipper) | 63.7% | 58.5% |
+| Goodstuffs (Sneasler + Kingambit) | 62.7% | 58.0% |
+| Sun (Charizard-Mega-Y + Garchomp) | 62.5% | 58.0% |
+| Rain + Tailwind (Archaludon + Pelipper) | 63.3% | 58.0% |
 
-Without bounds the search walks to 63%-64%, past every real team; with them it stops at the best
+Without bounds the search walks to 62%-63%, past every real team; with them it stops at the best
 real team's score.
 <!-- /generated:teamcheck -->
 
@@ -414,14 +414,14 @@ replays are saved publicly each day.
 choices on the newest replays (rates and model fitted on older ones):
 
 <!-- generated:bring -->
-174,257 replays; tested on 19,576 team previews.
+175,424 replays; tested on 19,647 team previews.
 
 | | bring-4 | lead pair |
 |---|---|---|
-| learned bring / lead model | 72.0% | 43.3% |
-| players' usual picks (bring / lead rates) | 70.8% | 42.9% |
-| damage-calc game plan | 68.0% | 34.5% |
-| random | 66.7% | 33.2% |
+| learned bring / lead model | 72.0% | 43.5% |
+| players' usual picks (bring / lead rates) | 70.8% | 43.0% |
+| damage-calc game plan | 68.0% | 34.4% |
+| random | 66.7% | 33.5% |
 <!-- /generated:bring -->
 
 The damage-calc plan barely beats random: real choices depend on more than
