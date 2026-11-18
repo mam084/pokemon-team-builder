@@ -1,0 +1,163 @@
+{
+ "regulation": "regmc",
+ "cut": "2026-11-11",
+ "test_dates": [
+  "2026-11-11",
+  "2026-11-17"
+ ],
+ "reference_teams": 1200,
+ "best_real_team": 0.5853,
+ "held_out_teams": 1660,
+ "changed_share": 0.0054,
+ "ranking": {
+  "without bounds": {
+   "spearman": 0.0971,
+   "quarters": [
+    {
+     "predicted": 0.4561,
+     "actual": 0.4595,
+     "teams": 415,
+     "games": 1937
+    },
+    {
+     "predicted": 0.4953,
+     "actual": 0.4808,
+     "teams": 415,
+     "games": 2028
+    },
+    {
+     "predicted": 0.5139,
+     "actual": 0.486,
+     "teams": 415,
+     "games": 1963
+    },
+    {
+     "predicted": 0.5317,
+     "actual": 0.5317,
+     "teams": 415,
+     "games": 2144
+    }
+   ],
+   "max": 0.5799
+  },
+  "with bounds": {
+   "spearman": 0.0971,
+   "quarters": [
+    {
+     "predicted": 0.4562,
+     "actual": 0.4595,
+     "teams": 415,
+     "games": 1937
+    },
+    {
+     "predicted": 0.4953,
+     "actual": 0.4808,
+     "teams": 415,
+     "games": 2028
+    },
+    {
+     "predicted": 0.5139,
+     "actual": 0.486,
+     "teams": 415,
+     "games": 1963
+    },
+    {
+     "predicted": 0.5317,
+     "actual": 0.5317,
+     "teams": 415,
+     "games": 2144
+    }
+   ],
+   "max": 0.5799
+  }
+ },
+ "search": [
+  {
+   "start": "Goodstuffs (Sneasler + Kingambit)",
+   "without bounds": {
+    "from": 0.4945,
+    "to": 0.6351,
+    "swaps": 7,
+    "team": [
+     "Swampert",
+     "Sylveon",
+     "Dragonite",
+     "Umbreon",
+     "Araquanid",
+     "Hippowdon"
+    ]
+   },
+   "with bounds": {
+    "from": 0.4945,
+    "to": 0.5853,
+    "swaps": 3,
+    "team": [
+     "Swampert",
+     "Hippowdon",
+     "Baxcalibur",
+     "Incineroar",
+     "Basculegion-M",
+     "Floette-Eternal"
+    ]
+   }
+  },
+  {
+   "start": "Sun (Charizard-Mega-Y + Garchomp)",
+   "without bounds": {
+    "from": 0.5021,
+    "to": 0.6253,
+    "swaps": 6,
+    "team": [
+     "Baxcalibur",
+     "Umbreon",
+     "Araquanid",
+     "Sylveon",
+     "Tauros-Paldea-Blaze",
+     "Hippowdon"
+    ]
+   },
+   "with bounds": {
+    "from": 0.5021,
+    "to": 0.5853,
+    "swaps": 3,
+    "team": [
+     "Metagross",
+     "Garchomp",
+     "Kingambit",
+     "Sylveon",
+     "Incineroar",
+     "Hippowdon"
+    ]
+   }
+  },
+  {
+   "start": "Rain + Tailwind (Archaludon + Pelipper)",
+   "without bounds": {
+    "from": 0.4855,
+    "to": 0.6374,
+    "swaps": 7,
+    "team": [
+     "Tinkaton",
+     "Araquanid",
+     "Dragonite",
+     "Sylveon",
+     "Swampert",
+     "Hippowdon"
+    ]
+   },
+   "with bounds": {
+    "from": 0.4855,
+    "to": 0.5853,
+    "swaps": 3,
+    "team": [
+     "Sylveon",
+     "Pelipper",
+     "Golisopod",
+     "Sneasler",
+     "Swampert",
+     "Hippowdon"
+    ]
+   }
+  }
+ ]
+}

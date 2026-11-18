@@ -345,6 +345,60 @@ predicts with both players rated equal, so win chances compare *teams*.
 `python -m src.ratings` and `python -m src.match_model` reproduce this; the
 monthly refresh retrains it.
 
+## Is the "best" team really that good? (trust bounds)
+
+Keep tapping the top swap and the model used to walk any team to about **66% vs the meta**, always the
+same way: Armarouge, Araquanid, Swampert and Bastiodon, **four Wide Guard users**. The model counts each
+tool user (about +2 points each), so four of them were worth +8 points of the +16, while the damage calcs
+added nothing. No tournament team has ever run more than two (0.1% of team sheets have two), nobody had
+played even three of those six Pokémon together, and the best of 5,376 real teams scores 59%. The search
+was finding where the model is most wrong, not a better team.
+
+**Diminishing returns can't be learned from tournaments.** Counting tool users capped at 1 or 2, square-rooted
+or logged all tie the linear count on the held-out week (log-loss differences within ±0.001), because there
+are almost no teams that stack. Capping alone doesn't fix the search either: it then collects one of every
+favored tool at once (Trick Room, Wide Guard, Yawn, a setup move, no Fake Out), each within what real teams do
+but adding up to +16 points when the best real team gets +6.
+
+**Bo3 replays** (`scripts/tool_count_lab.py`; 75,599 rated games with open team sheets, never used to fit the
+model) do show diminishing returns: extra Intimidate (-1.8 points each), redirection (-1.4), Helping Hand (-5.2)
+and terrain (-3.3) users hurt, and only Tailwind gains from a second setter (+2.4). They also show the
+tournament-learned tool effects don't carry over: on those games they predict worse than player ratings alone,
+counted linearly or capped.
+
+So the fix is in the search, not the model: **trust bounds** (`src/match_model.trust_bounds`). Each feature's
+push, the total, and the win chance vs the meta are capped at what real tournament teams reach (rebuilt with
+the team rating reference, `python -m src.team_rating`). A team past them gets a one-line *Untested* note on
+the Matchups tab, and swaps can't climb past the best real team. `python -m src.team_check` tests this on
+the held-out week:
+
+<!-- generated:teamcheck -->
+Fitted on data before 2026-11-11; bounds from 1,200 real teams from before then
+(the best scores 58.5% vs the meta). **Ranking the 1,660 held-out teams**
+by win chance vs the meta, then checking how they actually did:
+
+| teams, by win chance | without bounds: said | won | with bounds: said | won |
+|---|---|---|---|---|
+| lowest quarter | 45.6% | 46.0% | 45.6% | 46.0% |
+| 2nd quarter | 49.5% | 48.1% | 49.5% | 48.1% |
+| 3rd quarter | 51.4% | 48.6% | 51.4% | 48.6% |
+| highest quarter | 53.2% | 53.2% | 53.2% | 53.2% |
+
+Rank correlation with real records: 0.097 without bounds, 0.097 with. The
+bounds moved 0.5% of real teams by more than 0.1 points.
+
+**Keep applying the best swap** (Neutral, any role) from the most popular meta teams:
+
+| start | ends at, without bounds | with bounds |
+|---|---|---|
+| Goodstuffs (Sneasler + Kingambit) | 63.5% | 58.5% |
+| Sun (Charizard-Mega-Y + Garchomp) | 62.5% | 58.5% |
+| Rain + Tailwind (Archaludon + Pelipper) | 63.7% | 58.5% |
+
+Without bounds the search walks to 63%-64%, past every real team; with them it stops at the best
+real team's score.
+<!-- /generated:teamcheck -->
+
 ## Battle replays
 
 A daily GitHub Action (`scripts/fetch_replays.py`, **Fetch replays** workflow)
@@ -476,7 +530,9 @@ The tests check:
 │   ├── cooccurrence.py       tournament team pairings as a second synergy source
 │   ├── evaluate.py           hide-one-member evaluation on real tournament teams
 │   ├── validate.py           does the matchup score predict real match winners?
-│   ├── match_model.py        learned win-chance model from real matches
+│   ├── match_model.py        learned win-chance model from real matches, with trust bounds
+│   ├── team_rating.py        team rating vs real tournament teams; builds the trust bounds
+│   ├── team_check.py         held-out team ranking and swap-search check (trust bounds)
 │   ├── ratings.py            leak-free Elo ratings for tournament players
 │   ├── replay_parse.py       Showdown battle log -> compact record
 │   ├── replays.py            replay stats; does the game plan match real choices?
@@ -486,6 +542,7 @@ The tests check:
 │   ├── fetch_usage.py        Smogon → data/usage
 │   ├── fetch_tournaments.py  Limitless → data/tournaments
 │   ├── evaluate.py           runs the evaluation → data/evaluation
+│   ├── tool_count_lab.py     diminishing returns for support tools (tournaments and Bo3)
 │   └── make_damage_vectors.js  Showdown → damage test vectors
 ├── data/                     generated data (committed so the app runs without setup)
 ├── tests/                    unittest suite and fixtures
@@ -508,3 +565,4 @@ The tests check:
 - [x] Learned win-chance model (support tools, Pokémon effects) from 12,000 real matches
 - [x] Learned teammate model (whole-team synergy from tournament and ladder teams), measured with the same evaluation
 - [x] Deploy to Streamlit Community Cloud
+- [x] Trust bounds: the swap search can't rate a team past the best real tournament team

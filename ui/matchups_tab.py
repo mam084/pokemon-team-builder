@@ -18,7 +18,7 @@ from src.matchup import (best_attack, best_variant, build_archetypes, counter_pi
 from src.bring_model import load_model as load_bring_model
 from src.bring_model import pick as bring_pick
 from src.gameplan import game_plan
-from src.match_model import explain, load_model, predict_match, team_side
+from src.match_model import GROUPS, beyond, cap_chance, explain, load_model, predict_match, team_side
 from src.recommend import MODES
 from src.replays import load_summary, usual_picks
 from src.roles import meta_roles, role_text
@@ -136,6 +136,31 @@ def learned_chances(fmt_id: str, key: str) -> list[float]:
     engine = swap_engine_for(fmt_id)
     mine = [team_side(members, team, dex, usage, engine) for _, members in mega_variants(team, dex)]
     return [max(predict_match(model, m, theirs) for m in mine) for theirs in sides]
+
+
+@st.cache_data(show_spinner=False, max_entries=64)
+def untested_parts(fmt_id: str, key: str) -> list[str]:
+    """What this team does past every real tournament team (so its win chance is capped there)."""
+    model, sides = learned_meta_sides(fmt_id)
+    if model is None or not model.get("trust"):
+        return []
+    fmt = FORMATS[fmt_id]
+    dex, usage = load_dex(fmt.regulation), load_usage(fmt_id)
+    team = _unkey(key)
+    engine = swap_engine_for(fmt_id)
+    mine = [team_side(members, team, dex, usage, engine) for _, members in mega_variants(team, dex)]
+    found: set[str] = set()
+    for theirs in sides:
+        found |= beyond(model, max(mine, key=lambda m: predict_match(model, m, theirs)), theirs)
+    return sorted({untested_label(f) for f in found})
+
+
+def untested_label(feature: str) -> str:
+    if feature.startswith("tool: "):
+        return feature[len("tool: "):]
+    group = next((g for g, fs in GROUPS.items() if feature in fs), None)
+    return {"Damage calcs": "damage", "Speed": "Speed", "Bulk": "bulk"}.get(group or "",
+                                                                            "this combination" if feature == "total" else feature)
 
 
 FAVORED = 0.53  # a matchup counts as favorable at 53%+ to win (unfavorable at 47% or less)
@@ -287,13 +312,18 @@ def matchups_tab(fmt_id, team, members, dex, usage, fmt) -> None:
         chances = learned_chances(fmt_id, team_key(team))
         if chances:
             # one yardstick everywhere: the learned win chance (the calc score stays as a column)
-            avg = float(np.average(chances, weights=weights))
+            avg = cap_chance(learned_meta_sides(fmt_id)[0], float(np.average(chances, weights=weights)))
             c[0].metric("Win chance", f"{avg:.0%}", help="Usage-weighted average win chance against the meta "
-                                                         "teams below, from the learned model (equal players)")
+                                                         "teams below, from the learned model (equal players). "
+                                                         "Capped at the best real tournament team's.")
             c[1].metric("Favorable", sum(p >= FAVORED for p in chances), help=f"{FAVORED:.0%}+ to win")
             c[2].metric("Even", sum(1 - FAVORED < p < FAVORED for p in chances))
             c[3].metric("Unfavorable", sum(p <= 1 - FAVORED for p in chances), help=f"{1 - FAVORED:.0%} or less")
             table.insert(2, "win chance", [round(100 * p) for p in chances])
+            untested = untested_parts(fmt_id, team_key(team))
+            if untested:
+                st.caption(f"⚠️ Untested: no real tournament team goes as far on {', '.join(untested)}. "
+                           "Win chances are capped at what real teams reach, since the data can't say more.")
             table["verdict"] = [chance_verdict(p) for p in chances]
             table = table.drop(columns=["score"])  # one yardstick: win chance
         else:
@@ -552,8 +582,14 @@ def swaps_section(team, dex, usage, fmt, threats: pd.DataFrame) -> None:
                 "member's job.")
         return
     if swaps.empty:
+        engine = swap_engine_for(fmt.id)
+        trust = (getattr(engine, "model", None) or {}).get("trust")
+        at_cap = (not focus_name and trust is not None
+                  and (engine.win_chance(team) or 0) >= trust["chance"][1] - 1e-9)
         st.success("No single swap improves this without hurting the overall matchup. Your team already "
                    "handles it about as well as one change can." if focus_name else
+                   "Your team is already rated as high as any real tournament team. Past that the data can't "
+                   "tell teams apart, so no swap is shown as better." if at_cap else
                    "No single swap improves the overall matchup.")
         return
     st.caption(base_text(swaps))
