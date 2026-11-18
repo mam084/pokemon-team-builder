@@ -14,7 +14,7 @@ import unittest
 from unittest import mock
 from pathlib import Path
 
-from src.analysis import (build_members, mega_variants, coverage_vs_meta, defense_matrix, defense_summary,
+from src.analysis import (build_members, offense_by_type, mega_variants, coverage_vs_meta, defense_matrix, defense_summary,
                           role_checklist, speed_table)
 from src.dex import load_dex, to_id
 from src.evaluate import evaluate, load_tournament_teams, split_by_date
@@ -138,6 +138,59 @@ class TestTypeChart(unittest.TestCase):
         self.assertEqual(ability_defensive_multiplier(["dragon"], "ground", "levitate"), 0.0)
         self.assertEqual(ability_defensive_multiplier(["rock"], "ghost", "purifyingsalt"), 0.5)
         self.assertEqual(ability_defensive_multiplier(["fire", "dark"], "water", "intimidate"), 2.0)
+
+
+class TestVariablePower(unittest.TestCase):
+    """Weight-, Speed- and HP-based moves (the dex lists them at base power 0). Rules match Pokemon
+    Showdown's basePowerCallback: 500 random weight/Speed pairs agreed when this was written."""
+
+    @staticmethod
+    def battler(weight=100.0, spe=100, ability="", item=""):
+        from types import SimpleNamespace
+        from src.damage import Battler
+        return Battler(form=SimpleNamespace(weightkg=weight), stats={"spe": spe}, ability=ability, item=item)
+
+    def test_power_rules(self):
+        from src.damage import variable_power
+        b = self.battler
+        self.assertEqual(variable_power({"id": "lowkick"}, b(), b(weight=240)), 120)    # Garganacl
+        self.assertEqual(variable_power({"id": "grassknot"}, b(), b(weight=43)), 60)    # Sneasler
+        self.assertEqual(variable_power({"id": "lowkick"}, b(), b(weight=9.9)), 20)
+        self.assertEqual(variable_power({"id": "heavyslam"}, b(weight=500), b(weight=100)), 120)
+        self.assertEqual(variable_power({"id": "heatcrash"}, b(weight=150), b(weight=100)), 40)
+        self.assertEqual(variable_power({"id": "heavyslam"}, b(weight=150, ability="heavymetal"), b(weight=100)), 80)
+        self.assertEqual(variable_power({"id": "lowkick"}, b(), b(weight=240, item="floatstone")), 100)
+        self.assertEqual(variable_power({"id": "gyroball"}, b(spe=50), b(spe=200)), 101)
+        self.assertEqual(variable_power({"id": "gyroball"}, b(spe=20), b(spe=300)), 150)
+        self.assertEqual(variable_power({"id": "electroball"}, b(spe=200), b(spe=50)), 150)
+        self.assertEqual(variable_power({"id": "electroball"}, b(spe=50, item="choicescarf"), b(spe=100)), 40)
+        self.assertEqual(variable_power({"id": "reversal"}, b(), b()), 20)
+
+    def test_low_kick_does_damage(self):
+        dex = load_dex("regmc")
+        if dex.get_species("Kingambit") is None or not dex.get_species("Kingambit").weightkg:
+            self.skipTest("dex without weights")
+        from src.damage import calc_sets
+        king = PokemonSet(species="Kingambit", item="Black Glasses", ability="Defiant", nature="Adamant",
+                          moves=["Low Kick"], sps={"atk": 32, "hp": 32})
+        target = PokemonSet(species="Incineroar", ability="Intimidate", moves=["Fake Out"])
+        result = calc_sets(king, target, "Low Kick", dex)
+        self.assertGreater(min(result.rolls), 0)
+        self.assertIn("80 base power", result.notes)   # Incineroar weighs 83 kg
+
+    def test_pixilate_and_low_kick_coverage(self):
+        dex = load_dex("regmc")
+        team, _ = parse_paste("""Sylveon @ Fairy Feather
+Ability: Pixilate
+- Hyper Voice
+
+Kingambit @ Black Glasses
+Ability: Defiant
+- Low Kick
+""", dex)
+        off = offense_by_type(build_members(team, dex))
+        self.assertEqual(off.loc["Dark", "best"], 2.0)     # Pixilate Hyper Voice is Fairy
+        self.assertEqual(off.loc["Normal", "best"], 2.0)   # Low Kick is Fighting
 
 
 class TestStats(unittest.TestCase):

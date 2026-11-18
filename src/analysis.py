@@ -49,13 +49,18 @@ class Member:
 
     @property
     def damaging_moves(self) -> list[dict]:
-        return [m for m in self.moves if m["category"] != "Status" and (m["basePower"] or 0) > 0]
+        """Attacks the damage calc can run, including those whose power depends on weight, Speed
+        or HP (Low Kick, Gyro Ball...), which the dex lists at base power 0."""
+        from src.damage import VARIABLE_POWER as CALCULATED
+        return [m for m in self.moves if m["category"] != "Status"
+                and ((m["basePower"] or 0) > 0 or m["id"] in CALCULATED)]
 
     @property
     def coverage_moves(self) -> list[dict]:
-        """Moves that hit by type matchup: damaging moves plus those whose power varies (Low Kick,
-        Grass Knot, Gyro Ball...), which the dex lists at base power 0."""
-        return self.damaging_moves + [m for m in self.moves if m["id"] in VARIABLE_POWER]
+        """Moves that hit by type matchup: damaging moves plus Beat Up and Fling, whose power the
+        calc doesn't model but whose type still counts."""
+        return self.damaging_moves + [m for m in self.moves if m["id"] in VARIABLE_POWER
+                                      and not ((m["basePower"] or 0) > 0) and m not in self.damaging_moves]
 
 
 def build_members(team: list[PokemonSet], dex: Dex, evolve: int | None | str = "all") -> list[Member]:
