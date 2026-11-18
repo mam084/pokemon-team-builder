@@ -384,8 +384,8 @@ by win chance vs the meta, then checking how they actually did:
 | teams, by win chance | without bounds: said | won | with bounds: said | won |
 |---|---|---|---|---|
 | lowest quarter | 45.4% | 46.4% | 45.4% | 46.4% |
-| 2nd quarter | 49.3% | 47.6% | 49.3% | 47.6% |
-| 3rd quarter | 51.1% | 48.5% | 51.1% | 48.5% |
+| 2nd quarter | 49.3% | 47.5% | 49.3% | 47.5% |
+| 3rd quarter | 51.1% | 48.6% | 51.1% | 48.6% |
 | highest quarter | 52.9% | 53.1% | 52.9% | 53.1% |
 
 Rank correlation with real records: 0.096 without bounds, 0.096 with. The

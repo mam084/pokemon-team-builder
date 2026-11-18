@@ -11,7 +11,7 @@
  "changed_share": 0.0024,
  "ranking": {
   "without bounds": {
-   "spearman": 0.0963,
+   "spearman": 0.0962,
    "quarters": [
     {
      "predicted": 0.4537,
@@ -21,13 +21,13 @@
     },
     {
      "predicted": 0.4929,
-     "actual": 0.476,
+     "actual": 0.4755,
      "teams": 417,
      "games": 2000
     },
     {
      "predicted": 0.5111,
-     "actual": 0.4854,
+     "actual": 0.4859,
      "teams": 417,
      "games": 1982
     },
@@ -51,13 +51,13 @@
     },
     {
      "predicted": 0.4929,
-     "actual": 0.476,
+     "actual": 0.4755,
      "teams": 417,
      "games": 2000
     },
     {
      "predicted": 0.5111,
-     "actual": 0.4854,
+     "actual": 0.4859,
      "teams": 417,
      "games": 1982
     },
