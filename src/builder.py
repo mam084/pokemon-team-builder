@@ -36,6 +36,7 @@ class BuiltTeam:
     reasons: list[str] = field(default_factory=list)   # why each added Pokemon was picked
     meta_score: float | None = None
     rating: float | None = None                        # src.team_rating combined z-score
+    chance: float | None = None                        # learned win chance vs the meta
     percentile: float | None = None                    # share of tournament teams it rates above
     theme: str = ""                                    # e.g. "Sand" when seeded by a sand setter
 
@@ -46,11 +47,14 @@ def _set_for(name: str, team: list[PokemonSet], dex: Dex, usage: UsageData) -> P
     return usage.popular_set(name, dex, taken_items=taken, allow_mega=megas < MAX_MEGAS, team=team)
 
 
+ANCHOR_WEIGHT = 1.0  # how many times the core's pairings count while filling (tested: builder_lab)
+
+
 def _complete(team: list[PokemonSet], reasons: list[str], dex: Dex, usage: UsageData, doubles: bool,
               mode: str, weights: dict | None) -> None:
     while len(team) < TEAM_SIZE:
         recs = recommend(build_members(team, dex), dex, usage, doubles=doubles, weights=weights,
-                         top_n=15, mode=mode)
+                         top_n=15, mode=mode, anchor=team[0].species, anchor_weight=ANCHOR_WEIGHT)
         added = False
         for _, row in recs.iterrows():
             pset = _set_for(row["pokemon"], team, dex, usage)
@@ -121,7 +125,8 @@ def _rate(teams: list[BuiltTeam], dex: Dex, usage: UsageData, archetypes, regula
         fit = R.teammate_fit(t.sets, dex, usage.teammates)
         if fit is None:
             return False
-        t.rating = R.combined(fit, R.learned_vs_meta(t.sets, dex, usage, model, sides, weights), ref)
+        t.chance = R.learned_vs_meta(t.sets, dex, usage, model, sides, weights)
+        t.rating = R.combined(fit, t.chance, ref)
         t.percentile = R.percentile(t.rating, ref)
     teams.sort(key=lambda t: -t.rating)
     return True

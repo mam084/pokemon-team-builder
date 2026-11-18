@@ -221,11 +221,15 @@ def recommend(
     pool_size: int = 80,
     raw: bool = False,
     mode: str = "popular",
+    anchor: str | None = None,
+    anchor_weight: float = 1.0,
 ) -> pd.DataFrame:
     """
     Rank candidates for the next slot. With raw=True, return every candidate
     (unsorted, with a "root" column and the un-blended component scores) so
     callers such as src/evaluate.py can re-rank under any weights cheaply.
+    anchor: a member (species) whose pairings count anchor_weight times, so a team built around
+    a rarely used core keeps pairing with it instead of with its popular teammates.
     """
     base_weights = DEFAULT_WEIGHTS if mode == "popular" else EXPLORE_WEIGHTS
     weights = {**base_weights, **(weights or {})}
@@ -273,6 +277,9 @@ def recommend(
         team_roots = [dex.sheet_id(m.form) for m in members]
         team_ids = [tm.index[r] for r in team_roots if r in tm.index]
         fit_vec = tm.W[team_ids].sum(0) if team_ids else np.zeros(len(tm.vocab))
+        anchor_root = dex.sheet_id(dex.get_species(anchor)) if anchor and dex.get_species(anchor) else None
+        if anchor_root in tm.index and anchor_weight != 1.0:
+            fit_vec = fit_vec + (anchor_weight - 1.0) * tm.W[tm.index[anchor_root]]
         conf = tm.confidence()
         b_mid = float(np.median(tm.b))
         root_label = {dex.sheet_id(m.form): (m.pset.species if m.pset is not None else m.label) for m in members}

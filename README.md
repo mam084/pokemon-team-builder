@@ -429,6 +429,39 @@ team score. Keep applying the best swap that way (any role, bounds on):
 | Rain + Tailwind (Archaludon + Pelipper) | 61 → 88 | 55.4% | 5 |
 <!-- /generated:teamcheck -->
 
+## Two lenses: proven, and on paper
+
+Tournament data can only vouch for combinations people play, so one grade built from it marks every
+off-meta team down, good or bad. The Matchups tab's **Team check** shows two lenses instead:
+
+- **Proven** (Strong / Solid / Shaky / Weak): how often strong players bring these Pokémon together,
+  ranked among real tournament teams. When half the team or more is on few ladder teams it says
+  **Untested**: the data can't judge it, which isn't a mark against it.
+- **On paper**: the learned win chance against the meta teams (damage calcs, Speed, bulk, support
+  moves), ranked the same way. Popularity plays no part.
+
+Both tracked real results on the held-out week. Swaps use the team score, which combines them.
+
+**Are Hidden gems picks any good?** (`scripts/hidden_gems_lab.py`) Tournaments can't say, but ladder and
+Bo3 replays can: about 100,000 rated games with both teams' previews. Each Pokémon's win edge, adjusted for
+both players' ratings, then the edge of each style's top 3 picks for 300 real teams missing one member,
+against the rest of what that style could pick:
+
+| style | its picks | its pool | difference (90% range) |
+|---|---|---|---|
+| Popular picks | +0.45 | +0.89 | -0.45 (-0.62 to -0.32) |
+| Neutral | +0.53 | +0.27 | +0.26 (-0.02 to +0.47) |
+| Hidden gems | +0.58 | +0.18 | **+0.40 (+0.07 to +0.98)** |
+
+(points of win chance.) Hidden gems' picks win more than the uncommon Pokémon it passes over, and about as
+much as the average common one (+0.64); Popular picks chases usage, not wins.
+
+**Builder fixes** (`scripts/builder_lab.py`, held-out week): no credit for starting Tailwind on a team that
+already runs Trick Room, or the reverse (Staraptor's Tailwind "helping" the Trick Room setter). Neutral
+builds with both fell from 33% to 21% and leaned toward the week's winning teams a little more (+0.084 to
++0.101). Counting the core's pairings twice made 93-96% of picks pair with the core (from 86-91%), but its
+gain toward winners (+0.047, 95% -0.003 to +0.102) didn't clear zero, so it is off (`ANCHOR_WEIGHT = 1`).
+
 ## Battle replays
 
 A daily GitHub Action (`scripts/fetch_replays.py`, **Fetch replays** workflow)

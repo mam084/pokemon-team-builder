@@ -643,6 +643,24 @@ class TestPlanBuilderSwaps(unittest.TestCase):
         self.assertEqual([grade(p)[0] for p in (100, 75, 74.9, 50, 49, 25, 24, 0)],
                          ["Strong", "Strong", "Solid", "Solid", "Shaky", "Shaky", "Weak", "Weak"])
 
+    def test_lenses(self):
+        """Proven is left untested for off-meta teams instead of marked down; On paper always grades."""
+        from src.team_rating import lenses, load_reference
+        ref = load_reference("regmc")
+        if not ref or "fit_sorted" not in ref or self.usage.teammates is None:
+            self.skipTest("team rating reference not built")
+        team, _ = parse_paste(GARGANACL_TEAM, self.dex)
+        seen = lenses(team, self.dex, self.usage, 0.5, ref)
+        self.assertIn(seen["proven"][0], {"Strong", "Solid", "Shaky", "Weak", "Untested"})
+        self.assertIn(seen["paper"][0], {"Strong", "Solid", "Shaky", "Weak"})
+        from src.recommend import HIDDEN_MAX
+        sheet = self.usage.team_sheet_usage(self.dex)
+        rare = [n for n, pct in sheet.items() if pct < HIDDEN_MAX and self.usage.popular_set(n, self.dex)]
+        off = [self.usage.popular_set(n, self.dex) for n in rare[:6]]
+        if len(off) == 6:
+            self.assertEqual(lenses(off, self.dex, self.usage, 0.5, ref)["proven"][0], "Untested")
+        self.assertIsNone(lenses(team[:4], self.dex, self.usage, 0.5, ref))  # a full team only
+
     def test_swaps_by_team_score(self):
         """With the team rating attached, best swaps rank by it and only ever raise it."""
         from src.match_model import load_model

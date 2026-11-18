@@ -103,6 +103,37 @@ def grade(pct: float) -> tuple[str, str]:
     return next((w, e) for floor, w, e in GRADES if pct >= floor)
 
 
+# Two lenses instead of one grade. Tournament data can only vouch for combinations people play, so
+# an off-meta team isn't graded on that lens at all ("untested") rather than marked down for it.
+#   Proven:   teammate fit, how often strong players bring these Pokemon together.
+#   On paper: the learned win chance vs the meta teams: damage calcs, Speed, bulk and support moves,
+#             with no popularity in it. Both tracked real results on the held-out week.
+OFF_META_SHARE = 0.5  # off-meta when at least half the team is on few ladder teams (as the Analysis tab)
+
+
+def _pct(value: float, sorted_values: list[float]) -> float:
+    s = np.asarray(sorted_values)
+    return float(100 * np.searchsorted(s, value) / len(s))
+
+
+def lenses(sets, dex: Dex, usage, chance: float | None, ref: dict | None) -> dict | None:
+    """{"proven": (word | "Untested", percentile | None), "paper": (word, percentile), "off_meta": n}."""
+    if chance is None or ref is None or "fit_sorted" not in ref or len(sets) < 6:
+        return None
+    from src.recommend import HIDDEN_MAX
+    sheet = usage.team_sheet_usage(dex)
+    rare = sum(1 for p in sets if sheet.get(usage.sheet_name(p.battle_form(dex).name, dex) or "", 0.0) < HIDDEN_MAX)
+    paper = _pct(chance, ref["chance_sorted"])
+    out = {"paper": (grade(paper)[0], paper), "off_meta": rare}
+    if rare >= OFF_META_SHARE * len(sets):
+        out["proven"] = ("Untested", None)
+    else:
+        fit = teammate_fit(sets, dex, usage.teammates)
+        proven = _pct(fit, ref["fit_sorted"]) if fit is not None else None
+        out["proven"] = (grade(proven)[0], proven) if proven is not None else ("Untested", None)
+    return out
+
+
 def rate(sets, dex: Dex, tm, chance: float | None, ref: dict | None) -> tuple[float, float] | None:
     """(combined rating, percentile) from teammate fit and a win chance vs the meta, or None."""
     if chance is None or ref is None:
@@ -138,6 +169,8 @@ def build_reference(regulation: str = CURRENT.regulation, format_id: str = CURRE
     ref = {"teams": int(len(fits)), "fit_mean": float(fits.mean()), "fit_sd": float(fits.std()),
            "chance_mean": float(chances.mean()), "chance_sd": float(chances.std()), "trust": trust}
     ref["combined_sorted"] = sorted(round(combined(f, c, ref), 4) for f, c in zip(fits, chances))
+    ref["fit_sorted"] = sorted(round(float(f), 4) for f in fits)          # the two lenses, each ranked
+    ref["chance_sorted"] = sorted(round(float(c), 5) for c in chances)    # among the same real teams
     return ref
 
 
