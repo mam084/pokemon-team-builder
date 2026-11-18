@@ -96,8 +96,10 @@ def team_builder_section(team, dex, usage, fmt, mode, weights) -> None:
             with st.container(border=True):
                 theme = f" · {t.theme} team" if t.theme else ""
                 if t.percentile is not None:
-                    from src.team_rating import grade
-                    rated = f"{grade(t.percentile)[0]} · team score {t.percentile:.0f}"
+                    from src.team_rating import lenses, load_reference
+                    seen = lenses(t.sets, dex, usage, t.chance, load_reference(fmt.regulation))
+                    rated = (f"Proven: {seen['proven'][0]} · On paper: {seen['paper'][0]}" if seen else
+                             f"team score {t.percentile:.0f}")
                 else:
                     score = t.meta_score or 0.0
                     rated = f"vs meta {score:+.2f} ({verdict(score)})"

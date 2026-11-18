@@ -163,44 +163,48 @@ def untested_label(feature: str) -> str:
                                                                             "this combination" if feature == "total" else feature)
 
 
-def team_grade(fmt_id: str, team, dex, usage, chance: float) -> None:
-    """Strong / Solid / Shaky / Weak: the team rating among real tournament teams, and why."""
-    from src.team_rating import grade, load_reference, rate
+PROVEN_TEXT = {
+    "Strong": "Strong players often bring these Pokémon together.",
+    "Solid": "A fairly usual combination among tournament teams.",
+    "Shaky": "A less usual combination than most tournament teams.",
+    "Weak": "Strong players rarely bring these Pokémon together.",
+}
+
+
+def team_check(fmt_id: str, team, dex, usage, chance: float) -> None:
+    """Two lenses instead of one grade: is it proven (tournament data), does it work on paper."""
+    from src.team_rating import lenses, load_reference
     ref = load_reference(FORMATS[fmt_id].regulation)
-    rated = rate(team, dex, usage.teammates, chance, ref)
-    if rated is None or len(team) < 6:
+    seen = lenses(team, dex, usage, chance, ref)
+    if seen is None:
         return
-    word, meaning = grade(rated[1])
-    st.markdown(f"#### Team grade: {word}")
-    st.caption(f"Your team {meaning}, judged by how often strong players bring these Pokémon together and "
-               "its win chance against the meta teams. It's a rough guide: who's playing matters more.")
-    why = grade_reasons(team, dex, usage.teammates, chance, ref)
-    if why:
-        st.markdown(f"**Why:** {why}")
+    proven, _ = seen["proven"]
+    paper, paper_pct = seen["paper"]
+    st.markdown("#### Team check")
+    cols = st.columns(2)
+    with cols[0].container(border=True):
+        st.markdown(f"**Proven:** {proven}")
+        st.caption(f"Off-meta: {seen['off_meta']} of {len(team)} are on few ladder teams, so tournament data "
+                   "can't judge this combination yet. That's not a mark against it." if proven == "Untested"
+                   else PROVEN_TEXT[proven])
+    with cols[1].container(border=True):
+        st.markdown(f"**On paper:** {paper}")
+        st.caption(f"Its matchups against the meta teams (damage calcs, Speed, bulk, support moves) beat "
+                   f"{paper_pct:.0f}% of tournament teams'. Popularity plays no part.")
+    if proven in ("Shaky", "Weak"):
+        why = rare_partners(team, dex, usage.teammates)
+        if why:
+            st.caption(why)
 
 
-def grade_reasons(team, dex, tm, chance: float, ref: dict) -> str:
-    """One plain sentence on what lifts or holds back the grade: its two parts, fit and matchups."""
-    from src.team_rating import teammate_fit
-    fit = teammate_fit(team, dex, tm)
-    z_fit = (fit - ref["fit_mean"]) / ref["fit_sd"]
-    z_win = (chance - ref["chance_mean"]) / ref["chance_sd"]
+def rare_partners(team, dex, tm) -> str:
+    """Which members strong players rarely run with the rest (the Analysis tab shows who they run)."""
     roots = [dex.sheet_id(p.battle_form(dex)) for p in team]
     rare = [p.species for p, c in zip(team, tm.fit_check(roots)) if c["rank"] and c["rank"] > 15]
-    parts = []
-    if z_fit < -0.5 and rare:
-        names = " and ".join(rare[:2]) if len(rare) <= 2 else f"{', '.join(rare[:2])} and {len(rare) - 2} more"
-        parts.append(f"strong players rarely run {names} with the rest of this team (the Analysis tab shows "
-                     "who they run instead)")
-    elif z_fit > 0.5:
-        parts.append("these six are a combination strong players run often")
-    else:
-        parts.append("these six are a fairly usual combination")
-    parts.append("its matchups against the meta teams are a strength" if z_win > 0.5 else
-                 "its matchups against the meta teams hold it back" if z_win < -0.5 else
-                 "its matchups against the meta teams are about average")
-    text = "; ".join(parts) + "."
-    return text[0].upper() + text[1:]
+    if not rare:
+        return ""
+    names = " and ".join(rare[:2]) if len(rare) <= 2 else f"{', '.join(rare[:2])} and {len(rare) - 2} more"
+    return f"Strong players rarely run {names} with the rest of this team. The Analysis tab shows who they run instead."
 
 
 FAVORED = 0.53  # a matchup counts as favorable at 53%+ to win (unfavorable at 47% or less)
@@ -350,7 +354,7 @@ def matchups_tab(fmt_id, team, members, dex, usage, fmt) -> None:
         check = match_check(fmt.regulation)
         chances = learned_chances(fmt_id, team_key(team))
         if chances:
-            team_grade(fmt_id, team, dex, usage, cap_chance(learned_meta_sides(fmt_id)[0],
+            team_check(fmt_id, team, dex, usage, cap_chance(learned_meta_sides(fmt_id)[0],
                                                             float(np.average(chances, weights=weights))))
         c = st.container(key="metric_row").columns(4)
         if chances:
@@ -693,9 +697,8 @@ def base_text(swaps: pd.DataFrame) -> str:
     win, base = swaps.attrs.get("base_win"), swaps.attrs.get("base_overall")
     score = swaps.attrs.get("base_score")
     if score is not None:
-        from src.team_rating import grade
-        return (f"Your team now: **{grade(score)[0]}**, team score {score:.0f} out of 100 (higher than "
-                f"{score:.0f}% of tournament teams).")
+        return (f"Your team now: team score {score:.0f} out of 100, higher than {score:.0f}% of tournament "
+                "teams. It combines both lenses of the Team check: proven pairings and matchups on paper.")
     if win is not None:
         return f"Your team now: about {win:.0%} to win against the meta teams."
     return f"Your team now: {base:+.2f} vs the meta ({verdict(base)})." if base is not None else ""

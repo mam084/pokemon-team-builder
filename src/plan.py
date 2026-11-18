@@ -66,6 +66,10 @@ NEEDS = {
 SLOW, FAST = 60, 100
 # Plans that are a move by nature: setting them is the point, users or not.
 MOVE_PLANS = {"trickroom", "tailwind"}
+# Opposite speed modes: under Trick Room the slow move first, under Tailwind the fast-ish do. A team
+# already running one gets no credit for starting the other (Staraptor's Tailwind "helping" the
+# team's Trick Room setter, say).
+OPPOSITE = {"trickroom": "tailwind", "tailwind": "trickroom"}
 
 
 @dataclass
@@ -251,6 +255,8 @@ def enabler_score(profile: Profile, members, plans: list[Plan], dex: Dex) -> tup
     profiles = [(m.label, member_profile(m, dex)) for m in members]
     for key, (abilities, moves) in SETTERS.items():
         if key in present or not (profile.abilities & abilities or profile.moves & moves):
+            continue
+        if OPPOSITE.get(key) in present:
             continue
         plan = Plan(key, LABELS[key], [])
         for label, prof in profiles:
