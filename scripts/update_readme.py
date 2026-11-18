@@ -99,6 +99,31 @@ def team_check(r: dict) -> str:
                      for n, a, b in zip(names, raw["quarters"], guarded["quarters"]))
     search = "\n".join(f"| {s['start']} | {s['without bounds']['to']:.1%} | {s['with bounds']['to']:.1%} |"
                         for s in r["search"])
+    o = r.get("objective")
+    objective = ""
+    if o:
+        oq = "\n".join(f"| {n} | {a['actual']:.1%} | {b['actual']:.1%} |"
+                       for n, a, b in zip(names, o["win chance"]["quarters"], o["team score"]["quarters"]))
+        climbs = "\n".join(f"| {s['start']} | {s['team score']['from']} → {s['team score']['to']} | "
+                           f"{s['team score']['win']:.1%} | {s['team score']['real_5of6']} |"
+                           for s in r["search"] if "team score" in s)
+        objective = f"""
+
+**What swaps are judged by.** Ranking the same {o['teams']:,} held-out teams by **team score** (teammate fit
+plus win chance, `src/team_rating.py`) vs **win chance alone**, with the teammate model also fitted before
+{r['cut']}:
+
+| teams, by | win chance alone: won | team score: won |
+|---|---|---|
+{oq}
+
+Rank correlation with real records: {o['win chance']['spearman']:.3f} by win chance, {o['team score']['spearman']:.3f}
+by team score (paired 95% interval for the gain: {o['gain_ci'][0]:+.3f} to {o['gain_ci'][1]:+.3f}). So swaps are judged by
+team score. Keep applying the best swap that way (any role, bounds on):
+
+| start | team score | win chance at the end | real teams sharing 5+ of its six |
+|---|---|---|---|
+{climbs}"""
     lo = min(s["without bounds"]["to"] for s in r["search"])
     hi = max(s["without bounds"]["to"] for s in r["search"])
     return f"""Fitted on data before {r['cut']}; bounds from {r['reference_teams']:,} real teams from before then
@@ -119,7 +144,7 @@ bounds moved {r['changed_share']:.1%} of real teams by more than 0.1 points.
 {search}
 
 Without bounds the search walks to {lo:.0%}-{hi:.0%}, past every real team; with them it stops at the best
-real team's score."""
+real team's score.{objective}"""
 
 
 def replace(text: str, name: str, body: str) -> str:

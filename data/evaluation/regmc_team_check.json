@@ -11,7 +11,7 @@
  "changed_share": 0.0024,
  "ranking": {
   "without bounds": {
-   "spearman": 0.0962,
+   "spearman": 0.0963,
    "quarters": [
     {
      "predicted": 0.4537,
@@ -21,13 +21,13 @@
     },
     {
      "predicted": 0.4929,
-     "actual": 0.4755,
+     "actual": 0.476,
      "teams": 417,
      "games": 2000
     },
     {
      "predicted": 0.5111,
-     "actual": 0.4859,
+     "actual": 0.4854,
      "teams": 417,
      "games": 1982
     },
@@ -51,13 +51,13 @@
     },
     {
      "predicted": 0.4929,
-     "actual": 0.4755,
+     "actual": 0.476,
      "teams": 417,
      "games": 2000
     },
     {
      "predicted": 0.5111,
-     "actual": 0.4859,
+     "actual": 0.4854,
      "teams": 417,
      "games": 1982
     },
@@ -70,6 +70,71 @@
    ],
    "max": 0.5782
   }
+ },
+ "objective": {
+  "teams": 1669,
+  "win chance": {
+   "spearman": 0.0962,
+   "quarters": [
+    {
+     "predicted": 0.4537,
+     "actual": 0.4636,
+     "teams": 418,
+     "games": 1965
+    },
+    {
+     "predicted": 0.4929,
+     "actual": 0.476,
+     "teams": 417,
+     "games": 2000
+    },
+    {
+     "predicted": 0.5111,
+     "actual": 0.4854,
+     "teams": 417,
+     "games": 1982
+    },
+    {
+     "predicted": 0.529,
+     "actual": 0.5311,
+     "teams": 417,
+     "games": 2156
+    }
+   ]
+  },
+  "team score": {
+   "spearman": 0.1577,
+   "quarters": [
+    {
+     "predicted": -2.6535,
+     "actual": 0.4317,
+     "teams": 418,
+     "games": 1888
+    },
+    {
+     "predicted": -0.26,
+     "actual": 0.486,
+     "teams": 417,
+     "games": 1969
+    },
+    {
+     "predicted": 0.9116,
+     "actual": 0.4844,
+     "teams": 417,
+     "games": 2077
+    },
+    {
+     "predicted": 1.6803,
+     "actual": 0.5496,
+     "teams": 417,
+     "games": 2169
+    }
+   ]
+  },
+  "gain_ci": [
+   0.0293,
+   0.0947
+  ]
  },
  "search": [
   {
@@ -99,6 +164,21 @@
      "Basculegion-M",
      "Floette-Eternal"
     ]
+   },
+   "team score": {
+    "from": 46,
+    "to": 99,
+    "win": 0.564,
+    "swaps": 4,
+    "team": [
+     "Garchomp",
+     "Dragonite",
+     "Rillaboom",
+     "Incineroar",
+     "Gholdengo",
+     "Sylveon"
+    ],
+    "real_5of6": 3
    }
   },
   {
@@ -128,6 +208,21 @@
      "Incineroar",
      "Hippowdon"
     ]
+   },
+   "team score": {
+    "from": 44,
+    "to": 100,
+    "win": 0.5659,
+    "swaps": 3,
+    "team": [
+     "Charizard",
+     "Garchomp",
+     "Gholdengo",
+     "Sylveon",
+     "Incineroar",
+     "Venusaur"
+    ],
+    "real_5of6": 103
    }
   },
   {
@@ -157,6 +252,21 @@
      "Swampert",
      "Hippowdon"
     ]
+   },
+   "team score": {
+    "from": 61,
+    "to": 90,
+    "win": 0.5539,
+    "swaps": 3,
+    "team": [
+     "Archaludon",
+     "Pelipper",
+     "Golisopod",
+     "Basculegion-M",
+     "Incineroar",
+     "Garchomp"
+    ],
+    "real_5of6": 5
    }
   }
  ]
