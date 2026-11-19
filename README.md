@@ -528,7 +528,11 @@ both players rated 1100+):
 - vs **setup sweepers**: Haze, Roar or Encore during the game +5.7; Fake Out on the sweeper +5.4.
 - **Double Protect on turn 1** did worse against every style (-7 to -15).
 
-A choice also says something about the team and the player, so these are associations, not causes.
+A choice also says something about the team and the player, so these are associations, not causes. The clearest
+example: the replay log shows a move even when it fails, and Fake Outs clicked into Psychic Terrain at a grounded
+target (they do nothing) came out at +8 points: that's who clicks Fake Out, not what it did. So a Fake Out into
+the terrain isn't scored as a choice (unless the target is Flying or Levitates, or the player led a terrain setter
+of their own), and the tab states the rule instead.
 
 ## Off-meta cores: does the builder steer toward what wins? (`scripts/offmeta_lab.py`)
 

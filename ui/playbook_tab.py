@@ -113,6 +113,12 @@ def playbook_tab(team, dex, usage, fmt) -> None:
     if imgs:
         st.markdown(f"<div class='mini-row'>{imgs}</div>", unsafe_allow_html=True)
 
+    if style == "Psychic Terrain" or any(n.startswith("Indeedee") for n in names):
+        failed = data.get("failed_fake_outs", 0)
+        st.info("**Indeedee brings Psychic Terrain**: Fake Out and other priority moves fail against grounded "
+                "Pokémon. Fake Out still works on a Flying type or a Levitate user, or once your own terrain "
+                "setter replaces the terrain." + (f" In these games {failed:,} players clicked Fake Out into the "
+                                                   "terrain anyway." if failed else ""))
     st.markdown(f"**What players facing a {style} lead did** ({data['games']:,} games)")
     def line(c: dict) -> str:
         v = _verdict(c)
@@ -136,9 +142,9 @@ def playbook_tab(team, dex, usage, fmt) -> None:
         if hits:
             st.markdown("**Your hardest hit on each setter**\n" + "\n".join(f"- {n}: {h}" for n, h in hits))
         extra = []
-        if style == "Psychic Terrain" and tools.get("Fake Out"):
-            extra.append(f"Fake Out ({', '.join(tools['Fake Out'])}) fails against grounded Pokémon in Psychic "
-                         "Terrain: aim it at a Flying type or a Levitate user, or click something else.")
+        if (style == "Psychic Terrain" or any(n.startswith("Indeedee") for n in names)) and tools.get("Fake Out"):
+            extra.append(f"Your Fake Out users ({', '.join(tools['Fake Out'])}): against an Indeedee lead, aim it at a "
+                         "Flying type or a Levitate user, or click something else.")
         if style == "Setup sweepers":
             for t in ("Unaware", "Intimidate", "Taunt", "Encore", "Haze / phazing"):
                 if tools.get(t):

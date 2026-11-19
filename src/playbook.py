@@ -82,18 +82,46 @@ def _base(name: str) -> str:
     return name
 
 
+SURGES = {"psychicsurge", "grassysurge", "electricsurge", "mistysurge", "hadronengine"}
+FAILED_FAKE_OUT = "Fake Out into Psychic Terrain (it fails)"
+
+
+def _abilities(name: str, dex: Dex) -> set[str]:
+    s = dex.get_species(name)
+    return {to_id(a) for a in s.abilities} if s is not None else set()
+
+
+def _grounded(name: str, dex: Dex) -> bool:
+    """Not Flying and no Levitate (Air Balloon isn't in the replay log)."""
+    s = dex.get_species(name)
+    return s is not None and "Flying" not in s.types and "levitate" not in _abilities(name, dex)
+
+
+def _terrain_blocks(their_leads: list[str], my_leads: list[str], dex: Dex) -> bool:
+    """Their lead brings Psychic Terrain and yours has no terrain of its own to replace it."""
+    theirs = any("psychicsurge" in _abilities(x, dex) for x in their_leads)
+    mine = any(_abilities(x, dex) & SURGES for x in my_leads)
+    return theirs and not mine
+
+
 def _labels(style: str, mine: list, their_setter: str, my_leads: list[str], my_brought: list[str],
-            used: dict, setters: dict[str, set[str]], dex: Dex) -> set[str]:
-    """The choices one player made (turn 1, or over the game for setup answers) facing this lead."""
+            used: dict, setters: dict[str, set[str]], dex: Dex, their_leads: list[str] | None = None) -> set[str]:
+    """The choices one player made (turn 1, or over the game for setup answers) facing this lead.
+    The replay log shows a move even when it fails, so a Fake Out into Psychic Terrain at a grounded
+    target is its own choice, not a Fake Out on the setter or its partner."""
     out = set()
     hits_setter = 0
+    blocks = _terrain_blocks(their_leads or [their_setter], my_leads, dex)
     for mon, move, target in mine:
         mid = to_id(move)
         mv = dex.moves.get(mid)
         damaging = mv is not None and mv["category"] != "Status"
         on_setter = target is not None and _base(target) == _base(their_setter)
         if mid == "fakeout":
-            out.add("Fake Out on the setter" if on_setter else "Fake Out on its partner")
+            if blocks and target is not None and _grounded(target, dex):
+                out.add(FAILED_FAKE_OUT)
+            else:
+                out.add("Fake Out on the setter" if on_setter else "Fake Out on its partner")
         elif mid in TAUNTS and on_setter:
             out.add("Taunt or Encore on the setter")
         elif mid == "imprison" and style == "Trick Room":
@@ -145,12 +173,16 @@ def replay_playbook(records: list[dict], dex: Dex, setters: dict[str, set[str]],
                 if setter is None:
                     continue
                 labels = _labels(style, r["turn1"].get(p) or [], setter, r["leads"].get(p) or [],
-                                 r["brought"].get(p) or [], (r.get("moves") or {}).get(p) or {}, setters, dex)
+                                 r["brought"].get(p) or [], (r.get("moves") or {}).get(p) or {}, setters, dex,
+                                 their_leads=leads)
                 residual = (r["winner"] == p) - 1 / (1 + 10 ** ((opp - own) / 400))
                 by_style[style].append((labels, residual))
     out = {}
     for style, rows in by_style.items():
-        all_labels = sorted({lab for labels, _ in rows for lab in labels})
+        # a Fake Out into Psychic Terrain does nothing, so it isn't scored as a choice: its games still count
+        # for every other choice those players made (its +8 points in Nov 2026 said who clicks it, not what it did)
+        failed = sum(FAILED_FAKE_OUT in labels for labels, _ in rows)
+        all_labels = sorted({lab for labels, _ in rows for lab in labels} - {FAILED_FAKE_OUT})
         choices = []
         for lab in all_labels:
             yes = [res for labels, res in rows if lab in labels]
@@ -165,7 +197,8 @@ def replay_playbook(records: list[dict], dex: Dex, setters: dict[str, set[str]],
                             "edge": round(100 * edge, 2), "lo": round(100 * (edge - 1.645 * se), 2),
                             "hi": round(100 * (edge + 1.645 * se), 2)})
         choices.sort(key=lambda c: -c["edge"])
-        out[style] = {"games": len(rows), "setters": sorted(setters.get(style, set())), "choices": choices}
+        out[style] = {"games": len(rows), "setters": sorted(setters.get(style, set())), "choices": choices,
+                      "failed_fake_outs": failed}
     return {"days": days, "min_rating": min_rating, "styles": out}
 
 
