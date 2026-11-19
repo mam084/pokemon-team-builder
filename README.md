@@ -648,8 +648,8 @@ refresh retrains the model as replays pile up.
 The **Refresh data** GitHub Action rebuilds all of these on the 3rd of every month,
 after Smogon publishes the previous month's stats. It also runs whenever the
 data scripts change, and you can start it by hand from the Actions tab. If
-anything changed, it commits the new data. So when a new regulation launches,
-the only code change is adding it to `src/formats.py` and `scripts/export_dex.js`.
+anything changed, it commits the new data. When a new regulation launches, see
+*When a new regulation starts* below.
 
 A few things to know about the data:
 - Smogon lists each Mega under its own name ("Charizard-Mega-Y"), because that's
@@ -664,6 +664,45 @@ A few things to know about the data:
   the recommender (pairings, the teammate model) and test it. The evaluation keeps
   them apart by date: the model only sees tournaments (and replays) older than the
   ones it's tested on.
+
+## When a new regulation starts
+
+Reg M-C ends Dec 2, 2026. Most of the switch-over is automatic:
+
+1. **Noticing it.** The *Watch for a new regulation* workflow reads Showdown's format list daily
+   (`scripts/new_regulation.py check`; Showdown adds a regulation shortly before it starts) and opens
+   an issue labelled `new-regulation` with the command to run.
+2. **Switching** (one command on the start day, then push):
+   `python scripts/new_regulation.py add --vgc gen9championsvgc2026regmd --bss gen9championsbssregmd --limitless M-D --start 2026-12-03`.
+   It adds the new formats to `src/formats.py`, marks the old ones past and makes the new one the default.
+   Everything else reads `src/formats.py`: the push starts *Refresh data*, whose dex export picks up any
+   Champions regulation Showdown has, and the next replay fetch starts on the new ladder and Bo3 formats.
+3. **The first weeks.** Smogon publishes a month's stats after it ends, so the new regulation has none
+   until early the next month. Until then the app's usage comes from the regulation's own replays
+   (`src/replay_usage.py`, rebuilt twice a day): who's on teams, teammates, Mega rates, and sets from open
+   team sheets, with the last regulation's sets for Pokémon that carry over and too few sheets. The
+   teammate model retrains on the replays from the first fetch. Tournament-based parts (the win model,
+   team rating, real tournament teams) fill in as Limitless events happen; until they do, the app shows
+   what it has, and the health check reports them as waiting, not failing, for 35 days.
+
+**Is a few days of replays enough?** (`scripts/new_regulation_lab.py`) Simulated on Reg M-C: each
+setup sees only data from before the held-out week, and hides one Pokémon from 500 held-out tournament
+teams (3,000 queries):
+
+| what the app has | finds the hidden Pokémon first | MRR | in the candidate pool |
+|---|---|---|---|
+| everything it has today (Smogon + replays + tournaments) | 57.6% | 0.681 | 94.7% |
+| replays only, last 1 day | 51.7% | 0.624 | 93.3% |
+| replays only, last 7 days (what ships) | 53.4% | 0.636 | 93.3% |
+| last regulation's Smogon stats, rescaled to 7 days of replays | 49.8% | 0.584 | 83.1% |
+| last regulation's Smogon stats alone | 16.7% | 0.263 | 80.1% |
+
+Replay-built usage beats the last regulation's stats rescaled to the same replays by +0.052 MRR
+(95% +0.040 to +0.063), mostly because new Pokémon are in its pool, and the last regulation's stats
+alone by +0.37. It stays below the full setup (−0.045, 95% −0.054 to −0.037), so it is only a stand-in:
+once Smogon has stats for the format, they're used as before. More days barely help (1 day 0.624,
+14 days 0.633). Caveat: this is late Reg M-C, when teams had settled; a regulation's real first days
+will be noisier.
 
 ## Run it
 
@@ -724,6 +763,7 @@ The tests check:
 │   ├── legality.py           regulation checks
 │   ├── type_chart.py         type effectiveness plus abilities that change matchups
 │   ├── usage.py              Smogon chaos parsing, popular sets, team-sheet merging of Megas
+│   ├── replay_usage.py       usage built from replays, for a new regulation before Smogon's stats
 │   ├── analysis.py           type matchups, coverage, role checklist, speed tiers
 │   ├── damage.py             damage calculator (Showdown-exact)
 │   ├── presets.py            common sets assembled from usage stats
@@ -760,6 +800,8 @@ The tests check:
 │   ├── offmeta_lab.py        off-meta cores: do builder picks win more than ratings predict?
 │   ├── bring_value_lab.py    does following the bring / lead model win? (imitation vs outcome-weighted)
 │   ├── health_check.py       weekly: shipped models still beat their baselines; data is fresh
+│   ├── new_regulation.py     notice a new regulation on Showdown; switch src/formats.py to it
+│   ├── new_regulation_lab.py how good are recommendations from a few days of replays?
 │   └── make_damage_vectors.js  Showdown → damage test vectors
 ├── data/                     generated data (committed so the app runs without setup)
 ├── tests/                    unittest suite and fixtures

@@ -45,7 +45,7 @@ from src.usage import UsageData
 
 # Tuned on 4,003 real tournament teams and validated on 1,546 newer ones (5-signal grid, then a
 # line search for plan)
-# (src/evaluate.py, results in data/evaluation/regmc.json). Offense and roles got
+# (src/evaluate.py, results in data/evaluation/<regulation>.json). Offense and roles got
 # zero weight: they didn't help predict what players actually bring, so they
 # only shape the "why" text unless you raise them in the app.
 # Tuned with tournament pairings in the synergy signal (pairings from the oldest teams, tuned
@@ -54,7 +54,7 @@ DEFAULT_WEIGHTS = {"synergy": 0.8, "defense": 0.0, "offense": 0.0, "roles": 0.0,
 
 
 def _tuned_weights() -> dict:
-    """The weights the latest evaluation tuned (data/evaluation/regmc.json, refreshed monthly),
+    """The weights the latest evaluation tuned (data/evaluation/<regulation>.json, refreshed monthly),
     so Popular picks follows the newest data; the constants above are the fallback."""
     from src.formats import CURRENT
     path = Path(__file__).resolve().parent.parent / "data" / "evaluation" / f"{CURRENT.regulation}.json"

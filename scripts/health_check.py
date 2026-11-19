@@ -33,10 +33,24 @@ def _load(name: str) -> dict | None:
     return json.loads(path.read_text()) if path.exists() else None
 
 
-def checks(reg: str = "regmc", now: datetime | None = None) -> list[tuple[str, bool, str]]:
+GRACE_DAYS = 35
+WAITING = "waiting:"
+
+
+def checks(reg: str | None = None, now: datetime | None = None) -> list[tuple[str, bool, str]]:
     from src.formats import CURRENT
+    reg = reg or CURRENT.regulation
     now = now or datetime.now(timezone.utc)
     out: list[tuple[str, bool, str]] = []
+    # a new regulation has no held-out evaluations until tournaments and replays pile up:
+    # a missing file is a wait, not a failure, for its first GRACE_DAYS
+    start = datetime.strptime(CURRENT.start, "%Y-%m-%d").replace(tzinfo=timezone.utc) if CURRENT.start else None
+    young = start is not None and (now - start).days < GRACE_DAYS
+
+    def missing() -> tuple[bool, str]:
+        if young:
+            return True, f"{WAITING} new regulation (started {CURRENT.start}): needs a few weeks of tournaments"
+        return False, "no evaluation file"
 
     rec = _load(f"{reg}.json")
     if rec:
@@ -45,7 +59,7 @@ def checks(reg: str = "regmc", now: datetime | None = None) -> list[tuple[str, b
         out.append(("Recommender beats popularity", tuned > pop,
                     f"MRR {tuned:.3f} vs {pop:.3f} on {rec['test_teams']} held-out teams ({rec['test_dates'][0]}+)"))
     else:
-        out.append(("Recommender beats popularity", False, "no evaluation file"))
+        out.append(("Recommender beats popularity", *missing()))
 
     mm = _load(f"{reg}_match_model.json")
     if mm:
@@ -55,7 +69,7 @@ def checks(reg: str = "regmc", now: datetime | None = None) -> list[tuple[str, b
         worst = max(abs(c["predicted"] - c["actual"]) for c in mm["calibration"])
         out.append(("Win model calibrated", worst <= 0.05, f"largest gap between predicted and actual {worst:.3f}"))
     else:
-        out.append(("Win model beats damage calcs", False, "no evaluation file"))
+        out.append(("Win model beats damage calcs", *missing()))
 
     tc = _load(f"{reg}_team_check.json")
     if tc:
@@ -65,7 +79,7 @@ def checks(reg: str = "regmc", now: datetime | None = None) -> list[tuple[str, b
         out.append(("Team check ranks real teams", ok,
                     f"Spearman {w['spearman']:.3f}; top quarter won {q[-1]['actual']:.1%}, bottom {q[0]['actual']:.1%}"))
     else:
-        out.append(("Team check ranks real teams", False, "no evaluation file"))
+        out.append(("Team check ranks real teams", *missing()))
 
     bm = _load(f"{reg}_bring_model.json")
     if bm:
@@ -75,7 +89,7 @@ def checks(reg: str = "regmc", now: datetime | None = None) -> list[tuple[str, b
             out.append((f"Bring model ({part}) beats usual picks", ok,
                         f"{r['learned'][0]:.1%} vs {r['usual picks'][0]:.1%} on {bm['test_sides']} held-out sides"))
     else:
-        out.append(("Bring model beats usual picks", False, "no evaluation file"))
+        out.append(("Bring model beats usual picks", *missing()))
 
     # data freshness
     newest = 0
@@ -90,7 +104,11 @@ def checks(reg: str = "regmc", now: datetime | None = None) -> list[tuple[str, b
                         continue
     age_h = (now.timestamp() - newest) / 3600 if newest else float("inf")
     out.append(("Replays are fresh", age_h <= 48, f"newest replay {age_h:.0f} hours old"))
-    if rec:
+    usage_file = ROOT / "data" / "usage" / f"{CURRENT.id}.json"
+    if young and not usage_file.exists():
+        out.append(("Usage stats are current", True,
+                    f"{WAITING} no Smogon stats yet for the new regulation; usage comes from its replays"))
+    elif rec:
         y, m = map(int, rec["usage_month"].split("-"))
         months = (now.year - y) * 12 + now.month - m
         out.append(("Usage stats are current", months <= 2, f"Smogon month {rec['usage_month']} ({months} months back)"))
@@ -100,6 +118,8 @@ def checks(reg: str = "regmc", now: datetime | None = None) -> list[tuple[str, b
         last = max(dates) if dates else None
         days = (now - datetime.strptime(last, "%Y-%m-%d").replace(tzinfo=timezone.utc)).days if last else 999
         out.append(("Tournaments are fresh", days <= 14, f"latest tournament {last} ({days} days ago)"))
+    elif young:
+        out.append(("Tournaments are fresh", True, f"{WAITING} no tournament lists yet for the new regulation"))
     return out
 
 
@@ -109,10 +129,12 @@ def main() -> int:
     if "--markdown" in sys.argv:
         print("| check | | detail |\n|---|---|---|")
         for name, ok, detail in results:
-            print(f"| {name} | {'✅' if ok else '❌'} | {detail} |")
+            mark = "⏳" if detail.startswith(WAITING) else ("✅" if ok else "❌")
+            print(f"| {name} | {mark} | {detail.removeprefix(WAITING).strip()} |")
     else:
         for name, ok, detail in results:
-            print(f"{'PASS' if ok else 'FAIL'}  {name}: {detail}")
+            mark = "WAIT" if detail.startswith(WAITING) else ("PASS" if ok else "FAIL")
+            print(f"{mark}  {name}: {detail.removeprefix(WAITING).strip()}")
     return 1 if failed else 0
 
 

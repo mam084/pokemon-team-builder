@@ -157,11 +157,13 @@ def replace(text: str, name: str, body: str) -> str:
 
 def main() -> None:
     text = README.read_text()
-    for name, fn, file in (("recommender", recommender, "regmc.json"),
-                           ("validation", validation, "regmc_matches.json"),
-                           ("learned", learned, "regmc_match_model.json"),
-                           ("bring", bring, "regmc_bring_model.json"),
-                           ("teamcheck", team_check, "regmc_team_check.json")):
+    from src.formats import CURRENT
+    reg = CURRENT.regulation
+    for name, fn, file in (("recommender", recommender, f"{reg}.json"),
+                           ("validation", validation, f"{reg}_matches.json"),
+                           ("learned", learned, f"{reg}_match_model.json"),
+                           ("bring", bring, f"{reg}_bring_model.json"),
+                           ("teamcheck", team_check, f"{reg}_team_check.json")):
         data = load(file)
         if data:
             text = replace(text, name, fn(data))

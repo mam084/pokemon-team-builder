@@ -1,0 +1,50 @@
+name: Watch for a new regulation
+
+# Daily: does Pokémon Showdown have a Champions regulation src/formats.py doesn't? Showdown adds
+# a regulation's formats shortly before it starts, so this is the earliest public signal.
+# Finding one opens an issue labelled new-regulation (once) with the command that switches the
+# app (scripts/new_regulation.py add ...; README "When a new regulation starts").
+on:
+  schedule:
+    - cron: "41 15 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Fetch Showdown's format list (no build needed)
+        run: |
+          git clone --depth 1 --filter=blob:none --sparse https://github.com/smogon/pokemon-showdown.git ../pokemon-showdown
+          git -C ../pokemon-showdown sparse-checkout set config
+      - name: Check
+        id: check
+        run: |
+          python scripts/new_regulation.py check --ps ../pokemon-showdown --github-output "$GITHUB_OUTPUT" | tee watch.md
+          cat watch.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Open the issue
+        if: steps.check.outputs.new != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NEW: ${{ steps.check.outputs.new }}
+        run: |
+          gh label create new-regulation --color 0E8A16 --description "A new Champions regulation is on Showdown" 2>/dev/null || true
+          title="New regulation on Showdown: $NEW"
+          if gh issue list --label new-regulation --state all --search "$title in:title" --json number --jq '.[0].number' | grep -q .; then
+            echo "Already reported."; exit 0
+          fi
+          body="$(printf 'Showdown now has a Champions regulation the app does not know yet.\n\n```\n'; cat watch.md; printf '```\n\n')"
+          body="$body
+          On its start day: run the command above with the real start date, push, and the app switches over:
+          the Refresh data workflow exports the new dex, replays start arriving with the next fetch, and until
+          Smogon publishes the regulation's first monthly stats the app's usage comes from its replays.
+          Checklist: README, *When a new regulation starts*."
+          gh issue create --title "$title" --label new-regulation --body "$body"

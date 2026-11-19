@@ -43,11 +43,22 @@ function describe(table, id) {
 
 // Regulation key -> the Showdown format whose rules define legality.
 // Singles (BSS) and doubles (VGC) share a legal pool within a regulation, so
-// one dex file per regulation is enough.
-const REGULATIONS = {
-	regmc: 'gen9championsvgc2026regmc',
-	regmb: 'gen9championsvgc2026regmb',
-};
+// one dex file per regulation is enough. Every Champions VGC regulation in this
+// Showdown build is exported (regmb, regmc, and the next one as soon as Showdown
+// adds it), so a new regulation's dex appears on the next refresh with no edit here.
+const CHAMPIONS_VGC = /^gen9championsvgc(\d{4})(reg[a-z]{1,3})$/;
+function championsRegulations() {
+	const found = {};
+	for (const f of Dex.formats.all()) {
+		const m = CHAMPIONS_VGC.exec(f.id);
+		if (!m) continue;
+		const [, year, key] = m;
+		if (!found[key] || found[key].year < year) found[key] = { year, id: f.id };
+	}
+	return Object.fromEntries(Object.entries(found).map(([k, v]) => [k, v.id]));
+}
+const REGULATIONS = { regmb: 'gen9championsvgc2026regmb', regmc: 'gen9championsvgc2026regmc',
+	...championsRegulations() };
 
 const SPREAD_TARGETS = new Set(['allAdjacentFoes', 'allAdjacent']);
 const KEPT_FLAGS = ['contact', 'sound', 'punch', 'bite', 'slicing', 'pulse', 'heal', 'wind', 'bullet'];

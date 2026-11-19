@@ -25,6 +25,7 @@ class Format:
     start: str = ""      # first day (YYYY-MM-DD): replays are fetched back to here
     replays: tuple[str, ...] = ()  # Showdown formats whose replays feed this one's learned models
     limitless: str = ""  # Limitless VGC format id for tournament team lists ("M-C")
+    previous: str = ""   # the last regulation's format of the same style: its sets fill in early on
 
     @property
     def is_doubles(self) -> bool:
@@ -45,6 +46,7 @@ FORMATS: dict[str, Format] = {
             start="2026-09-09",
             replays=("gen9championsvgc2026regmc", "gen9championsvgc2026regmcbo3"),
             limitless="M-C",
+            previous="gen9championsvgc2026regmb",
         ),
         Format(
             id="gen9championsbssregmc",
@@ -69,10 +71,11 @@ FORMATS: dict[str, Format] = {
 DEFAULT_FORMAT = "gen9championsvgc2026regmc"
 CURRENT = FORMATS[DEFAULT_FORMAT]  # the regulation the learned models and evaluation are built for
 
-# A new regulation: export its dex (scripts/export_dex.js), add its formats above with
-# current=True, start= and replays=, and point DEFAULT_FORMAT at it. Replay fetching,
-# the replay summaries and every learned model read these entries; nothing else names
-# the regulation.
+# A new regulation: run scripts/new_regulation.py (it adds the entries above, marks the old ones
+# past and points DEFAULT_FORMAT at the new one; README "When a new regulation starts").
+# Replay fetching, the replay summaries and every learned model read these entries; nothing
+# else names the regulation. Until Smogon publishes the new regulation's stats, usage is
+# built from its replays (src/replay_usage.py).
 
 
 def replay_sources() -> dict[str, tuple[str, str]]:

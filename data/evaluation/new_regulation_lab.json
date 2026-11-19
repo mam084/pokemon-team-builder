@@ -1,0 +1,156 @@
+{
+ "cut": "2026-11-13",
+ "teams": 500,
+ "queries": 3000,
+ "results": {
+  "full data": {
+   "mrr": 0.6813,
+   "hit@1": 0.5763,
+   "in_pool": 0.947,
+   "popularity mrr": 0.2428
+  },
+  "last reg": {
+   "mrr": 0.2628,
+   "hit@1": 0.167,
+   "in_pool": 0.801,
+   "popularity mrr": 0.2157
+  },
+  "M-B + 1 days": {
+   "mrr": 0.5668,
+   "hit@1": 0.477,
+   "in_pool": 0.8277,
+   "popularity mrr": 0.2282
+  },
+  "replays 1 days": {
+   "mrr": 0.6239,
+   "hit@1": 0.5167,
+   "in_pool": 0.9327,
+   "popularity mrr": 0.2459
+  },
+  "M-B + 2 days": {
+   "mrr": 0.5747,
+   "hit@1": 0.487,
+   "in_pool": 0.8317,
+   "popularity mrr": 0.2326
+  },
+  "replays 2 days": {
+   "mrr": 0.6332,
+   "hit@1": 0.5287,
+   "in_pool": 0.9357,
+   "popularity mrr": 0.2462
+  },
+  "M-B + 4 days": {
+   "mrr": 0.5763,
+   "hit@1": 0.486,
+   "in_pool": 0.8313,
+   "popularity mrr": 0.2329
+  },
+  "replays 4 days": {
+   "mrr": 0.6267,
+   "hit@1": 0.52,
+   "in_pool": 0.9347,
+   "popularity mrr": 0.2405
+  },
+  "M-B + 7 days": {
+   "mrr": 0.5844,
+   "hit@1": 0.4983,
+   "in_pool": 0.8313,
+   "popularity mrr": 0.2339
+  },
+  "replays 7 days": {
+   "mrr": 0.6358,
+   "hit@1": 0.5337,
+   "in_pool": 0.9333,
+   "popularity mrr": 0.2417
+  },
+  "M-B + 14 days": {
+   "mrr": 0.5851,
+   "hit@1": 0.4943,
+   "in_pool": 0.832,
+   "popularity mrr": 0.2315
+  },
+  "replays 14 days": {
+   "mrr": 0.6329,
+   "hit@1": 0.5223,
+   "in_pool": 0.9337,
+   "popularity mrr": 0.2387
+  }
+ },
+ "differences": {
+  "replays 1 days vs M-B + 1 days": [
+   0.0571,
+   0.0472,
+   0.0667
+  ],
+  "replays 1 days vs last reg": [
+   0.3611,
+   0.3348,
+   0.3867
+  ],
+  "replays 1 days vs full data": [
+   -0.0574,
+   -0.0673,
+   -0.048
+  ],
+  "replays 2 days vs M-B + 2 days": [
+   0.0585,
+   0.0484,
+   0.068
+  ],
+  "replays 2 days vs last reg": [
+   0.3704,
+   0.3448,
+   0.3963
+  ],
+  "replays 2 days vs full data": [
+   -0.0481,
+   -0.0578,
+   -0.0387
+  ],
+  "replays 4 days vs M-B + 4 days": [
+   0.0504,
+   0.0395,
+   0.0614
+  ],
+  "replays 4 days vs last reg": [
+   0.3638,
+   0.3377,
+   0.39
+  ],
+  "replays 4 days vs full data": [
+   -0.0546,
+   -0.0629,
+   -0.0462
+  ],
+  "replays 7 days vs M-B + 7 days": [
+   0.0515,
+   0.0397,
+   0.0625
+  ],
+  "replays 7 days vs last reg": [
+   0.373,
+   0.3459,
+   0.3995
+  ],
+  "replays 7 days vs full data": [
+   -0.0454,
+   -0.0539,
+   -0.0367
+  ],
+  "replays 14 days vs M-B + 14 days": [
+   0.0478,
+   0.0366,
+   0.0585
+  ],
+  "replays 14 days vs last reg": [
+   0.3701,
+   0.3435,
+   0.3961
+  ],
+  "replays 14 days vs full data": [
+   -0.0484,
+   -0.0561,
+   -0.041
+  ]
+ }
+}

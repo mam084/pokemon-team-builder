@@ -2,7 +2,7 @@
 train_teammates.py - fit the learned teammate model (src/synergy.py) on every tournament team
 list and ladder / Bo3 replay team, and save it for the app:
 
-    data/evaluation/regmc_teammates.json
+    data/evaluation/<regulation>_teammates.json
 
 Run by the Refresh data workflow after new replays and tournaments arrive. How well it predicts
 real teams (and the regularisation used here) comes from scripts/synergy_lab.py.
