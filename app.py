@@ -27,6 +27,7 @@ from src.legality import check_team  # noqa: E402
 from ui.analysis_tab import analysis_tab  # noqa: E402
 from ui.damage_tab import damage_tab  # noqa: E402
 from ui.matchups_tab import matchups_tab  # noqa: E402
+from ui import warmup  # noqa: E402
 from ui.playbook_tab import playbook_tab  # noqa: E402
 from ui.pokemon_tab import pokemon_tab  # noqa: E402
 from ui.recommendations_tab import recommendations_tab  # noqa: E402
@@ -91,6 +92,7 @@ def main() -> None:
     restore_from_url()  # a team in the link loads before any widget renders
     fmt_id, dex, usage = sidebar()
     fmt = FORMATS[fmt_id]
+    warmup.start(fmt_id)   # once per server: the swap search warms in the background
     st.session_state["doubles"] = fmt.is_doubles
     team = current_team()
     members = build_members(team, dex)

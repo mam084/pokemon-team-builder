@@ -65,6 +65,30 @@ def weight_sliders(mode: str) -> None:
                            key=f"w_{mode}_{key}", disabled=(key == "meta" and mode != "popular"))
 
 
+def core_set_options(name: str, dex, usage) -> list[tuple[str, object]]:
+    """[(label, set)] for the core: the builder's default (most common full set on real team sheets, or the
+    ladder's when there are too few sheets), the ladder's most common set, then presets. Duplicates dropped."""
+    from src.presets import presets_for
+    out, seen = [], set()
+
+    def add(label, pset):
+        if pset is None:
+            return
+        key = (to_id(pset.item or ""), pset.nature, frozenset(to_id(m) for m in pset.moves))
+        if key not in seen:
+            seen.add(key)
+            out.append((label, pset))
+    sheets = getattr(usage, "sheet_sets", None)
+    default = builder_core_set(name, dex, usage)
+    from src.sheet_sets import MIN_SHEETS, sheet_key
+    on_sheets = bool(default and sheets and (sheets.get(sheet_key(default, dex)) or {}).get("n", 0) >= MIN_SHEETS)
+    add("Most common on real team sheets" if on_sheets else "Most common set", default)
+    add("Ladder's most common set", usage.popular_set(name, dex))
+    for preset in presets_for(name, usage, dex)[:4]:
+        add(f"{preset.name} (~{preset.weight:.0f}% of sets)", preset.pset)
+    return out
+
+
 def team_builder_section(team, dex, usage, fmt, mode, weights) -> None:
     with st.expander("Build a whole team around one Pokémon", expanded=not team):
         if usage is None:
@@ -78,7 +102,15 @@ def team_builder_section(team, dex, usage, fmt, mode, weights) -> None:
         mine = next((p for p in team if to_id(p.species) == to_id(core_name)), None)
         use_mine = st.checkbox(f"Use my {core_name} set", value=mine is not None, disabled=mine is None,
                                key="build_use_mine")
-        core_set = mine if (use_mine and mine) else builder_core_set(core_name, dex, usage)
+        if use_mine and mine:
+            core_set = mine
+        else:   # which set the core plays: real sheets by default, or the ladder's or a preset
+            options = core_set_options(core_name, dex, usage)
+            pick = st.selectbox("Its set", range(len(options)), key=f"build_core_set_{core_name}",
+                                format_func=lambda i: options[i][0]) if len(options) > 1 else 0
+            core_set = options[pick][1] if options else None
+            if core_set is not None:
+                st.caption(f"{core_set.item or 'no item'} · {core_set.nature} · " + " / ".join(core_set.moves))
         threats = core_threats(core_set, fmt)
         st.caption("Three different teams, each filled one Pokémon at a time with the top recommendation "
                    f"({MODES[mode]} style). They're ranked by how well they fit together and how they'd "
@@ -86,7 +118,7 @@ def team_builder_section(team, dex, usage, fmt, mode, weights) -> None:
                    f"Loading a team replaces your current one. How {core_name} is usually played, with real "
                    "teams to start from: the Pokémon tab.")
         if st.button(f"Build teams around {core_name}", type="primary", width="stretch"):
-            core = mine if (use_mine and mine) else core_name
+            core = mine if (use_mine and mine) else (core_set or core_name)
             with st.spinner("Building teams…"):
                 st.session_state["built_teams"] = build_teams(
                     core, dex, usage, doubles=fmt.is_doubles, mode=mode, weights=weights,
@@ -135,7 +167,28 @@ SIGNAL_OF = {"fit": "synergy", "clash": "synergy", "plan": "plan", "cover": "def
              "adds": "roles"}
 
 
-def card_lines(parts: dict, weights: dict | None = None) -> str:
+SHOWN_LINES = 2   # reasons on the card; the rest fold under "more reasons"
+
+
+def card_split(row, weights: dict | None) -> tuple[str, str]:
+    """(the lines that carry the most weight in this pick's score, the rest). A line's weight: its signal's
+    value for this pick times the signal's weight in the current style. A Watch line always shows."""
+    lines = card_lines(row["parts"], weights, as_list=True)
+    if len(lines) <= SHOWN_LINES:
+        return "  \n".join(t for _, t in lines), ""
+    def weight(key: str) -> float:
+        if key == "clash":
+            return float("inf")
+        sig = SIGNAL_OF[key]
+        return (weights or {}).get(sig, 1.0) * float(row.get(sig, 0) or 0)
+    ranked = sorted(range(len(lines)), key=lambda i: (-weight(lines[i][0]), i))
+    keep = sorted(ranked[:SHOWN_LINES])
+    shown = [lines[i][1] for i in keep]
+    rest = [lines[i][1] for i in range(len(lines)) if i not in keep]
+    return "  \n".join(shown), "  \n".join(rest)
+
+
+def card_lines(parts: dict, weights: dict | None = None, as_list: bool = False):
     """The reasons as short labelled lines (Fits / Covers / Hits...) instead of one long sentence.
     A line whose signal is weighted to zero (Fine-tune the ranking) is left off."""
     out = []
@@ -156,8 +209,8 @@ def card_lines(parts: dict, weights: dict | None = None) -> str:
                 text += " (super effective)"
             if key == "clash":
                 text = "rarely run " + text
-            out.append(f"**{label}:** {text[0].upper() + text[1:] if key != 'clash' else text}")
-    return "  \n".join(out)
+            out.append((key, f"**{label}:** {text[0].upper() + text[1:] if key != 'clash' else text}"))
+    return out if as_list else "  \n".join(t for _, t in out)
 
 
 def pick_chances(team, dex, usage) -> dict[str, float]:
@@ -228,7 +281,11 @@ def recommendations_tab(team, members, dex, usage, fmt) -> None:
                 chance = chances.get(dex.sheet_id(form)) if form is not None else None
                 if chance is not None and chance >= 0.005:
                     st.caption(f"Players with your team pick it next **{chance:.0%}** of the time.")
-                st.markdown(card_lines(row["parts"], weights) or "Solid all-round pick.")
+                shown, rest = card_split(row, weights)
+                st.markdown(shown or "Solid all-round pick.")
+                if rest:
+                    with st.expander(f"{rest.count(chr(10)) + 1} more reason{'s' if rest.count(chr(10)) else ''}"):
+                        st.markdown(rest)
                 if row["note"] and row["note"] != mega_note:
                     st.caption(f"Note: {row['note']}")
                 if not full:  # a full team is explained once above the list

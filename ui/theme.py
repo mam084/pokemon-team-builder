@@ -99,6 +99,11 @@ div[data-testid="stVerticalBlockBorderWrapper"][style*="border"] {{ background: 
   [class*="st-key-rec_card"] {{ height: 100%; }}
   [class*="st-key-rec_add_"] {{ margin-top: auto; }}  /* extra height goes above the button, below the text */
 }}
+/* jump links at the top of long tabs (sections land below Streamlit's top bar) */
+[id^="sec-"] {{ scroll-margin-top: 4rem; }}
+.jump-row {{ font-size: .85rem; opacity: .9; margin: .1rem 0 .6rem; line-height: 2; }}
+.jump-row a {{ display: inline-block; margin: 0 .35rem .2rem 0; padding: .05rem .6rem; border-radius: 999px;
+  border: 1px solid rgba(128,128,128,.35); text-decoration: none; white-space: nowrap; }}
 /* small sprites: built teams, partners and matchups on the Pokémon tab */
 .team-grid {{ display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .6rem 1rem; }}
 .team-mon, .mini-mon {{ display: flex; align-items: center; gap: .45rem; min-width: 0; }}

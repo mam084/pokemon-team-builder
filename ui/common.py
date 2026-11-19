@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import re
+
 import functools
 import json
 from pathlib import Path
@@ -96,3 +98,14 @@ def ranked_options(all_names: list[str], popular: dict) -> list[str]:
     first = [lookup[to_id(p)] for p in popular if to_id(p) in lookup]
     rest = [n for n in all_names if n not in set(first)]
     return first + rest
+
+
+def anchor_id(title: str) -> str:
+    """'Against the top 30' -> 'sec-against-the-top-30' (for jump links)."""
+    return "sec-" + re.sub(r"[^a-z0-9]+", "-", title.lower()).strip("-")
+
+
+def jump_row(titles: list[str]) -> None:
+    """A row of links to sections further down the page: long tabs on a phone."""
+    links = "".join(f"<a href='#{anchor_id(t)}'>{t}</a>" for t in titles)
+    st.markdown(f"<div class='jump-row'>Jump to: {links}</div>", unsafe_allow_html=True)
