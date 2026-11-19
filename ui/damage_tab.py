@@ -5,6 +5,8 @@ from __future__ import annotations
 import pandas as pd
 import streamlit as st
 
+from src.setup import boost_text, setup_move
+
 from src.damage import Battler, Field, calculate
 from src.dex import STAT_LABELS, Dex, to_id
 from src.stats import format_sps
@@ -46,10 +48,21 @@ def _pick(label: str, options: dict[str, PokemonSet], default: int, key: str, de
 
 def _stages(label: str, key: str, stats: list[str]) -> dict:
     cols = st.columns(len(stats))
-    boosts = {s: cols[i].selectbox(f"{label} {STAT_LABELS[s]}", STAGES, index=6, key=f"calc_{key}_{s}",
-                                   format_func=lambda v: f"{v:+d}" if v else "0")
+    ss = st.session_state
+    # a stage set by "Apply one Dragon Dance" lives in session state: no widget default then
+    boosts = {s: cols[i].selectbox(f"{label} {STAT_LABELS[s]}", STAGES, key=f"calc_{key}_{s}",
+                                   format_func=lambda v: f"{v:+d}" if v else "0",
+                                   **({} if f"calc_{key}_{s}" in ss else {"index": 6}))
               for i, s in enumerate(stats)}
     return {s: v for s, v in boosts.items() if v}
+
+
+def _apply_setup(boosts: dict) -> None:
+    """One use of the attacker's setup move, on top of the stages already set (capped at +6)."""
+    ss = st.session_state
+    for stat in ("atk", "spa", "def"):
+        if boosts.get(stat):
+            ss[f"calc_att_{stat}"] = max(-6, min(6, int(ss.get(f"calc_att_{stat}", 0)) + boosts[stat]))
 
 
 def damage_tab(team: list[PokemonSet], dex: Dex, usage: UsageData | None, fmt) -> None:
@@ -127,5 +140,11 @@ def damage_tab(team: list[PokemonSet], dex: Dex, usage: UsageData | None, fmt) -
             reverse_att = {s: v for s, v in def_boosts.items() if s in {"atk", "spa"}}
             show(defender, attacker, reverse_att, {},
                  f"{defender.nickname or defender.species} → {attacker.nickname or attacker.species}")
+        found = setup_move(attacker)
+        if found:
+            move, boosts = found
+            st.button(f"Apply one {move} ({boost_text(boosts)})", key="calc_setup",
+                      on_click=_apply_setup, args=(boosts,),
+                      help="Adds its stat stages to the attacker below. Assumes it gets the turn to set up.")
         if to_id(attacker.item) == "choicescarf" or to_id(defender.item) == "choicescarf":
             st.caption("Choice Scarf only changes Speed, so it doesn't affect these numbers.")

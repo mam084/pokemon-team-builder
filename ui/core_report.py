@@ -28,6 +28,16 @@ def _matchups(format_id: str, regulation: str, core_paste: str, doubles: bool) -
     return core_matchups(parse_paste(core_paste, dex)[0][0], load_usage(format_id), dex, doubles=doubles)
 
 
+@st.cache_data(show_spinner=False, max_entries=64)
+def _setup(format_id: str, regulation: str, core_paste: str, doubles: bool) -> dict | None:
+    from src.dex import load_dex
+    from src.paste import parse_paste
+    from src.setup import after_setup
+    from src.usage import load_usage
+    dex = load_dex(regulation)
+    return after_setup(parse_paste(core_paste, dex)[0][0], load_usage(format_id), dex, doubles=doubles)
+
+
 def _names(ids, dex) -> list[str]:
     names = {dex.sheet_id(s): s.name for s in dex.selectable_species() if not dex.is_cosmetic(s)}
     return [names.get(i, i) for i in ids]
@@ -68,13 +78,22 @@ def core_report_section(core_name: str, core_set, dex, usage, fmt) -> list[str]:
                      + (f"; when it Mega Evolved, {_vs_ratings(won, n, exp)}" if mega else
                         f"; when brought, {_vs_ratings(won, n, exp)}") + ".")
         if row.get("partners"):
-            lines.append("**Usual partners:** " + _pct_list(
+            lines.append(f"**Usual partners** (on {row.get('players', 0):,} players' teams): " + _pct_list(
                 dict(zip(_names(row["partners"], dex), row["partners"].values())), n=SHOWN))
-        if row.get("moves"):
-            moves = {dex.moves[m]["name"] if m in dex.moves else m: v for m, v in row["moves"].items()}
-            items = {dex.items[i]["name"] if i in dex.items else i: v for i, v in row.get("items", {}).items()}
-            lines.append(f"**On {row['sheets']} open team sheets:** {_pct_list(moves, n=SHOWN)}"
-                         + (f" · {_pct_list(items, n=2)}" if items else ""))
+    sheet = None
+    if core_set is not None and getattr(usage, "sheet_sets", None):
+        from src.sheet_sets import MIN_SHEETS, sheet_key
+        sheet = usage.sheet_sets.get(sheet_key(core_set, dex))
+    if sheet and sheet["n"] >= 3:
+        name = lambda m: dex.moves[m]["name"] if m in dex.moves else m  # noqa: E731
+        items = {dex.items[i]["name"] if i in dex.items else i: v for i, v in sheet.get("items", {}).items()}
+        text = (f"**On {sheet['n']} players' team sheets** (each player once): "
+                + _pct_list({name(m): v for m, v in sheet.get("moves", {}).items()}, n=SHOWN)
+                + (f" · {_pct_list(items, n=2)}" if items else ""))
+        if sheet["n"] >= MIN_SHEETS:
+            text += (f". Most common full set: {' / '.join(name(m) for m in sheet['mode'])} ({sheet['mode_n']}); "
+                     "the builder uses it")
+        lines.append(text + ".")
 
     teams = _tournament_teams(fmt.regulation)
     tour = None
@@ -102,6 +121,18 @@ def core_report_section(core_name: str, core_set, dex, usage, fmt) -> list[str]:
             lines.append(f"**Beats {label}:** " + ", ".join(f"{n} ({c})" for n, c in calcs["threats"][:SHOWN])
                          + ". Each team below says which of these it answers.")
 
+    setup = _setup(fmt.id, fmt.regulation, export_paste([core_set]), fmt.is_doubles) if core_set else None
+    if setup:
+        from src.setup import boost_text
+        lo, hi = setup["speed"]
+        text = (f"**After one {setup['move']}** ({boost_text(setup['boosts'])}"
+                + (f"; Speed {lo} → {hi}" if hi != lo else "") + "), if it gets the turn: "
+                f"KOs {setup['ohko'][1]} of the top {setup['total']} in one hit ({setup['ohko'][0]} before)")
+        if setup["beats"]:
+            text += "; now beats " + ", ".join(f"{n} ({c})" for n, c in setup["beats"][:3])
+        if setup["outspeeds"]:
+            text += f"; newly outspeeds {len(setup['outspeeds'])} of them"
+        lines.append(text + ".")
     if not lines:
         return threats
     with st.container(border=True):

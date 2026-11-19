@@ -25,6 +25,7 @@ from src.analysis import build_members, mega_variants
 from src.dex import Dex, to_id
 from src.recommend import recommend
 from src.team import MAX_MEGAS, PokemonSet
+from src.sheet_sets import apply as sheet_apply
 from src.usage import UsageData
 
 TEAM_SIZE = 6
@@ -34,6 +35,10 @@ TEAM_SIZE = 6
 # moves were real; scripts/set_fit_lab.py), so it's off: sets stay as players run them, and the
 # reason line drops any claim the set doesn't carry (honest_reason).
 CARRY_CREDITED = False
+# Moves and nature from real team sheets when there are enough (src/sheet_sets.apply). Held-out week:
+# sets closer to what players ran (scripts/sheet_set_lab.py); built teams lean toward winners the same
+# (+0.001) and score higher, 53.0 -> 55.7 (Popular), 21.9 -> 22.8 (Neutral) (scripts/threat_builder_lab.py).
+SHEET_SETS = True
 CARRY_KEEPS_PROTECT = True
 
 
@@ -49,9 +54,18 @@ class BuiltTeam:
 
 
 def _set_for(name: str, team: list[PokemonSet], dex: Dex, usage: UsageData) -> PokemonSet | None:
+    """Popular set (item by Item Clause), with the moves and nature real team sheets run most."""
     taken = {p.item for p in team if p.item}
     megas = sum(p.is_mega(dex) for p in team)
-    return usage.popular_set(name, dex, taken_items=taken, allow_mega=megas < MAX_MEGAS, team=team)
+    pset = usage.popular_set(name, dex, taken_items=taken, allow_mega=megas < MAX_MEGAS, team=team)
+    if pset is None or not SHEET_SETS:
+        return pset
+    return sheet_apply(pset, dex, getattr(usage, "sheet_sets", None))
+
+
+def core_set(name: str, dex: Dex, usage: UsageData) -> PokemonSet | None:
+    """The set the builder starts a core with (also what the core report shows)."""
+    return _set_for(name, [], dex, usage)
 
 
 # Items that forbid status moves: a credited status move (Tailwind, Follow Me) can't go on these.
@@ -125,22 +139,60 @@ def honest_reason(why: str, unmet: list[str]) -> str:
 ANCHOR_WEIGHT = 2.0
 
 
+# Answering the core's threats (the meta Pokemon that beat the core one-on-one, src/core_report.py):
+# among the recommender's top picks, each gets THREAT_WEIGHT score points (of 100) times the
+# usage-weighted share of the core's still-unanswered threats it beats. Held-out week
+# (scripts/threat_builder_lab.py, 55 cores): built teams already answer 93-95% of the core's threats;
+# at 10 points, 99%, but the lean toward winning teams moved +0.066 (95% -0.003 to +0.136) in Popular
+# and +0.003 (-0.050 to +0.058) in Neutral, and team scores fell slightly. Not clear of zero: off.
+THREAT_WEIGHT = 0.0
+
+
+def _threats(core: PokemonSet, dex: Dex, usage: UsageData, doubles: bool) -> list[tuple]:
+    """[(name, usage %, battle Member)] for the meta Pokemon that beat the core one-on-one."""
+    from src.core_report import core_matchups
+    from src.matchup import opponent_members
+    out = []
+    for name, _ in core_matchups(core, usage, dex, doubles=doubles)["threats"]:
+        opp = opponent_members([name], usage, dex)
+        if opp:
+            out.append((name, usage.usage(name), opp[0]))
+    return out
+
+
+def _beats(pset: PokemonSet, threat, dex: Dex, doubles: bool) -> bool:
+    from src.core_report import wins_against
+    members = build_members([pset], dex)
+    return any(wins_against(m, threat, doubles) for m in members)
+
+
 def _complete(team: list[PokemonSet], reasons: list[str], dex: Dex, usage: UsageData, doubles: bool,
               mode: str, weights: dict | None) -> None:
+    threats = _threats(team[0], dex, usage, doubles) if THREAT_WEIGHT > 0 else []
     while len(team) < TEAM_SIZE:
         recs = recommend(build_members(team, dex), dex, usage, doubles=doubles, weights=weights,
                          top_n=15, mode=mode, anchor=team[0].species, anchor_weight=ANCHOR_WEIGHT)
-        added = False
+        open_ = [t for t in threats if not any(_beats(p, t[2], dex, doubles) for p in team)]
+        total = sum(w for _, w, _ in open_) or 1.0
+        best = None
         for _, row in recs.iterrows():
             pset = _set_for(row["pokemon"], team, dex, usage)
-            if pset is not None and to_id(pset.species) not in {to_id(p.species) for p in team}:
-                pset, why = _carry(pset, row, dex, usage)
-                team.append(pset)
-                reasons.append(f"{pset.species}: {why}")
-                added = True
-                break
-        if not added:
+            if pset is None or to_id(pset.species) in {to_id(p.species) for p in team}:
+                continue
+            hit = [n for n, w, t in open_ if _beats(pset, t, dex, doubles)] if open_ else []
+            score = row["score"] + THREAT_WEIGHT * sum(w for n, w, _ in open_ if n in hit) / total
+            if best is None or score > best[0]:
+                best = (score, pset, row, hit)
+            if not open_:
+                break   # no threat bonus to weigh: the recommender's order stands
+        if best is None:
             break
+        _, pset, row, hit = best
+        pset, why = _carry(pset, row, dex, usage)
+        if hit:
+            why = f"beats {', '.join(hit[:3])}, which beat {team[0].species}; " + why
+        team.append(pset)
+        reasons.append(f"{pset.species}: {why}")
 
 
 def uncarried(pset: PokemonSet, credited) -> list[str]:
@@ -162,7 +214,7 @@ def build_teams(core: PokemonSet | str, dex: Dex, usage: UsageData, doubles: boo
                 mode: str = "popular", weights: dict | None = None, alternatives: int = 3,
                 archetypes=None, regulation: str | None = None) -> list[BuiltTeam]:
     if isinstance(core, str):
-        core = usage.popular_set(core, dex)
+        core = core_set(core, dex, usage)
         if core is None:
             return []
     first = recommend(build_members([core], dex), dex, usage, doubles=doubles, weights=weights,

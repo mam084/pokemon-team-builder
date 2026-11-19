@@ -102,9 +102,9 @@ play on the ladder.
   and one Mega, then rated against the meta teams.
 - **What players do with it** (`src/core_report.py`), shown as soon as you pick the core: its
   last 30 days of ladder and Bo3 games (wins next to what the players' ratings predicted, so a
-  small sample isn't read as a verdict), its usual partners, the moves and items on Bo3 open
-  team sheets, its tournament record and natures, what it beats one-on-one and what beats it
-  (damage calcs). Each built team says which of those threats it answers, and you can start
+  small sample isn't read as a verdict), its usual partners and the moves and items on real
+  team sheets (each player counted once), its tournament record and natures, what it beats
+  one-on-one and what beats it (damage calcs), and what one setup move adds. Each built team says which of those threats it answers, and you can start
   from a real winning team instead. Built twice a day with the replays
   (`data/replays/summary/<format>_cores.json`), so the app never loads replays.
 - **Suggested swaps** (Matchups tab): "Garchomp → Emboar: Close Combat 116% to
@@ -473,6 +473,26 @@ builds with both fell from 33% to 21% and leaned toward the week's winning teams
 gain toward winners (+0.047, 95% -0.003 to +0.102) didn't clear zero. It is on anyway
 (`ANCHOR_WEIGHT = 2`), by choice: no measured loss, and teams built around a core should pair with it.
 
+**Sets from real team sheets** (`src/sheet_sets.py`, `scripts/sheet_set_lab.py`, Nov 2026). Smogon's ladder stats
+count each move on its own; Bo3 open team sheets and tournament lists are whole sets. The builder now gives each
+Pokémon (its core included) the most common complete moveset on the last 30 days of sheets, each player counted
+once, and the most common tournament nature, when there are 10+ sheets (else the ladder set; the item still
+follows Item Clause). On 11,083 held-out tournament sets that matched +0.075 more moves per set (95% +0.063 to
++0.088) and the nature 67.7% vs 62.7% of the time. Mega Feraligatr becomes Adamant, as tournament players run
+it. Built teams lean toward the week's winners the same as before (+0.001) and score higher (Popular 53.0 → 55.7,
+Neutral 21.9 → 22.8; `scripts/threat_builder_lab.py`).
+
+**Answering the core's threats: tested, not shipped** (`scripts/threat_builder_lab.py`). A bonus for picks that
+beat the meta Pokémon the core loses to: the builder's teams already answer 93-95% of them, 99% with the bonus,
+but the lean toward winners moved +0.066 (95% -0.003 to +0.136) in Popular and +0.003 in Neutral, with slightly
+lower team scores. Not clear of zero, so `THREAT_WEIGHT = 0`; each built team still says which threats it answers.
+
+**After setup** (`src/setup.py`): for a core with Dragon Dance, Swords Dance, Quiver Dance, Calm Mind, Nasty Plot,
+Shell Smash and the like, the core report shows what one use buys against the top 30 (one-hit KOs, newly won
+one-on-ones, Speed), and the Damage calc tab has a one-tap *Apply one Dragon Dance*. A display only: it assumes
+the setup turn is free, which a damage calc can't judge; the learned win model already credits setup moves
+from real results.
+
 **Builder reasons only claim what the set carries** (`scripts/set_fit_lab.py`, Nov 2026). A pick earns
 credit for Tailwind, Pivoting or Wide Guard from any move on 25%+ of its sets, but the set the builder adds
 is its top four moves, so 19% of the claims in "Why each Pokémon" weren't on the added set (Corviknight
@@ -611,6 +631,8 @@ The tests check:
 │   ├── plan.py               weather / Trick Room / Tailwind / terrain synergy
 │   ├── builder.py            build three full teams around one Pokémon
 │   ├── core_report.py        what players do with one Pokémon: replays, tournaments, calcs
+│   ├── sheet_sets.py         whole sets from real team sheets (Bo3 open sheets, tournaments)
+│   ├── setup.py              what one setup move buys: calcs and Speed after Dragon Dance etc.
 │   ├── swaps.py              swap suggestions (best upgrade / most similar per member)
 │   ├── gameplan.py           per-matchup game plan: bring, leads, threats, Speed order
 │   ├── cooccurrence.py       tournament team pairings as a second synergy source
@@ -630,6 +652,8 @@ The tests check:
 │   ├── evaluate.py           runs the evaluation → data/evaluation
 │   ├── tool_count_lab.py     diminishing returns for support tools (tournaments and Bo3)
 │   ├── set_fit_lab.py        should builder sets carry the moves they were credited for? (no)
+│   ├── sheet_set_lab.py      real-sheet sets vs ladder sets on held-out tournament sheets
+│   ├── threat_builder_lab.py builder: sheet sets and a threat-answer bonus, held-out week
 │   └── make_damage_vectors.js  Showdown → damage test vectors
 ├── data/                     generated data (committed so the app runs without setup)
 ├── tests/                    unittest suite and fixtures

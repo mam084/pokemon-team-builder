@@ -8,7 +8,7 @@ from pathlib import Path
 import pandas as pd
 import streamlit as st
 
-from src.builder import build_teams
+from src.builder import build_teams, core_set as builder_core_set
 from src.dex import to_id
 from src.matchup import verdict
 from src.recommend import HIDDEN_MAX, DEFAULT_WEIGHTS, EXPLORE_WEIGHTS, MODES, recommend
@@ -78,7 +78,7 @@ def team_builder_section(team, dex, usage, fmt, mode, weights) -> None:
         mine = next((p for p in team if to_id(p.species) == to_id(core_name)), None)
         use_mine = st.checkbox(f"Use my {core_name} set", value=mine is not None, disabled=mine is None,
                                key="build_use_mine")
-        core_set = mine if (use_mine and mine) else usage.popular_set(core_name, dex)
+        core_set = mine if (use_mine and mine) else builder_core_set(core_name, dex, usage)
         threats = core_report_section(core_name, core_set, dex, usage, fmt)
         st.caption("Three different teams, each filled one Pokémon at a time with the top recommendation "
                    f"({MODES[mode]} style). They're ranked by how well they fit together and how they'd "
