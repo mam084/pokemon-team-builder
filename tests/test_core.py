@@ -1057,3 +1057,80 @@ class TestSimilarTeams(unittest.TestCase):
         self.assertTrue(all(s.shared >= 4 for s in sims))
         self.assertEqual([s.shared for s in sims], sorted((s.shared for s in sims), reverse=True))
         self.assertEqual((ordinal(1), ordinal(2), ordinal(11), ordinal(23)), ("1st", "2nd", "11th", "23rd"))
+
+
+class TestBuilderHonesty(unittest.TestCase):
+    """Builder reasons only claim what the added set carries; the core report's pieces."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.dex = load_dex("regmc")
+        cls.usage = load_usage("gen9championsvgc2026regmc")
+
+    def test_reasons_match_sets(self):
+        # every role in "adds ..." and every "its Tailwind helps" is on the set the builder added
+        from src.builder import build_teams
+        from src.analysis import ROLES, provides_role
+        from src.plan import LABELS, SETTERS
+        key = {r.label: r.key for r in ROLES}
+        plan = {v: k for k, v in LABELS.items()}
+        checked = 0
+        for core in ("Feraligatr", "Garganacl", "Sneasler"):
+            for mode in ("popular", "neutral"):
+                for t in build_teams(core, self.dex, self.usage, mode=mode):
+                    for pset, why in zip(t.sets[1:], t.reasons):
+                        moves = {to_id(m) for m in pset.moves}
+                        form = pset.battle_form(self.dex)
+                        abil = {to_id(pset.ability)} | ({to_id(a) for a in form.abilities} if form.is_mega else set())
+                        spread = any(self.dex.moves[m].get("spread") and self.dex.moves[m]["category"] != "Status"
+                                     for m in moves if m in self.dex.moves)
+                        for part in why.split(": ", 1)[1].split("; "):
+                            if part.startswith("adds "):
+                                for label in part[5:].split(", "):
+                                    checked += 1
+                                    self.assertTrue(provides_role(key[label], moves, abil, spread), (pset, label))
+                            if part.startswith("its ") and " helps your" in part:
+                                a, mv = SETTERS[plan[part[4:part.index(" helps")]]]
+                                checked += 1
+                                self.assertTrue(moves & mv or abil & a, (pset, part))
+                    if t.theme:
+                        self.assertIn(f"its {t.theme} helps", t.reasons[0])
+        self.assertGreater(checked, 20)
+
+    def test_honest_reason(self):
+        from src.builder import honest_reason, uncarried
+        from src.team import PokemonSet
+        why = "its Tailwind helps your Feraligatr-Mega; players pair it with Feraligatr (3.4x); adds Speed control, Recovery / support healing"
+        self.assertEqual(honest_reason(why, ["Tailwind", "Speed control"]),
+                         "players pair it with Feraligatr (3.4x); adds Recovery / support healing")
+        pset = PokemonSet(species="Corviknight", moves=["Brave Bird", "Roost", "Bulk Up", "Power Trip"])
+        self.assertEqual(uncarried(pset, [("Tailwind", frozenset({"tailwind"})),
+                                          ("Recovery / support healing", frozenset({"roost"}))]), ["Tailwind"])
+
+    def test_core_report(self):
+        from src.core_report import answered, core_matchups, replay_index, tournament_core
+        from src.evaluate import load_tournament_teams
+        rec = {"uploadtime": 1795046468, "format": "gen9championsvgc2026regmcbo3", "forfeit": False,
+               "players": {"p1": {"name": "a", "rating": 1500}, "p2": {"name": "b", "rating": 1300}},
+               "winner": "p1", "mega": {"p1": "Feraligatr-Mega", "p2": None},
+               "preview": {"p1": ["Feraligatr", "Sneasler", "Incineroar", "Talonflame", "Sinistcha", "Kingambit"],
+                           "p2": ["Garchomp", "Rillaboom", "Whimsicott", "Pelipper", "Archaludon", "Farigiraf"]},
+               "brought": {"p1": ["Feraligatr", "Sneasler", "Incineroar", "Talonflame"],
+                           "p2": ["Garchomp", "Rillaboom", "Whimsicott", "Pelipper"]},
+               "sheets": {"p1": [{"species": "Feraligatr", "item": "Feraligite", "moves": ["Liquidation", "Protect"]}]}}
+        idx = replay_index([rec] * 6, self.dex)["pokemon"]["feraligatr"]
+        self.assertEqual((idx["previews"], idx["brought"], idx["won"], idx["mega"], idx["sheets"]), (6, 6, 6, 6, 6))
+        self.assertAlmostEqual(idx["mega_expected"], 6 / (1 + 10 ** (-200 / 400)), places=1)
+        self.assertEqual(idx["moves"]["liquidation"], 1.0)
+        self.assertEqual(idx["teams"][0]["rating"], 1500)
+        self.assertEqual(len(idx["teams"]), 1)            # the same team is listed once
+        teams = load_tournament_teams("regmc", self.dex)
+        tour = tournament_core("feraligatr", teams, self.dex, "Feraligite")
+        self.assertEqual(len(tour["roots"]), tour["teams"])
+        self.assertTrue(all("feraligatr" in r for r in tour["roots"]))
+        core = self.usage.popular_set("Feraligatr", self.dex)
+        calcs = core_matchups(core, self.usage, self.dex)
+        self.assertTrue(calcs["beats"] and calcs["threats"])
+        self.assertFalse({n for n, _ in calcs["beats"]} & {n for n, _ in calcs["threats"]})
+        yes, no = answered([core], [n for n, _ in calcs["threats"]], self.usage, self.dex)
+        self.assertEqual(yes, [])                         # alone, it answers none of its own threats

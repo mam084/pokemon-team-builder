@@ -47,11 +47,18 @@ def main() -> None:
     for app_id in sorted({app for app, _ in replay_sources().values()}):
         fmt = APP_FORMATS[app_id]
         records = [r for f in fmt.replays for r in load_records(f)]
-        recent = recent_usage(records, load_dex(fmt.regulation))
+        dex = load_dex(fmt.regulation)
+        recent = recent_usage(records, dex)
         path = out_dir / f"{app_id}_recent_usage.json"
         if recent:
             path.write_text(json.dumps({"format": app_id, **recent}, indent=0))
             print(f"{app_id}: recent usage from {recent['teams']} teams ({recent['first_day']} to {recent['last_day']})")
+        # per-Pokemon "what players do with it" for the builder's core report (src/core_report.py)
+        from src.core_report import replay_index
+        cores = replay_index(records, dex)
+        if cores:
+            (out_dir / f"{app_id}_cores.json").write_text(json.dumps({"format": app_id, **cores}, separators=(",", ":")))
+            print(f"{app_id}: core report for {len(cores['pokemon'])} Pokémon ({cores['from']} to {cores['to']})")
 
 
 if __name__ == "__main__":
