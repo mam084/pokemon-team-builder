@@ -26,7 +26,7 @@ from src.swaps import HIDDEN_MAX, SwapEngine, mode_pool, suggest_swaps
 from src.team import PokemonSet
 from src.usage import load_usage
 from src.validate import win_chance
-from ui.common import matchup_scale, sprite, type_badges
+from ui.common import jump_row, matchup_scale, section, sprite, type_badges
 from ui.state import write_slot
 from ui.theme import how_it_works
 
@@ -324,7 +324,9 @@ def matchups_tab(fmt_id, team, members, dex, usage, fmt) -> None:
         return
     archetypes = archetypes_for(fmt_id)
     doubles = fmt.is_doubles
-    st.subheader("Against the meta")
+    if members:
+        jump_row(["Biggest threats to your team", "Suggested swaps"])
+    section("Against the meta")
     how_it_works(
         "- **Meta teams** are rebuilt from Smogon teammate data: start from a popular Pokémon and keep adding "
         "whoever is most often paired with the whole team so far. Each opponent uses its most popular set.\n"
@@ -406,19 +408,38 @@ def matchups_tab(fmt_id, team, members, dex, usage, fmt) -> None:
 
     reliability_box(match_check(fmt.regulation), learned_meta_sides(fmt_id)[0])
 
-    st.subheader("Matchup detail")
+    st.markdown("Facing a specific team? Plan the game on the **Battle plan** tab: bring, leads, turn 1, "
+                "and who answers what.")
+    st.button("Open the Battle plan", key="to_battle_plan", on_click=_open_battle_plan)
+
+    threats = threats_section(fmt_id, team, members, dex, usage, doubles)
+    swaps_section(team, dex, usage, fmt, threats)
+
+
+def _open_battle_plan() -> None:
+    st.session_state["main_tabs"] = "Battle plan"
+
+
+def battle_plan_tab(fmt_id, team, members, dex, usage, fmt) -> None:
+    """One opponent, in detail: win chance, what to bring and lead, turn 1, who answers what."""
+    if usage is None:
+        st.info("The battle plan needs usage stats for this format.")
+        return
+    archetypes = archetypes_for(fmt_id)
+    doubles = fmt.is_doubles
+    if not members:
+        st.info("Add Pokémon on the **Team** tab, then enter the six you see at team preview here.")
+        return
     names = [a.name for a in archetypes]
     if not names:
         st.info("Not enough usage data to build meta teams.")
         return
-    pick = st.selectbox("Meta team", names + [FACING], key="detail_pick",
-                        help="A meta team, or the six you see at team preview (last option).")
+    pick = st.selectbox("Opponent", [FACING] + names, key="detail_pick",
+                        help="The six you see at team preview, or one of the common meta teams.")
     their_side = None
     if pick == FACING:
         arch = facing_archetype(dex, usage)
         if arch is None:
-            threats = threats_section(fmt_id, team, members, dex, usage, doubles)
-            swaps_section(team, dex, usage, fmt, threats)
             return
         theirs = opponent_members(arch.members, usage, dex)
         model_now = learned_meta_sides(fmt_id)[0]
@@ -476,6 +497,7 @@ def matchups_tab(fmt_id, team, members, dex, usage, fmt) -> None:
         plan_picks, bring_source = picks, ("replays" if use_model else "calcs")
         plan = game_plan(members_now, theirs, matrix, plan_picks, dex, doubles, arch.trick_room, arch.weather)
         plan.bring_source = bring_source
+        plan.calc_lead = list(plan.lead)  # the calcs' lead against this team, before replays override it
         summary = replay_summary(fmt_id)
         if summary:
             label = {p.species: m.label for p, m in zip(team, members_now)}
@@ -502,6 +524,7 @@ def matchups_tab(fmt_id, team, members, dex, usage, fmt) -> None:
             form = dex.get_species(who)
             mega_name = form.base_species if form is not None else who
         game_plan_box(plan, mega_name)
+        turn1_box(plan, members_now, theirs, fmt_id)
         playbook_box(theirs, members_now, dex, usage, fmt)
 
         answers = []
@@ -528,9 +551,6 @@ def matchups_tab(fmt_id, team, members, dex, usage, fmt) -> None:
                            "including Trick Room and Tailwind fit. **Bulk**: average defenses. The rest are support tools (Wide Guard, Fake Out...). "
                            "How popular your Pokémon are doesn't count: we tested it and it didn't help predict "
                            "real results.")
-
-    threats = threats_section(fmt_id, team, members, dex, usage, doubles)
-    swaps_section(team, dex, usage, fmt, threats)
 
 
 FACING = "A team you're facing (enter its six)…"
@@ -579,27 +599,29 @@ def playbook_box(theirs, my_members, dex, usage, fmt) -> None:
         return f.name if f is not None else n
     battling = {o.form.name: o.label for o in theirs}
     tools = team_tools(my_members)
-    lines = []
+    blocks, styles = [], []
     for style in STYLES:
         forms = {form_name(n) for n in setters.get(style, set())}
         who_sets = sorted({battling[f] for f in battling if f in forms})
         data = book["styles"].get(style)
         if not who_sets or not data:
             continue
+        styles.append(style)
         good = [c for c in data["choices"] if _verdict(c) == "worked"]
         bad = [c for c in data["choices"] if _verdict(c) == "backfired"]
-        plays = []
+        rows = []
         for c in good[:3]:
             w = _who(c["choice"], tools)
-            plays.append(f"{_name(c['choice'])} ({c['edge']:+.0f}"
-                         + ("" if w is None else f"; yours: {', '.join(w)}" if w else "; your team can't") + ")")
-        text = f"**vs their {style}** ({', '.join(who_sets)}): " + ("; ".join(plays) if plays else "no clear winning play")
+            who = "" if w is None else (f" · yours: {', '.join(w)}" if w else " · your team can't")
+            rows.append(f"- ✓ {_name(c['choice'])}: **{c['edge']:+.0f}** points{who}")
+        if not good:
+            rows.append("- No play clearly won more")
         if bad:
-            text += f". Avoid: {_name(bad[-1]['choice']).lower()} ({bad[-1]['edge']:+.0f})"
-        lines.append(text)
-    if lines:
-        with st.container(border=True):
-            st.markdown("**From the Playbook**  \n" + "  \n".join(lines))
+            rows.append(f"- ✗ Avoid {_name(bad[-1]['choice']).lower()}: **{bad[-1]['edge']:+.0f}** points")
+        blocks.append(f"**Against their {style}** ({', '.join(who_sets)})\n\n" + "\n".join(rows))
+    if blocks:
+        with st.expander(f"From the Playbook: plays that won more against their {', '.join(styles)}"):
+            st.markdown("\n\n".join(blocks))
             st.caption("Points of win chance above what the players' ratings predicted, against players who could "
                        "have made the same play and didn't. Associations, not proof: the Playbook tab has the details.")
 
@@ -610,6 +632,9 @@ def game_plan_box(plan, mega: str | None) -> None:
         st.markdown("**Game plan**")
         lines = [f"**Bring:** {', '.join(plan.bring)}" + (f" · Mega Evolve {mega}" if mega else ""),
                  f"**Lead:** {' + '.join(plan.lead)}" + (f" · **Back:** {', '.join(plan.back)}" if plan.back else ""),
+                 (f"**On damage calcs against this team:** {' + '.join(plan.calc_lead)}"
+                  if getattr(plan, "calc_lead", None) and plan.bring_source == "replays"
+                  and set(plan.calc_lead) != set(plan.lead) else ""),
                  f"**They usually lead:** {' + '.join(plan.their_leads)}" if plan.their_leads else "",
                  f"**Your strongest piece:** {plan.strongest} ({plan.strongest_why})" if plan.strongest else ""]
         if plan.watch_out:
@@ -624,13 +649,50 @@ def game_plan_box(plan, mega: str | None) -> None:
             prev = r["speed"]
         st.caption("Speed (yours in bold, with each set's Stat Points and nature): " + "".join(order)
                    + (f". {plan.speed_note}" if plan.speed_note else ""))
-        st.caption(("Bring and lead: what real players choose in this spot, learned from ladder replays. "
-                    if plan.bring_source == "replays" else "Bring and lead: from damage calcs. ")
-                   + "Their leads: what players with their team usually lead.")
+        st.caption(("Bring and lead: what real players with your Pokémon choose against a team like this, "
+                    "learned from ladder replays; it leans on your own team more than on theirs, so similar "
+                    "opponents often get the same lead. The calcs' lead is shown when it differs. "
+                    if plan.bring_source == "replays" else "Bring and lead: from damage calcs against this team. ")
+                   + "Their leads: what players with their six usually lead.")
+
+
+@st.cache_data(show_spinner=False)
+def turn1_data(fmt_id: str) -> dict:
+    from src.replays import load_turn1
+    data = load_turn1(fmt_id)
+    return data["pokemon"] if data else {}
+
+
+def turn1_box(plan, members_now, theirs, fmt_id: str) -> None:
+    """Turn 1 for each of your leads: what players clicked against their likely leads (or overall)."""
+    table = turn1_data(fmt_id)
+    if not table or not plan.lead:
+        return
+    species_of = {m.label: m.pset.species for m in members_now if m.pset is not None}
+    their_species = {o.label: o.pset.species for o in theirs if o.pset is not None}
+    their_leads = [their_species.get(x, x) for x in (plan.their_leads or [])]
+    lines = []
+    for lead in plan.lead:
+        row = table.get(species_of.get(lead, lead))
+        if not row:
+            continue
+        vs = [(t, row["vs"][t]) for t in their_leads if t in row.get("vs", {})]
+        if vs:
+            t, cell = max(vs, key=lambda x: x[1]["n"])
+            moves, against = cell["moves"], f"against {t} ({cell['n']:,} games)"
+        else:
+            moves, against = row["all"], f"in all its leads ({row['n']:,} games)"
+        lines.append(f"**{lead}:** " + ", ".join(f"{m} {s:.0%}" for m, s in moves) + f" <span class='rec-sub'>{against}</span>")
+    if lines:
+        with st.container(border=True):
+            st.markdown("**Turn 1: what players click**  \n" + "  \n".join(lines), unsafe_allow_html=True)
+            st.caption("From the last 30 days of ladder and Bo3 replays: the first move each lead used, against "
+                       "their likely lead when there are enough games. It's what players do, not a tested "
+                       "best move; the Playbook below says which plays won more against each style.")
 
 
 def threats_section(fmt_id: str, team, members, dex, usage, doubles: bool) -> pd.DataFrame:
-    st.subheader("Biggest threats to your team")
+    section("Biggest threats to your team")
     if not members:
         st.info("Add Pokémon on the **Team** tab to see which popular Pokémon threaten you.")
         return pd.DataFrame()
@@ -679,7 +741,7 @@ def candidate_help(usage, dex) -> str:
 
 
 def swaps_section(team, dex, usage, fmt, threats: pd.DataFrame) -> None:
-    st.subheader("Suggested swaps")
+    section("Suggested swaps")
     if len(team) < 2:
         st.info("Swaps need at least two Pokémon on your team.")
         return

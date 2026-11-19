@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+import re
 
 import pandas as pd
 import plotly.graph_objects as go
@@ -11,7 +12,7 @@ import streamlit as st
 from src.analysis import (coverage_vs_meta, defense_matrix, defense_summary, offense_by_type, role_checklist,
                           speed_table)
 from src.dex import STAT_LABELS, STATS
-from ui.common import fmt_mult, matchup_scale, palette
+from ui.common import fmt_mult, jump_row, matchup_scale, palette, section
 
 def matchup_heatmap(matrix: pd.DataFrame) -> go.Figure:
     import numpy as np
@@ -58,7 +59,7 @@ def fit_check_section(team, dex, usage) -> None:
     links = tm.links(roots)
     by_root = {dex.sheet_id(f): p.species for p, f in zip(team, forms)}
 
-    st.subheader("How your team compares to what players build")
+    section("How your team compares to what players build")
     off_meta = rare >= (len(team) + 1) // 2
     if off_meta:
         st.markdown(f"**Off-meta build:** {rare} of your {len(team)} are on fewer than {HIDDEN_MAX:.0f}% of ladder "
@@ -108,7 +109,7 @@ def similar_teams_section(team, dex, regulation: str) -> None:
     if not teams or len(team) < 3:
         return
     sims, need = find_similar(team, teams, dex)
-    st.subheader("Tournament teams like yours")
+    section("Tournament teams like yours")
     if not sims:
         st.markdown(f"None of the {len(teams):,} tournament teams we have run {need} or more of your Pokémon, "
                     "so there are no results for a team like this yet.")
@@ -131,14 +132,25 @@ def similar_teams_section(team, dex, regulation: str) -> None:
                "players who dropped, which is why the average is under 50%.")
 
 
+def _covered_by(text: str) -> str:
+    """'Conkeldurr (Wide Guard); Araquanid (Wide Guard)' -> 'Conkeldurr, Araquanid (Wide Guard)'."""
+    parts = [x.strip() for x in str(text).split(";") if x.strip()]
+    pairs = [re.match(r"^(.*?)(?: \((.*)\))?$", x).groups() for x in parts]
+    tools = {tool for _, tool in pairs}
+    if len(tools) == 1 and None not in tools:
+        return f"{', '.join(n for n, _ in pairs)} ({tools.pop()})"
+    return ", ".join(f"{n} ({tool})" if tool else n for n, tool in pairs)
+
+
 def analysis_tab(team, members, dex, usage, fmt) -> None:
     if not members:
         st.info("Add Pokémon on the **Team** tab to see the analysis.")
         return
+    jump_row(["Tournament teams like yours", "Defensive matchups", "Role checklist", "Speed tiers", "Offensive coverage"])
     fit_check_section(team, dex, usage)
     similar_teams_section(team, dex, fmt.regulation)
 
-    st.subheader("Defensive matchups")
+    section("Defensive matchups")
     matrix = defense_matrix(members)
     summary = defense_summary(matrix)
     flagged = summary[summary["verdict"] != ""]
@@ -152,31 +164,30 @@ def analysis_tab(team, members, dex, usage, fmt) -> None:
     st.caption("Damage each attacking type does to each member (Mega forms and abilities like Levitate or "
                "Purifying Salt applied). Red = weak, blue = resists.")
 
-    st.subheader("Role checklist")
+    section("Role checklist")
     roles = role_checklist(members, fmt.is_doubles)
     missing = roles[roles["status"].isin(["Missing", "Partly"])]
     optional = roles[roles["status"] == "Optional"]
     covered = roles[roles["status"] == "Yes"]
-    lines = []
     if len(missing):
-        lines.append("**Missing:** " + ", ".join(f"{r['role']}" + (" (partly)" if r["status"] == "Partly" else "")
-                                                 for _, r in missing.iterrows()))
+        st.markdown("**Missing:** " + ", ".join(f"{r['role']}" + (" (partly)" if r["status"] == "Partly" else "")
+                                                for _, r in missing.iterrows()))
     if len(covered):
-        lines.append("**Covered:** " + "; ".join(f"{r['role']} ({r['covered by']})" for _, r in covered.iterrows()))
+        st.markdown("**Covered**  \n" + "  \n".join(f"✓ {r['role']}: {_covered_by(r['covered by'])}"
+                                                    for _, r in covered.iterrows()))
     if len(optional):
-        lines.append("**Not on the team (optional):** " + ", ".join(optional["role"]))
-    st.markdown("\n".join(f"- {x}" for x in lines))
+        st.caption("Not on the team (optional): " + ", ".join(optional["role"]))
     with st.expander("Why each role matters"):
         st.dataframe(roles, hide_index=True, width="stretch",
                      column_config={"why it matters": st.column_config.TextColumn(width="medium")})
 
-    st.subheader("Speed tiers")
+    section("Speed tiers")
     tr = st.toggle("Trick Room order (slowest first)", value=False)
     st.caption("Your Pokémon's Speed (with their Stat Points and nature) next to the meta's most common spreads."
                + ("" if usage else " Add usage data to see meta benchmarks."))
     st.plotly_chart(speed_chart(speed_table(members, dex, usage, n=20), tr), width="stretch")
 
-    st.subheader("Offensive coverage")
+    section("Offensive coverage")
     off = offense_by_type(members)
     weak_types = [t for t, r in off.iterrows() if r["best"] < 2]
     st.markdown(("**No super-effective hit on:** " + ", ".join(

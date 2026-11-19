@@ -213,6 +213,25 @@ class UsageData:
         # Arcanine-Hisui stays Arcanine-Hisui, not Arcanine
         return list(index.get(dex.sheet_id(base), []))
 
+    def sibling(self, species: str, dex: Dex) -> str | None:
+        """For a forme with no usage entry of its own: the most used entry of a sibling forme with the
+        same types and base stats (Squawkabilly-Yellow -> Squawkabilly, Toxtricity-Low-Key ->
+        Toxtricity), whose moves, items and spread fit it too. Its ability stays its own."""
+        s = dex.get_species(species)
+        if s is None or s.is_mega or s.battle_only:
+            return None
+        family = {s.base_species} | {x.name for x in dex.selectable_species() if x.base_species == s.base_species}
+        best = None
+        for name in family - {s.name}:
+            o = dex.get_species(name)
+            if o is None or o.is_mega or o.types != s.types or o.base_stats != s.base_stats:
+                continue
+            for v in self.variants(name, dex):
+                v_s = dex.get_species(v)
+                if v != s.name and v_s is not None and not v_s.is_mega and (best is None or self.usage(v) > self.usage(best)):
+                    best = v
+        return best
+
     def species_usage(self, species: str, dex: Dex) -> float:
         return round(sum(self.pokemon[v]["usage"] for v in self.variants(species, dex)), 3)
 
@@ -292,7 +311,9 @@ class UsageData:
 
     def popular_set(self, species: str, dex: Dex, taken_items: set[str] | None = None,
                     allow_mega: bool = True, team: list[PokemonSet] | None = None) -> PokemonSet | None:
-        """Memoized: see _popular_set. Returns a fresh copy, so callers may edit it."""
+        """Memoized: see _popular_set, then the moves and nature real team sheets run most when there
+        are enough sheets (src/sheet_sets.apply), so every part of the app shows the same set.
+        Returns a fresh copy, so callers may edit it."""
         support = None
         if team is not None:  # only what conditional items care about
             triggers = CONDITIONAL_TRIGGERS
@@ -300,7 +321,11 @@ class UsageData:
         key = (id(dex), to_id(species), frozenset(to_id(i) for i in (taken_items or ()) if i),
                allow_mega, support)
         if key not in self._set_cache:
-            self._set_cache[key] = self._popular_set(species, dex, taken_items, allow_mega, team)
+            pset = self._popular_set(species, dex, taken_items, allow_mega, team)
+            if pset is not None and self.sheet_sets:  # moves and nature from real team sheets, when enough
+                from src.sheet_sets import apply as _sheet_apply
+                pset = _sheet_apply(pset, dex, self.sheet_sets)
+            self._set_cache[key] = pset
         cached = self._set_cache[key]
         return PokemonSet.from_dict(cached.to_dict()) if cached is not None else None
 
@@ -324,6 +349,8 @@ class UsageData:
             base = dex.get_species(s.battle_only[0] if s.battle_only else s.base_species)
         else:
             variants = self.variants(s.name, dex)
+            if not variants and (sib := self.sibling(s.name, dex)):
+                variants = [sib]  # a rare forme: its sibling's set, with its own ability and moves
             entry_name, base = (variants[0] if variants else None), s
         if entry_name is None or self.entry(entry_name) is None or base is None:
             return None
@@ -353,9 +380,11 @@ class UsageData:
             if team is not None:
                 own = (to_id(ability), {to_id(m) for m in moves})
                 support = [own] + [(to_id(p.ability), {to_id(m) for m in p.moves}) for p in team]
+            move_ids = [to_id(m) for m in moves]
             item = next((dex.items[to_id(i)]["name"] for i in self.section(entry_name, "items")
                          if to_id(i) in dex.items and to_id(i) not in taken
                          and not dex.mega_stone_species(i)
+                         and item_fits_moves(to_id(i), move_ids, dex)
                          and (team is None or item_has_support(to_id(i), support, own))), "")
         pset = PokemonSet(species=base.name, item=item, ability=ability, nature=nature, moves=moves)
         if sps:
@@ -402,6 +431,25 @@ CONDITIONAL_ITEMS = {
 
 CONDITIONAL_TRIGGERS = frozenset(x for abilities, moves, _ in CONDITIONAL_ITEMS.values()
                                  for x in (*abilities, *moves))
+
+
+# Status moves that real Choice-item sets carry (Bo3 open sheets, Reg M-C: Trick 97% of its sheets
+# are on a Choice item, Soak 76%, Transform 43%, After You 25%, Fake Tears 13%, Skill Swap 10%);
+# every other status move almost never is (Protect 0.5%, Parting Shot 0.3%, Tailwind 0.7%,
+# Trick Room 1.4%). Assault Vest can't use status moves at all.
+CHOICE_ITEMS = frozenset({"choicescarf", "choiceband", "choicespecs"})
+CHOICE_STATUS_OK = frozenset({"trick", "switcheroo", "soak", "transform", "afteryou", "faketears", "skillswap"})
+
+
+def item_fits_moves(item_id: str, move_ids, dex: Dex) -> bool:
+    """False for a Choice item with a status move players don't pair with one (Choice Scarf with
+    Protect), or Assault Vest with any status move."""
+    status = [m for m in move_ids if m in dex.moves and dex.moves[m]["category"] == "Status"]
+    if item_id == "assaultvest":
+        return not status
+    if item_id in CHOICE_ITEMS:
+        return all(m in CHOICE_STATUS_OK for m in status)
+    return True
 
 
 def item_has_support(item_id: str, team: list[tuple[str, set[str]]], own: tuple[str, set[str]]) -> bool:

@@ -9,6 +9,7 @@ team: how many of its four moves, and whether its nature, match what that player
   ladder        popular_set's top four moves and top spread's nature
   sheet top 4   the four moves most often on sheets
   sheet mode    the most common complete moveset on sheets
+  mode X%+      the most common complete moveset when at least X% of sheets share it, else sheet top 4
 Sheet sets are used only with at least MIN sheets, else the ladder set. Natures: tournament sheets only
 (Bo3 sheets don't show them).
 
@@ -30,6 +31,7 @@ from src.sheet_sets import sheet_key, sheet_sets_from
 from src.usage import load_usage
 
 CUT = "2026-11-12"
+KINDS = ("top4", "mode", "mode15", "mode25", "mode40")
 
 
 def main():
@@ -62,8 +64,14 @@ def main():
             for (days, min_n), sets in variants.items():
                 s = sets.get(key)
                 ok = s is not None and s["n"] >= min_n
-                for kind in ("top4", "mode"):
-                    mv = s[kind] if ok else [to_id(m) for m in lad.moves]
+                for kind in KINDS:
+                    if not ok:
+                        mv = [to_id(m) for m in lad.moves]
+                    elif kind.startswith("mode") and kind != "mode":
+                        share = int(kind[4:]) / 100
+                        mv = s["mode"] if s["mode_n"] >= share * s["n"] else s["top4"]
+                    else:
+                        mv = s[kind]
                     row[(days, min_n, kind)] = len(real & set(mv))
                 nat = s.get("nature") if ok and s.get("nature_n", 0) >= 5 else lad.nature
                 row[(days, min_n, "nat")] = nat == p.nature
@@ -79,7 +87,7 @@ def main():
         by_team[r["team"]].append(r)
     keys = list(by_team)
     for (days, min_n) in variants:
-        for kind in ("top4", "mode"):
+        for kind in KINDS:
             k = (days, min_n, kind)
             gain = np.mean([r[k] - r["ladder"] for r in rows])
             boots = []

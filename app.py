@@ -26,7 +26,7 @@ from src.formats import FORMATS  # noqa: E402
 from src.legality import check_team  # noqa: E402
 from ui.analysis_tab import analysis_tab  # noqa: E402
 from ui.damage_tab import damage_tab  # noqa: E402
-from ui.matchups_tab import matchups_tab  # noqa: E402
+from ui.matchups_tab import battle_plan_tab, matchups_tab  # noqa: E402
 from ui import warmup  # noqa: E402
 from ui.playbook_tab import playbook_tab  # noqa: E402
 from ui.pokemon_tab import pokemon_tab  # noqa: E402
@@ -108,11 +108,12 @@ def main() -> None:
     legality(team, dex, fmt)
     notices()
 
-    tabs = st.tabs(["Team", "Analysis", "Matchups", "Playbook", "Damage calc", "Recommendations", "Pokémon"], key="main_tabs", on_change="rerun")
+    tabs = st.tabs(["Team", "Analysis", "Matchups", "Battle plan", "Playbook", "Damage calc", "Recommendations", "Pokémon"], key="main_tabs", on_change="rerun")
     # Only the open tab is built: each edit used to recompute every tab, swaps included (~4 s).
     pages = [lambda: team_tab(dex, usage),
              lambda: analysis_tab(team, members, dex, usage, fmt),
              lambda: matchups_tab(fmt_id, team, members, dex, usage, fmt),
+             lambda: battle_plan_tab(fmt_id, team, members, dex, usage, fmt),
              lambda: playbook_tab(team, dex, usage, fmt),
              lambda: damage_tab(team, dex, usage, fmt),
              lambda: recommendations_tab(team, members, dex, usage, fmt),

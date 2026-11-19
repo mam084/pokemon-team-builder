@@ -105,6 +105,11 @@ def anchor_id(title: str) -> str:
     return "sec-" + re.sub(r"[^a-z0-9]+", "-", title.lower()).strip("-")
 
 
+def section(title: str) -> None:
+    """A section header that jump_row links can reach."""
+    st.subheader(title, anchor=anchor_id(title))
+
+
 def jump_row(titles: list[str]) -> None:
     """A row of links to sections further down the page: long tabs on a phone."""
     links = "".join(f"<a href='#{anchor_id(t)}'>{t}</a>" for t in titles)

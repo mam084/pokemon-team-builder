@@ -22,7 +22,14 @@ play on the ladder.
   stats, types and ability.
 - When you pick a Pokémon, the app can fill in its most-used set (item, ability,
   spread and moves). It skips items your team already holds, so Item Clause
-  is never broken.
+  is never broken. The same set is used everywhere (autofill, builder, Matchups,
+  Battle plan): ladder stats, with moves and nature from real team sheets when
+  there are enough, and an item that fits the moves (no Choice item with Protect;
+  status moves go on Choice items only where real sheets do, like Trick or Soak).
+- Cosmetic forms (Maushold-Four, Sinistcha-Masterpiece, Vivillon patterns) count
+  as their base Pokémon everywhere, replays included. Rare forms with a different
+  ability but the same types and stats (Squawkabilly-Yellow, Toxtricity-Low-Key)
+  borrow their sibling's set, with their own ability.
 - Legality checks cover Species Clause, Item Clause, illegal moves and abilities,
   and Stat Point limits. You also get a warning when more than one Pokémon holds
   a Mega Stone, since only one can Mega Evolve per battle.
@@ -110,10 +117,14 @@ play on the ladder.
   builder with it picked, and each built team says which of the Pokémon that beat the core it
   answers. Built twice a day with the replays (`data/replays/summary/<format>_cores.json`), so the
   app never loads replays.
-- **Against a team you're facing** (Matchups tab, last option under *Matchup detail*): enter the six you see
-  at team preview (and which one Mega Evolves, if they bring two Mega Stones). Each gets its most common set,
-  and the matchup gets the same plan as a meta team: win chance, what to bring and lead, what they usually
-  lead, the Speed order and who answers what. Every matchup (meta teams too) also lists the Playbook's plays
+- **Battle plan tab: against a team you're facing** (first option; the common meta teams are below it): enter
+  the six you see at team preview (and which one Mega Evolves, if they bring two Mega Stones). Each gets its
+  most common set, and the matchup gets a plan: win chance, what to bring and lead, what they usually lead,
+  the Speed order and who answers what. The bring and lead come from the replay-learned model, which leans on
+  your own team more than theirs, so the damage calcs' lead against this team is shown too when it differs.
+  **Turn 1** lists what players clicked with each of your leads against their likely lead (Incineroar: Fake
+  Out 54% overall, but Parting Shot first against Indeedee-F's Psychic Terrain); what players do, not a tested
+  best move (`data/replays/summary/<format>_turn1.json`, last 30 days). Every matchup (meta teams too) also lists the Playbook's plays
   for the styles that team sets up, matched on the forme each opponent battles as (a Mega Charizard Y sets
   Sun; a Charizard that doesn't Mega Evolve doesn't), and which of your Pokémon can make them.
 - **Playbook tab: how to play against Trick Room, Tailwind, weather, Psychic Terrain and setup sweepers**
@@ -493,7 +504,11 @@ count each move on its own; Bo3 open team sheets and tournament lists are whole 
 Pokémon (its core included) the most common complete moveset on the last 30 days of sheets, each player counted
 once, and the most common tournament nature, when there are 10+ sheets (else the ladder set; the item still
 follows Item Clause). On 11,083 held-out tournament sets that matched +0.075 more moves per set (95% +0.063 to
-+0.088) and the nature 67.7% vs 62.7% of the time. Mega Feraligatr becomes Adamant, as tournament players run
++0.088) and the nature 67.7% vs 62.7% of the time. Re-run on 12,027 held-out sets (Nov 19): the whole set now
+adds only +0.025 (95% +0.014 to +0.036), because with 10-30 sheets the most common whole set can be just two
+players' (Espeon's Helping Hand set, while Expanding Force is on 55% of its sheets). Taking the whole set only
+when 40%+ of sheets share it, else the four moves most often on sheets, matches +0.063 (95% +0.054 to +0.072);
+that rule ships (`MODE_SHARE = 0.4`), and every set in the app now uses it, not just the builder's. Mega Feraligatr becomes Adamant, as tournament players run
 it. Built teams lean toward the week's winners the same as before (+0.001) and score higher (Popular 53.0 → 55.7,
 Neutral 21.9 → 22.8; `scripts/threat_builder_lab.py`).
 
