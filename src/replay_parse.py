@@ -14,6 +14,11 @@ A record keeps what the analyses need and nothing else:
     brought: {p1: [species], p2: ...}       Pokemon that actually came out (<= 4)
     leads: {p1: [species x2], p2: ...}      the two on the field at the start
     mega: {p1: species | None, ...}         who Mega Evolved
+    mega_turn: {p1: turn | None, ...}       the turn it Mega Evolved (1 = the first turn)
+    weather: [[turn, weather, side, species]]  each weather change: who set it (side and species, or
+                                            None for the weather ending); turn 0 = the leads coming in
+    field: [[turn, event, condition, side, species]]  Trick Room, terrains (fieldstart / fieldend) and
+                                            Tailwind, screens (sidestart / sideend) starting and ending
     moves: {p1: {species: {move: uses}}}    every move used, by whom
     turn1: {p1: [[species, move, target]]}  first-turn choices
     faints: [[turn, side, species]]
@@ -76,12 +81,22 @@ def parse_log(log: str, meta: dict | None = None) -> dict:
         "winner": None, "forfeit": False, "turns": 0,
         "preview": {p: [] for p in PLAYERS}, "brought": {p: [] for p in PLAYERS},
         "leads": {p: [] for p in PLAYERS}, "mega": {p: None for p in PLAYERS},
+        "mega_turn": {p: None for p in PLAYERS}, "weather": [], "field": [],
         "moves": {p: defaultdict(lambda: defaultdict(int)) for p in PLAYERS},
         "turn1": {p: [] for p in PLAYERS}, "faints": [], "sheets": {},
     }
     on_field: dict[str, str] = {}      # slot -> base species
     names: dict[str, str] = {}         # player name -> side
     turn = 0
+    last_mover: tuple[str | None, str | None] = (None, None)   # who used the last move (side, species)
+
+    def source(parts: list[str]) -> tuple[str | None, str | None]:
+        """Who caused a weather / field change: its '[of] p1a: X' tag, else the Pokemon that just moved."""
+        for x in parts:
+            if x.startswith("[of] "):
+                ref = x[5:]
+                return _side(ref), on_field.get(_slot(ref))
+        return last_mover
     for line in log.splitlines():
         if not line.startswith("|"):
             continue
@@ -110,10 +125,28 @@ def parse_log(log: str, meta: dict | None = None) -> dict:
             p, species = _side(parts[2]), _species(parts[3])
             if p in PLAYERS and "-Mega" in species:
                 rec["mega"][p] = species
+                if rec["mega_turn"][p] is None:
+                    rec["mega_turn"][p] = turn
         elif kind == "-mega" and len(parts) >= 4:
             p = _side(parts[2])
-            if p in PLAYERS and rec["mega"][p] is None:
-                rec["mega"][p] = f"{on_field.get(_slot(parts[2]), parts[3])}-Mega"
+            if p in PLAYERS:
+                if rec["mega"][p] is None:
+                    rec["mega"][p] = f"{on_field.get(_slot(parts[2]), parts[3])}-Mega"
+                if rec["mega_turn"][p] is None:
+                    rec["mega_turn"][p] = turn
+        elif kind == "-weather" and len(parts) >= 3:
+            if "[upkeep]" in parts[3:]:
+                continue
+            weather = parts[2]
+            side, species = (None, None) if weather == "none" else source(parts[3:])
+            rec["weather"].append([turn, weather, side, species])
+        elif kind in ("-fieldstart", "-fieldend") and len(parts) >= 3:
+            side, species = source(parts[3:]) if kind == "-fieldstart" else (None, None)
+            rec["field"].append([turn, kind[1:], parts[2].replace("move: ", ""), side, species])
+        elif kind in ("-sidestart", "-sideend") and len(parts) >= 4:
+            side = _side(parts[2])
+            species = last_mover[1] if kind == "-sidestart" and last_mover[0] == side else None
+            rec["field"].append([turn, kind[1:], parts[3].replace("move: ", ""), side, species])
         elif kind == "turn" and len(parts) >= 3:
             turn = int(parts[2]) if parts[2].isdigit() else turn + 1
             rec["turns"] = turn
@@ -123,6 +156,7 @@ def parse_log(log: str, meta: dict | None = None) -> dict:
                 continue
             species = on_field.get(slot, "?")
             move = parts[3]
+            last_mover = (p, species := on_field.get(slot, "?"))
             # moves called by another move ([from]) aren't choices
             if any(x.startswith("[from]") for x in parts[4:]):
                 continue
