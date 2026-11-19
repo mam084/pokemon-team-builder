@@ -1206,6 +1206,23 @@ class TestPlaybook(unittest.TestCase):
         self.assertEqual(by["Fake Out on the setter"]["n"], 200)
         self.assertEqual(book["games"], 400)                               # only p1 faces a setter lead
 
+    def test_fake_out_into_psychic_terrain(self):
+        from src.playbook import FAILED_FAKE_OUT, _labels
+        dex = load_dex("regmc")
+        setters = {"Psychic Terrain": {"Indeedee-F"}}
+        lead = ["Indeedee-F", "Kingambit"]
+        fo = lambda tgt: [["Incineroar", "Fake Out", tgt]]  # noqa: E731
+        # grounded target, Psychic Terrain up: it fails, whichever Pokemon it was aimed at
+        self.assertEqual(_labels("Psychic Terrain", fo("Kingambit"), "Indeedee-F", ["Incineroar", "Garchomp"], [], {},
+                                 setters, dex, their_leads=lead), {FAILED_FAKE_OUT})
+        self.assertEqual(_labels("Psychic Terrain", fo("Indeedee-F"), "Indeedee-F", ["Incineroar", "Garchomp"], [], {},
+                                 setters, dex, their_leads=lead), {FAILED_FAKE_OUT})
+        # a Flying target, or your own terrain setter in the lead: a real Fake Out
+        self.assertEqual(_labels("Psychic Terrain", fo("Talonflame"), "Indeedee-F", ["Incineroar", "Garchomp"], [], {},
+                                 setters, dex, their_leads=["Indeedee-F", "Talonflame"]), {"Fake Out on its partner"})
+        self.assertEqual(_labels("Psychic Terrain", fo("Kingambit"), "Indeedee-F", ["Incineroar", "Rillaboom"], [], {},
+                                 setters, dex, their_leads=lead), {"Fake Out on its partner"})
+
     def test_team_tools(self):
         from src.analysis import build_members
         from src.playbook import team_tools
