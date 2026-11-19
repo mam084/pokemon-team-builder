@@ -41,7 +41,35 @@ def _expected(own: float | None, opp: float | None) -> float | None:
     return 1.0 / (1.0 + 10 ** ((opp - own) / 400.0))
 
 
-def replay_index(records: list[dict], dex: Dex, days: int = DAYS) -> dict:
+def plan_setters(usage, dex: Dex) -> dict[str, list[str]]:
+    """{sheet id: team styles it sets up} by the rules that name the Matchups tab's meta teams
+    (src/matchup.SETTERS): its ability (a Mega's own, else on 50%+ of sets) or a move on 40%+ of sets."""
+    from src.matchup import SETTERS
+    out: dict[str, list[str]] = {}
+    for name, _ in usage.ranked():
+        form = dex.get_species(name)
+        if form is None:
+            continue
+        abil = {to_id(form.abilities[0])} if form.is_mega else \
+            {to_id(a) for a, pct in usage.section(name, "abilities").items() if pct >= 50}
+        moves = {to_id(m) for m, pct in usage.section(name, "moves").items() if pct >= 40}
+        for label, abilities, setter_moves in SETTERS:
+            if abil & abilities or moves & setter_moves:
+                out.setdefault(dex.sheet_id(form), [])
+                if label not in out[dex.sheet_id(form)]:
+                    out[dex.sheet_id(form)].append(label)
+    return out
+
+
+def team_style(roots, setters: dict[str, list[str]], limit: int | None = 2) -> str:
+    """'Rain + Tailwind', 'Trick Room', or 'Goodstuffs' (no weather, terrain or speed-control setter)."""
+    from src.matchup import SETTERS
+    present = {lab for r in roots for lab in setters.get(r, [])}
+    tags = [lab for lab, _, _ in SETTERS if lab in present]
+    return " + ".join(tags[:limit] if limit else tags) or "Goodstuffs"
+
+
+def replay_index(records: list[dict], dex: Dex, days: int = DAYS, setters: dict | None = None) -> dict:
     """{sheet id: stats} from replays (see the module docstring). Forfeits don't count toward wins."""
     from src.replay_parse import PLAYERS
     stamped = [r for r in records if r.get("uploadtime")]
@@ -60,7 +88,7 @@ def replay_index(records: list[dict], dex: Dex, days: int = DAYS) -> dict:
     stats: dict[str, dict] = defaultdict(lambda: {
         "previews": 0, "brought": 0, "won": 0, "rated": 0, "rated_won": 0, "rated_expected": 0.0,
         "mega": 0, "mega_won": 0, "mega_rated": 0, "mega_rated_won": 0, "mega_expected": 0.0,
-        "partners": Counter(), "seen": set(), "teams": [], "sheets": 0, "moves": Counter(), "items": Counter()})
+        "partners": Counter(), "styles": Counter(), "seen": set(), "teams": [], "sheets": 0, "moves": Counter(), "items": Counter()})
     for r in stamped:
         if r["uploadtime"] < start:
             continue
@@ -83,6 +111,8 @@ def replay_index(records: list[dict], dex: Dex, days: int = DAYS) -> dict:
                 if team_key not in s["seen"]:   # partners: each player's team once, not every game
                     s["seen"].add(team_key)
                     s["partners"].update(y for y in set(roots) if y != x)
+                    if setters is not None:   # each style on its own: a Rain + Trick Room team counts for both
+                        s["styles"].update(team_style(roots, setters, limit=None).split(" + "))
                 if x in sheet:
                     s["sheets"] += 1
                     s["moves"].update(to_id(m) for m in sheet[x].get("moves") or [])
@@ -119,7 +149,9 @@ def replay_index(records: list[dict], dex: Dex, days: int = DAYS) -> dict:
             if len(teams) >= TOP_TEAMS:
                 break
         row = {k: (round(v, 2) if isinstance(v, float) else v) for k, v in s.items()
-               if k not in ("partners", "seen", "teams", "moves", "items")}
+               if k not in ("partners", "styles", "seen", "teams", "moves", "items")}
+        if s["styles"]:
+            row["styles"] = {k: round(v / len(s["seen"]), 3) for k, v in s["styles"].most_common(6)}
         row["players"] = len(s["seen"])
         row["partners"] = {k: round(v / len(s["seen"]), 3) for k, v in s["partners"].most_common(TOP_PARTNERS)}
         row["teams"] = teams
@@ -207,4 +239,4 @@ def answered(team_sets, threats: list[str], usage, dex: Dex, doubles: bool = Tru
     return yes, no
 
 
-__all__ = ["replay_index", "load_index", "tournament_core", "core_matchups", "answered", "wins_against"]
+__all__ = ["plan_setters", "team_style", "replay_index", "load_index", "tournament_core", "core_matchups", "answered", "wins_against"]

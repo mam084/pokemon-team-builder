@@ -22,7 +22,7 @@ def click(at: AppTest, key: str | None = None, label: str | None = None) -> AppT
     return button.click().run()
 
 
-TABS = ["Team", "Analysis", "Matchups", "Damage calc", "Recommendations", "Meta"]
+TABS = ["Team", "Analysis", "Matchups", "Damage calc", "Recommendations", "Pokémon", "Meta"]
 
 
 def open_tab(at: AppTest, name: str) -> AppTest:
@@ -48,6 +48,24 @@ class TestApp(unittest.TestCase):
         # only the open tab is built, and the team (held in the Team tab's widgets) must survive
         self.assertEqual([at.session_state[f"s{i}_species"] for i in range(6)], team)
         self.assertEqual(at.session_state["s1_move0"], "Hyper Voice")
+
+    def test_pokemon_tab_build_around_and_real_team(self):
+        at = open_tab(fresh(), "Pokémon")
+        at.selectbox(key="poke_name").set_value("Feraligatr-Mega")
+        at = at.run()
+        self.assertClean(at)
+        md = " ".join(m.value for m in at.markdown)
+        self.assertIn("Usually paired with", md)
+        self.assertIn("After one Dragon Dance", md)
+        at = at.button(key="poke_build").click().run()      # empty team: the builder on the Team screen
+        self.assertClean(at)
+        self.assertEqual(at.session_state["main_tabs"], "Team")
+        self.assertEqual(at.session_state["build_core"], "Feraligatr")
+        at = open_tab(at, "Pokémon")
+        at = at.button(key="poke_proven_load").click().run()
+        self.assertClean(at)
+        self.assertEqual(at.session_state["s0_species"], "Feraligatr")
+        self.assertNotEqual(at.session_state["s5_species"], "—")
 
     def test_add_from_recommendations_and_remove(self):
         at = open_tab(fresh(), "Recommendations")

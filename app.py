@@ -28,6 +28,7 @@ from ui.analysis_tab import analysis_tab  # noqa: E402
 from ui.damage_tab import damage_tab  # noqa: E402
 from ui.matchups_tab import matchups_tab  # noqa: E402
 from ui.meta_tab import meta_tab  # noqa: E402
+from ui.pokemon_tab import pokemon_tab  # noqa: E402
 from ui.recommendations_tab import recommendations_tab  # noqa: E402
 from ui.sidebar import notices, sidebar  # noqa: E402
 from ui.state import current_team, keep_state  # noqa: E402
@@ -105,13 +106,14 @@ def main() -> None:
     legality(team, dex, fmt)
     notices()
 
-    tabs = st.tabs(["Team", "Analysis", "Matchups", "Damage calc", "Recommendations", "Meta"], key="main_tabs", on_change="rerun")
+    tabs = st.tabs(["Team", "Analysis", "Matchups", "Damage calc", "Recommendations", "Pokémon", "Meta"], key="main_tabs", on_change="rerun")
     # Only the open tab is built: each edit used to recompute every tab, swaps included (~4 s).
     pages = [lambda: team_tab(dex, usage),
              lambda: analysis_tab(team, members, dex, usage, fmt),
              lambda: matchups_tab(fmt_id, team, members, dex, usage, fmt),
              lambda: damage_tab(team, dex, usage, fmt),
              lambda: recommendations_tab(team, members, dex, usage, fmt),
+             lambda: pokemon_tab(dex, usage, len(team), fmt),
              lambda: meta_tab(dex, usage, len(team), fmt.regulation, fmt.id)]
     for tab, page in zip(tabs, pages):
         if tab.open:

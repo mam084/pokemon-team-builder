@@ -14,7 +14,7 @@ from src.matchup import verdict
 from src.recommend import HIDDEN_MAX, DEFAULT_WEIGHTS, EXPLORE_WEIGHTS, MODES, recommend
 from src.roles import meta_roles, role_text, set_roles
 from ui.common import SLOTS, sprite, type_badges
-from ui.core_report import core_report_section, threats_line
+from ui.core_report import core_threats, threats_line
 from ui.matchups_tab import archetypes_for
 from ui.state import add_to_team, load_team
 from ui.theme import how_it_works
@@ -79,11 +79,12 @@ def team_builder_section(team, dex, usage, fmt, mode, weights) -> None:
         use_mine = st.checkbox(f"Use my {core_name} set", value=mine is not None, disabled=mine is None,
                                key="build_use_mine")
         core_set = mine if (use_mine and mine) else builder_core_set(core_name, dex, usage)
-        threats = core_report_section(core_name, core_set, dex, usage, fmt)
+        threats = core_threats(core_set, fmt)
         st.caption("Three different teams, each filled one Pokémon at a time with the top recommendation "
                    f"({MODES[mode]} style). They're ranked by how well they fit together and how they'd "
                    "do against the meta teams, the mix that best matched real tournament results. "
-                   "Loading a team replaces your current one.")
+                   f"Loading a team replaces your current one. How {core_name} is usually played, with real "
+                   "teams to start from: the Pokémon tab.")
         if st.button(f"Build teams around {core_name}", type="primary", width="stretch"):
             core = mine if (use_mine and mine) else core_name
             with st.spinner("Building teams…"):
@@ -115,12 +116,11 @@ def team_builder_section(team, dex, usage, fmt, mode, weights) -> None:
                 cards = []
                 for p in t.sets:
                     form = p.battle_form(dex)
-                    cards.append(f"<b>{p.species}</b> @ {p.item or 'no item'}<br>{type_badges(form.types)}"
+                    cards.append(f"<div class='team-mon'><img src='{sprite(form, dex)}' alt=''><div>"
+                                 f"<b>{p.species}</b> @ {p.item or 'no item'}<br>{type_badges(form.types)}"
                                  f"<br><span style='font-size:.8rem;opacity:.7'>"
-                                 f"{role_text(set_roles(p, dex, fmt.is_doubles), 2)}</span>")
-                st.markdown("<div style='display:flex;flex-wrap:wrap;gap:10px 18px'>" +
-                            "".join(f"<div style='min-width:130px'>{c}</div>" for c in cards) + "</div>",
-                            unsafe_allow_html=True)
+                                 f"{role_text(set_roles(p, dex, fmt.is_doubles), 2)}</span></div></div>")
+                st.markdown("<div class='team-grid'>" + "".join(cards) + "</div>", unsafe_allow_html=True)
                 with st.expander("Why each Pokémon"):
                     for r in t.reasons:
                         st.markdown(f"- {r}")

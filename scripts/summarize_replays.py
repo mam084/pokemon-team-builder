@@ -61,8 +61,10 @@ def main() -> None:
             save_sheets(sheets, app_id)
             print(f"{app_id}: sheet sets for {len(sheets)} Pokémon")
         # per-Pokemon "what players do with it" for the builder's core report (src/core_report.py)
-        from src.core_report import replay_index
-        cores = replay_index(records, dex)
+        from src.core_report import plan_setters, replay_index
+        from src.usage import load_usage
+        usage = load_usage(app_id)
+        cores = replay_index(records, dex, setters=plan_setters(usage, dex) if usage is not None else None)
         if cores:
             (out_dir / f"{app_id}_cores.json").write_text(json.dumps({"format": app_id, **cores}, separators=(",", ":")))
             print(f"{app_id}: core report for {len(cores['pokemon'])} Pokémon ({cores['from']} to {cores['to']})")

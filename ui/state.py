@@ -20,7 +20,7 @@ def k(slot: int, field: str) -> str:
 
 
 # Choices on one tab that must survive a visit to another (they have no widget default).
-KEEP = {"rec_mode", "swap_mode", "swap_focus", "slot_tab_index"}
+KEEP = {"rec_mode", "swap_mode", "swap_focus", "slot_tab_index", "poke_name"}
 
 
 def keep_state() -> None:
