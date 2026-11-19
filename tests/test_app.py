@@ -88,6 +88,30 @@ class TestApp(unittest.TestCase):
         core = at.session_state["built_teams"][0].sets[0]
         self.assertEqual(core.species, "Garchomp")
 
+    def test_matchup_against_a_team_you_enter(self):
+        at = fresh()
+        at = next(b for b in at.button if b.label and "Example" in b.label).click().run()
+        at = open_tab(at, "Matchups")
+        at.selectbox(key="detail_pick").set_value("A team you're facing (enter its six)…")
+        at = at.run()
+        self.assertClean(at)
+        at.multiselect(key="opp_team").set_value(["Torkoal", "Indeedee-F", "Froslass", "Charizard", "Kingambit",
+                                                  "Pelipper"])
+        at = at.run()
+        self.assertClean(at)
+        self.assertEqual(set(at.selectbox(key="opp_mega").options), {"Froslass", "Charizard"})
+        md = " ".join(m.value for m in at.markdown)
+        self.assertIn("Your team vs their team", md)
+        self.assertIn("**Lead:**", md)
+        self.assertIn("vs their Psychic Terrain** (Indeedee-F)", md)
+        self.assertIn("vs their Snow** (Froslass-Mega)", md)       # Froslass Mega Evolves (the first stone)
+        self.assertNotIn("vs their Sun** (Charizard", md)          # so Charizard has no Drought
+        at.selectbox(key="opp_mega").set_value("Charizard")
+        at = at.run()
+        md = " ".join(m.value for m in at.markdown)
+        self.assertIn("Charizard-Mega-Y", md)
+        self.assertNotIn("vs their Snow", md)
+
     def test_add_from_recommendations_and_remove(self):
         at = open_tab(fresh(), "Recommendations")
         add = next(b for b in at.button if b.key and b.key.startswith("rec_add_"))

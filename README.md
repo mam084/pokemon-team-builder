@@ -110,6 +110,12 @@ play on the ladder.
   builder with it picked, and each built team says which of the Pokémon that beat the core it
   answers. Built twice a day with the replays (`data/replays/summary/<format>_cores.json`), so the
   app never loads replays.
+- **Against a team you're facing** (Matchups tab, last option under *Matchup detail*): enter the six you see
+  at team preview (and which one Mega Evolves, if they bring two Mega Stones). Each gets its most common set,
+  and the matchup gets the same plan as a meta team: win chance, what to bring and lead, what they usually
+  lead, the Speed order and who answers what. Every matchup (meta teams too) also lists the Playbook's plays
+  for the styles that team sets up, matched on the forme each opponent battles as (a Mega Charizard Y sets
+  Sun; a Charizard that doesn't Mega Evolve doesn't), and which of your Pokémon can make them.
 - **Playbook tab: how to play against Trick Room, Tailwind, weather, Psychic Terrain and setup sweepers**
   (`src/playbook.py`, `ui/playbook_tab.py`). From the last 30 days of rated ladder and Bo3 games: in the
   games where the opponent *led* with a setter, how each turn-1 choice (Fake Out on the setter, Taunt it,

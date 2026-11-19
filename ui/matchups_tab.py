@@ -411,9 +411,24 @@ def matchups_tab(fmt_id, team, members, dex, usage, fmt) -> None:
     if not names:
         st.info("Not enough usage data to build meta teams.")
         return
-    pick = st.selectbox("Meta team", names)
-    arch = archetypes[names.index(pick)]
-    theirs = opponent_members(arch.members, usage, dex)
+    pick = st.selectbox("Meta team", names + [FACING], key="detail_pick",
+                        help="A meta team, or the six you see at team preview (last option).")
+    their_side = None
+    if pick == FACING:
+        arch = facing_archetype(dex, usage)
+        if arch is None:
+            threats = threats_section(fmt_id, team, members, dex, usage, doubles)
+            swaps_section(team, dex, usage, fmt, threats)
+            return
+        theirs = opponent_members(arch.members, usage, dex)
+        model_now = learned_meta_sides(fmt_id)[0]
+        if model_now is not None:
+            sets = [x for x in (usage.popular_set(m, dex) for m in arch.members) if x is not None]
+            their_side = team_side(theirs, sets, dex, usage, swap_engine_for(fmt_id))
+        pick = "their team"
+    else:
+        arch = archetypes[names.index(pick)]
+        theirs = opponent_members(arch.members, usage, dex)
     cards = "".join(
         f"<div class='opp-card'><img src='{sprite(opp.form, dex)}' alt=''>"
         f"<div class='opp-name'>{opp.label}</div><div>{type_badges(opp.form.types)}</div>"
@@ -448,9 +463,9 @@ def matchups_tab(fmt_id, team, members, dex, usage, fmt) -> None:
         score = team_score(matrix)
         model, sides = learned_meta_sides(fmt_id)
         pros = cons = []
-        if model is not None:
+        if model is not None and (their_side is not None or pick in names):
             mine = team_side(members_now, team, dex, usage, swap_engine_for(fmt_id))
-            theirs_side = sides[names.index(pick)]
+            theirs_side = their_side if their_side is not None else sides[names.index(pick)]
             p_win = predict_match(model, mine, theirs_side)
             pros, cons = explain(model, mine, theirs_side)
             st.markdown(f"**Your team vs {pick}: about {p_win:.0%} to win ({chance_verdict(p_win).lower()})**")
@@ -487,6 +502,7 @@ def matchups_tab(fmt_id, team, members, dex, usage, fmt) -> None:
             form = dex.get_species(who)
             mega_name = form.base_species if form is not None else who
         game_plan_box(plan, mega_name)
+        playbook_box(theirs, members_now, dex, usage, fmt)
 
         answers = []
         for opp in theirs:
@@ -515,6 +531,77 @@ def matchups_tab(fmt_id, team, members, dex, usage, fmt) -> None:
 
     threats = threats_section(fmt_id, team, members, dex, usage, doubles)
     swaps_section(team, dex, usage, fmt, threats)
+
+
+FACING = "A team you're facing (enter its six)…"
+
+
+def facing_archetype(dex, usage):
+    """The six from team preview, entered by hand, as an Archetype the detail section can plan against.
+    Each gets its most common set; with two or more Mega Stones you say which one Mega Evolves."""
+    from src.matchup import Archetype, _label
+    sheet = usage.team_sheet_usage(dex)
+    picked = st.multiselect("Their six (from team preview)", list(sheet), key="opp_team", max_selections=6,
+                            placeholder="Type to search…",
+                            help="Each gets its most common set. Sorted by how often it's on ladder teams.")
+    if len(picked) < 2:
+        st.caption("Pick at least two of their Pokémon to see the plan.")
+        return None
+    sets = {n: usage.popular_set(n, dex) for n in picked}
+    stones = [n for n in picked if sets[n] is not None and sets[n].is_mega(dex)]
+    if len(stones) > 1:
+        first = st.selectbox("Which one Mega Evolves?", stones, key="opp_mega",
+                             help="Only one Mega per battle; the others play in their base forme.")
+        picked = [first] + [n for n in picked if n != first]
+    elif stones:
+        picked = stones + [n for n in picked if n not in stones]
+    members = [n for n in picked if sets[n] is not None]
+    if len(members) < 2:
+        return None
+    name, tr, weather = _label(members, usage, dex)
+    pop = sum(sheet.get(n, 0) for n in members) / len(members)
+    return Archetype("Their team: " + name.split(" (")[0], members, round(pop, 1), tr, weather)
+
+
+def playbook_box(theirs, my_members, dex, usage, fmt) -> None:
+    """The Playbook's findings for the styles this opponent sets up: plays that worked, and who on your
+    team can make them (ui/playbook_tab.py has the full evidence). Setters are matched on the forme each
+    opponent battles as (a Mega Charizard Y sets Sun; Mega X's Dragon Dance sets don't count for it)."""
+    from src.playbook import STYLES, team_tools
+    from ui.playbook_tab import _book, _name, _setters, _verdict, _who
+    book = _book(fmt.id)
+    if not book:
+        return
+    setters = _setters(fmt.id)
+
+    def form_name(n: str) -> str:
+        f = dex.get_species(n)
+        return f.name if f is not None else n
+    battling = {o.form.name: o.label for o in theirs}
+    tools = team_tools(my_members)
+    lines = []
+    for style in STYLES:
+        forms = {form_name(n) for n in setters.get(style, set())}
+        who_sets = sorted({battling[f] for f in battling if f in forms})
+        data = book["styles"].get(style)
+        if not who_sets or not data:
+            continue
+        good = [c for c in data["choices"] if _verdict(c) == "worked"]
+        bad = [c for c in data["choices"] if _verdict(c) == "backfired"]
+        plays = []
+        for c in good[:3]:
+            w = _who(c["choice"], tools)
+            plays.append(f"{_name(c['choice'])} ({c['edge']:+.0f}"
+                         + ("" if w is None else f"; yours: {', '.join(w)}" if w else "; your team can't") + ")")
+        text = f"**vs their {style}** ({', '.join(who_sets)}): " + ("; ".join(plays) if plays else "no clear winning play")
+        if bad:
+            text += f". Avoid: {_name(bad[-1]['choice']).lower()} ({bad[-1]['edge']:+.0f})"
+        lines.append(text)
+    if lines:
+        with st.container(border=True):
+            st.markdown("**From the Playbook**  \n" + "  \n".join(lines))
+            st.caption("Points of win chance above what the players' ratings predicted, against players who could "
+                       "have made the same play and didn't. Associations, not proof: the Playbook tab has the details.")
 
 
 def game_plan_box(plan, mega: str | None) -> None:
