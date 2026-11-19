@@ -67,8 +67,8 @@ def main() -> None:
         cores = replay_index(records, dex, setters=plan_setters(usage, dex) if usage is not None else None)
         # how to play against Trick Room, Tailwind, weather... (src/playbook.py)
         if usage is not None:
-            from src.playbook import replay_playbook, save as save_book, style_setters
-            book = replay_playbook(records, dex, style_setters(usage, dex))
+            from src.playbook import common_moves, replay_playbook, save as save_book, style_setters
+            book = replay_playbook(records, dex, style_setters(usage, dex), common=common_moves(usage))
             if book:
                 save_book(book, app_id)
                 print(f"{app_id}: playbook for {len(book['styles'])} styles")

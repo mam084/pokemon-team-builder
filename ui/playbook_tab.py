@@ -77,11 +77,15 @@ def playbook_tab(team, dex, usage, fmt) -> None:
     how_it_works(
         f"From {sum(s['games'] for s in book['styles'].values()):,} rated ladder and Bo3 games "
         f"(last {book['days']} days, both players rated {book['min_rating']}+). For each style, the games where "
-        "the opponent **led** with a Pokémon that sets it up: what you can see when you pick turn 1. Each turn-1 "
-        "choice is scored by how much more the players who made it won than their ratings predicted, compared "
-        "with players facing the same lead who chose something else. **Worked** / **backfired**: the 90% "
-        "interval is clear of zero.\n\nThese are associations, not proof: a choice also says something about "
-        "the team and the player. Your team's tools come from its moves and abilities.",
+        "the opponent **led** with a Pokémon that sets it up: what you can see when you pick turn 1. Each choice "
+        "is scored by how much more the players who made it won than their ratings predicted, compared with "
+        "players facing the same lead who **could have made it and didn't**: for Fake Out, Taunt, Trick Room, "
+        "Tailwind, speed drops and Haze, players who had the move in play (on their open team sheet, used that "
+        "game, or on 40%+ of that Pokémon's sets); for leading or bringing your own weather setter, players who "
+        "had one in team preview. Choices any team can make (attacking the setter, double Protect) are compared "
+        "with everyone else. **Worked** / **backfired**: the 90% interval is clear of zero.\n\nThese are still "
+        "associations, not proof: when a player uses a move says something about the game and the player too. "
+        "Your team's tools come from its moves and abilities.",
         "Where these numbers come from")
     members = build_members(team, dex) if team else []
     tools = team_tools(members) if members else {}
@@ -127,8 +131,10 @@ def playbook_tab(team, dex, usage, fmt) -> None:
         if members and v == "worked":
             yours = " · any team can" if who is None else (f" · yours: {', '.join(who)}" if who else " · your team can't")
         mark = {"worked": "Worked", "backfired": "Backfired", "unclear": "Unclear"}[v]
-        return (f"- **{mark}** {_name(c['choice'])}: {c['edge']:+.1f} points (90% {c['lo']:+.1f} to {c['hi']:+.1f}; "
-                f"{c['share']:.0%} of players)" + yours)
+        against = ("vs players who had it and didn't" if c.get("against") == "had it, didn't"
+                   else "vs everyone else")
+        return (f"- **{mark}** {_name(c['choice'])}: {c['edge']:+.1f} points {against} (90% {c['lo']:+.1f} to "
+                f"{c['hi']:+.1f}; {c['n']:,} players)" + yours)
 
     clear = [c for c in data["choices"] if _verdict(c) != "unclear"]
     unclear = [c for c in data["choices"] if _verdict(c) == "unclear"]

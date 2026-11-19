@@ -148,18 +148,58 @@ def _labels(style: str, mine: list, their_setter: str, my_leads: list[str], my_b
     return out
 
 
+# A choice that needs a move is judged only against players who had that move and didn't use it (having
+# Fake Out isn't the story; using it is). (moves, where it had to be: "lead" for turn 1, "brought" for the game)
+NEEDS_MOVE = {
+    "Fake Out on the setter": ({"fakeout"}, "lead"),
+    "Fake Out on its partner": ({"fakeout"}, "lead"),
+    "Taunt or Encore on the setter": ({"taunt", "encore", "disable"}, "lead"),
+    "Imprison": ({"imprison"}, "lead"),
+    "Your own Trick Room": ({"trickroom"}, "lead"),
+    "Your own Tailwind": ({"tailwind"}, "lead"),
+    "Tailwind": ({"tailwind"}, "lead"),
+    "Trick Room or speed drops": ({"trickroom", "icywind", "electroweb", "thunderwave"}, "lead"),
+    "Used Haze, Clear Smog, Roar, Whirlwind or Encore in the game": (PHAZE, "brought"),
+}
+WEATHER_CHOICES = {"Led your own weather setter", "Brought your own weather setter (not leading)"}
+COMMON = 40   # a move on this % of a Pokemon's ladder sets counts as one it has
+
+
+def common_moves(usage) -> dict[str, set[str]]:
+    """{Pokemon (base name): move ids on COMMON%+ of its ladder sets, any form}."""
+    out: dict[str, set[str]] = defaultdict(set)
+    for name, _ in usage.ranked():
+        out[_base(name)] |= {to_id(m) for m, pct in usage.section(name, "moves").items() if pct >= COMMON}
+    return dict(out)
+
+
+def _has(mons: list[str], ids: set[str], r: dict, p: str, common: dict[str, set[str]]) -> bool:
+    """Did one of these Pokemon have one of these moves: on its open team sheet, used in this game, or on
+    COMMON%+ of its ladder sets."""
+    sheet = {_base(m["species"]): {to_id(x) for x in m.get("moves") or []} for m in (r.get("sheets") or {}).get(p) or []}
+    shown = {_base(m): {to_id(x) for x in mv} for m, mv in ((r.get("moves") or {}).get(p) or {}).items()}
+    for mon in mons:
+        b = _base(mon)
+        if ids & (sheet.get(b, set()) | shown.get(b, set()) | common.get(b, set())):
+            return True
+    return False
+
+
 def replay_playbook(records: list[dict], dex: Dex, setters: dict[str, set[str]], days: int = DAYS,
-                    min_rating: int = MIN_RATING) -> dict:
-    """{style: {games, choices: [{choice, n, won, expected, edge, lo, hi}]}} (see the module docstring).
-    edge: points of win chance above the ratings' prediction, minus the same for players facing the same
-    lead who didn't make that choice; lo-hi: its 90% interval (normal approximation)."""
+                    min_rating: int = MIN_RATING, common: dict[str, set[str]] | None = None) -> dict:
+    """{style: {games, choices: [{choice, n, compared, against, edge, lo, hi}]}} (see the module docstring).
+    edge: points of win chance above the ratings' prediction, minus the same for the comparison group, players
+    facing the same lead who could have made the choice and didn't (they had the move, or a weather setter in
+    team preview), or for choices any team can make, everyone else facing that lead; lo-hi: 90% interval."""
+    common = common or {}
     stamped = [r for r in records if r.get("uploadtime")]
     if not stamped:
         return {}
     end = max(r["uploadtime"] for r in stamped)
     start = end - days * 86400
-    by_style: dict[str, list[tuple[set[str], float]]] = defaultdict(list)
+    by_style: dict[str, list[tuple[set[str], float, set[str]]]] = defaultdict(list)
     base_sets = {s: {_base(n) for n in names} for s, names in setters.items()}
+    weather_setters = {_base(n) for lab in WEATHER for n in setters.get(lab, set())}
     for r in stamped:
         if r["uploadtime"] < start or r.get("forfeit"):
             continue
@@ -168,25 +208,47 @@ def replay_playbook(records: list[dict], dex: Dex, setters: dict[str, set[str]],
             continue
         for p, q, own, opp in (("p1", "p2", ra, rb), ("p2", "p1", rb, ra)):
             leads = r["leads"].get(q) or []
+            my_leads, my_brought = r["leads"].get(p) or [], r["brought"].get(p) or []
             for style in STYLES:
                 setter = next((x for x in leads if _base(x) in base_sets.get(style, set())), None)
                 if setter is None:
                     continue
-                labels = _labels(style, r["turn1"].get(p) or [], setter, r["leads"].get(p) or [],
-                                 r["brought"].get(p) or [], (r.get("moves") or {}).get(p) or {}, setters, dex,
-                                 their_leads=leads)
+                labels = _labels(style, r["turn1"].get(p) or [], setter, my_leads, my_brought,
+                                 (r.get("moves") or {}).get(p) or {}, setters, dex, their_leads=leads)
+                could = set()   # choices this player could have made
+                for lab, (ids, where) in NEEDS_MOVE.items():
+                    if _has(my_leads if where == "lead" else my_brought, ids, r, p, common):
+                        could.add(lab)
+                if style in WEATHER:
+                    mine_w = {x for x in (r["preview"].get(p) or []) if _base(x) in weather_setters
+                              and _base(x) not in base_sets.get(style, set())}
+                    if mine_w:
+                        could.add("Led your own weather setter")
+                        if not any(_base(x) in {_base(o) for o in mine_w} for x in my_leads):
+                            could.add("Brought your own weather setter (not leading)")
                 residual = (r["winner"] == p) - 1 / (1 + 10 ** ((opp - own) / 400))
-                by_style[style].append((labels, residual))
+                by_style[style].append((labels, residual, could))
     out = {}
     for style, rows in by_style.items():
         # a Fake Out into Psychic Terrain does nothing, so it isn't scored as a choice: its games still count
         # for every other choice those players made (its +8 points in Nov 2026 said who clicks it, not what it did)
-        failed = sum(FAILED_FAKE_OUT in labels for labels, _ in rows)
-        all_labels = sorted({lab for labels, _ in rows for lab in labels} - {FAILED_FAKE_OUT})
+        failed = sum(FAILED_FAKE_OUT in labels for labels, _, _ in rows)
+        all_labels = sorted({lab for labels, _, _ in rows for lab in labels} - {FAILED_FAKE_OUT})
         choices = []
         for lab in all_labels:
-            yes = [res for labels, res in rows if lab in labels]
-            no = [res for labels, res in rows if lab not in labels]
+            gated = lab in NEEDS_MOVE or lab in WEATHER_CHOICES
+            family = NEEDS_MOVE[lab][0] if lab in NEEDS_MOVE else None
+            yes, no = [], []
+            for labels, res, could in rows:
+                if lab in labels:
+                    yes.append(res)
+                elif not gated:
+                    no.append(res)
+                elif lab in could:
+                    # had it and didn't use it: for a move, no use of it at all this turn (a Fake Out on the
+                    # partner isn't "not using Fake Out"); for weather, didn't lead / bring the setter
+                    if family is None or not any(l2 in labels for l2, (ids, _) in NEEDS_MOVE.items() if ids & family):
+                        no.append(res)
             if len(yes) < MIN_GAMES or len(no) < MIN_GAMES:
                 continue
             m_y, m_n = sum(yes) / len(yes), sum(no) / len(no)
@@ -194,6 +256,7 @@ def replay_playbook(records: list[dict], dex: Dex, setters: dict[str, set[str]],
             se = math.sqrt(var(yes, m_y) / len(yes) + var(no, m_n) / len(no))
             edge = m_y - m_n
             choices.append({"choice": lab, "n": len(yes), "share": round(len(yes) / len(rows), 3),
+                            "compared": len(no), "against": "had it, didn't" if gated else "everyone else",
                             "edge": round(100 * edge, 2), "lo": round(100 * (edge - 1.645 * se), 2),
                             "hi": round(100 * (edge + 1.645 * se), 2)})
         choices.sort(key=lambda c: -c["edge"])
@@ -259,4 +322,4 @@ def setter_hits(members, style: str, setters: dict[str, set[str]], usage, dex: D
     return out
 
 
-__all__ = ["STYLES", "BLURB", "style_setters", "replay_playbook", "save", "load", "team_tools", "setter_hits"]
+__all__ = ["STYLES", "BLURB", "style_setters", "common_moves", "replay_playbook", "save", "load", "team_tools", "setter_hits"]
