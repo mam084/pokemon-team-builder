@@ -549,6 +549,11 @@ Building like everyone else around a core doesn't win more than the players' rat
 most games); Hidden gems picks, the unusual ones, are the ones that over-perform, as in *Are Hidden gems picks
 any good?* above.
 
+**One of the three Neutral teams is a Hidden gems build** (`NEUTRAL_GEMS = 1`, unlabelled; the three are ranked
+together), so a Neutral build also offers the unusual picks that beat their ratings above. On the same held-out
+games the Neutral slope stayed at -0.45 either way (`scripts/offmeta_lab.py --gems`): no harm, no measurable gain
+for the set of three; Hidden gems picks themselves +1.57.
+
 **Tested, not shipped: a ladder-edge bonus.** Giving builder picks credit for how much more each Pokémon won than
 its players' ratings predicted (30 days before the week, shrunk toward 0) moved those slopes to Popular -0.10 /
 +0.19 (weights 2 / 5), Neutral -0.11 / +0.16, Hidden gems +2.19 / +1.65: all inside the noise, while pulling teams

@@ -1219,3 +1219,22 @@ class TestPlaybook(unittest.TestCase):
         self.assertEqual(tools["Tailwind"], ["Pelipper"])
         self.assertEqual(tools["Weather"], ["Pelipper"])
         self.assertEqual(tools["Intimidate"], ["Incineroar"])
+
+
+class TestNeutralGems(unittest.TestCase):
+    def test_one_neutral_team_is_a_hidden_gems_build(self):
+        import src.builder as B
+        dex, usage = load_dex("regmc"), load_usage("gen9championsvgc2026regmc")
+        built = B.build_teams("Garganacl", dex, usage, mode="neutral")
+        self.assertEqual(len(built), 3)
+        keys = [frozenset(to_id(p.species) for p in t.sets) for t in built]
+        self.assertEqual(len(set(keys)), 3)
+        gems = [frozenset(to_id(p.species) for p in t.sets) for t in B.build_teams("Garganacl", dex, usage, mode="hidden")]
+        self.assertTrue(set(keys) & set(gems))
+        old = B.NEUTRAL_GEMS
+        B.NEUTRAL_GEMS = 0
+        try:
+            plain = [frozenset(to_id(p.species) for p in t.sets) for t in B.build_teams("Garganacl", dex, usage, mode="neutral")]
+        finally:
+            B.NEUTRAL_GEMS = old
+        self.assertEqual(len(set(keys) & set(plain)), 2)               # the first two stay Neutral builds

@@ -240,13 +240,31 @@ def _carry(pset: PokemonSet, row, dex: Dex, usage: UsageData) -> tuple[PokemonSe
     return pset, honest_reason(row["why"], unmet)
 
 
+# In Neutral, the last of the teams is built the Hidden gems way (unlabelled; all three are ranked together).
+# Hidden gems picks were the ones that beat their players' ratings on held-out ladder games
+# (scripts/offmeta_lab.py). The mix (--gems there): Neutral slope -0.45 with or without it, so no harm.
+NEUTRAL_GEMS = 1
+
+
 def build_teams(core: PokemonSet | str, dex: Dex, usage: UsageData, doubles: bool = True,
                 mode: str = "popular", weights: dict | None = None, alternatives: int = 3,
-                archetypes=None, regulation: str | None = None) -> list[BuiltTeam]:
+                archetypes=None, regulation: str | None = None, gems: bool = True) -> list[BuiltTeam]:
     if isinstance(core, str):
         core = core_set(core, dex, usage)
         if core is None:
             return []
+    gems = min(NEUTRAL_GEMS, alternatives - 1) if (mode == "neutral" and gems) else 0
+    if gems:
+        # the Neutral build's own first teams (in seed order, before rating), then the gems in place of the rest
+        teams = build_teams(core, dex, usage, doubles, mode, weights, alternatives, gems=False)[:alternatives - gems]
+        species = [{to_id(p.species) for p in t.sets} for t in teams]
+        for t in build_teams(core, dex, usage, doubles, "hidden", weights, alternatives):
+            if len(teams) >= alternatives:
+                break
+            if {to_id(p.species) for p in t.sets} not in species:
+                teams.append(t)
+                species.append({to_id(p.species) for p in t.sets})
+        return _order(teams, dex, usage, doubles, archetypes, regulation)
     first = recommend(build_members([core], dex), dex, usage, doubles=doubles, weights=weights,
                       top_n=None, mode=mode).reset_index(drop=True)
     if first.empty:
@@ -275,7 +293,11 @@ def build_teams(core: PokemonSet | str, dex: Dex, usage: UsageData, doubles: boo
             {to_id(p.species) for p in built.sets} != {to_id(p.species) for p in t.sets} for t in teams
         ):
             teams.append(built)
+    return _order(teams, dex, usage, doubles, archetypes, regulation)
 
+
+def _order(teams: list[BuiltTeam], dex: Dex, usage: UsageData, doubles: bool, archetypes, regulation) -> list[BuiltTeam]:
+    """Rate and order the built teams (the tested team rating, else the matchup score)."""
     if archetypes and regulation and _rate(teams, dex, usage, archetypes, regulation):
         return teams
     if archetypes:

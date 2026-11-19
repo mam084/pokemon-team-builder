@@ -275,7 +275,11 @@ def per_game(modes=("popular", "neutral", "hidden"), min_games: int = 30, min_ra
 
 
 if __name__ == "__main__":
-    if "--edge" in sys.argv:
+    if "--gems" in sys.argv:
+        per_game(variants=[("neutral (3 neutral)", "neutral", {"NEUTRAL_GEMS": 0}),
+                           ("neutral (2 + 1 gems)", "neutral", {"NEUTRAL_GEMS": 1}),
+                           ("hidden", "hidden", {})])
+    elif "--edge" in sys.argv:
         per_game(variants=[(f"{m} edge {w}", m, {"EDGE_WEIGHT": w}) for m in ("popular", "neutral", "hidden")
                            for w in (0.0, 2.0, 5.0)])
     elif "--per-game" in sys.argv:
