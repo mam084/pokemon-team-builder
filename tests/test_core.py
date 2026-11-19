@@ -1279,3 +1279,20 @@ class TestCardSplit(unittest.TestCase):
         row["parts"] = {**parts, "clash": "next to Kingambit"}
         shown, _ = card_split(row, w)
         self.assertIn("**Watch:**", shown)                # a warning never folds away
+
+
+class TestHealthCheck(unittest.TestCase):
+    def test_checks_read_the_evaluations(self):
+        import importlib.util
+        from datetime import datetime, timezone
+        spec = importlib.util.spec_from_file_location("health_check", Path(__file__).parent.parent / "scripts" / "health_check.py")
+        hc = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(hc)
+        names = {n for n, _, _ in hc.checks()}
+        for want in ("Recommender beats popularity", "Win model beats damage calcs", "Team check ranks real teams",
+                     "Bring model (bring) beats usual picks", "Replays are fresh"):
+            self.assertIn(want, names)
+        # a year from now nothing is fresh: the freshness checks must fail, not crash
+        later = {n: ok for n, ok, _ in hc.checks(now=datetime(2027, 12, 1, tzinfo=timezone.utc))}
+        self.assertFalse(later["Replays are fresh"])
+        self.assertFalse(later["Usage stats are current"])

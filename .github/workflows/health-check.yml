@@ -1,0 +1,49 @@
+name: Model health check
+
+# Weekly, after every data refresh, and by hand: is every shipped model still beating its baseline on its
+# latest held-out evaluation, and is the data fresh? (scripts/health_check.py) A failure opens an issue
+# labelled health-check, or comments on the open one, so it reaches the repo owner by email.
+on:
+  schedule:
+    - cron: "23 17 * * 1"   # Mondays
+  workflow_run:
+    workflows: ["Refresh data"]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  health:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+      - run: pip install -r requirements.txt
+      - name: Check
+        id: check
+        run: |
+          set +e
+          python scripts/health_check.py --markdown > health.md
+          echo "status=$?" >> "$GITHUB_OUTPUT"
+          { echo "## Model health check"; echo; cat health.md; } >> "$GITHUB_STEP_SUMMARY"
+          cat health.md
+      - name: Open or update the issue
+        if: steps.check.outputs.status != '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh label create health-check --color D93F0B --description "Model health check failed" 2>/dev/null || true
+          body="$(printf 'The weekly model health check found a problem (run: %s/%s/actions/runs/%s).\n\n' "$GITHUB_SERVER_URL" "$GITHUB_REPOSITORY" "$GITHUB_RUN_ID"; cat health.md)"
+          open=$(gh issue list --label health-check --state open --json number --jq '.[0].number')
+          if [ -n "$open" ]; then
+            gh issue comment "$open" --body "$body"
+          else
+            gh issue create --title "Model health check failed" --label health-check --body "$body"
+          fi
+          exit 1
