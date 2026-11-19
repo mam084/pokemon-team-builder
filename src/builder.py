@@ -148,6 +148,35 @@ ANCHOR_WEIGHT = 2.0
 THREAT_WEIGHT = 0.0
 
 
+# Ladder edge: how much more each Pokemon wins than its players' ratings predict, on the last 30 days of
+# rated replays (src/core_report.replay_index: won - expected over brought games, shrunk toward 0 by
+# EDGE_PRIOR games). Among the recommender's top picks, each gets EDGE_WEIGHT score points per point of
+# edge. Held-out week (scripts/offmeta_lab.py --edge, edges from the 30 days before it): slope of
+# wins-above-ratings on Pokemon shared with the builder's teams, Popular -0.39 / +0.10 at weight 2 / +0.19 at
+# 5; Neutral -0.42 / -0.11 / +0.16; Hidden gems +1.65 / +2.19 / +1.65. Every change inside the noise, and
+# the bonus pulls teams away from what players pair with the core. Off.
+EDGE_WEIGHT = 0.0
+EDGE_PRIOR = 100
+
+
+def edges_from(index: dict | None) -> dict[str, float]:
+    """{sheet id: win-chance edge in points} from a core index (src/core_report.replay_index)."""
+    out = {}
+    for root, row in ((index or {}).get("pokemon") or {}).items():
+        n = row.get("rated", 0)
+        if n:
+            out[root] = 100 * (row["rated_won"] - row["rated_expected"]) / (n + EDGE_PRIOR)
+    return out
+
+
+def _edge(pset: PokemonSet, dex: Dex, usage: UsageData) -> float:
+    edges = getattr(usage, "edges", None)
+    if not edges or not EDGE_WEIGHT:
+        return 0.0
+    s = dex.get_species(pset.species)
+    return edges.get(dex.sheet_id(s), 0.0) if s is not None else 0.0
+
+
 def _threats(core: PokemonSet, dex: Dex, usage: UsageData, doubles: bool) -> list[tuple]:
     """[(name, usage %, battle Member)] for the meta Pokemon that beat the core one-on-one."""
     from src.core_report import core_matchups
@@ -180,11 +209,12 @@ def _complete(team: list[PokemonSet], reasons: list[str], dex: Dex, usage: Usage
             if pset is None or to_id(pset.species) in {to_id(p.species) for p in team}:
                 continue
             hit = [n for n, w, t in open_ if _beats(pset, t, dex, doubles)] if open_ else []
-            score = row["score"] + THREAT_WEIGHT * sum(w for n, w, _ in open_ if n in hit) / total
+            score = row["score"] + THREAT_WEIGHT * sum(w for n, w, _ in open_ if n in hit) / total \
+                + EDGE_WEIGHT * _edge(pset, dex, usage)
             if best is None or score > best[0]:
                 best = (score, pset, row, hit)
-            if not open_:
-                break   # no threat bonus to weigh: the recommender's order stands
+            if not open_ and not EDGE_WEIGHT:
+                break   # no bonus to weigh: the recommender's order stands
         if best is None:
             break
         _, pset, row, hit = best

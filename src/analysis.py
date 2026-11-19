@@ -326,8 +326,8 @@ def speed_table(members: list[Member], dex: Dex, usage: UsageData | None, n: int
                      "who": "Your team", "note": ""})
     fastest = max((r["speed"] for r in rows), default=0)
     if usage is not None:
-        # the n most used, plus anything else in the top 50 that's faster than your fastest
-        for rank, (name, _) in enumerate(usage.ranked(50)):
+        # the n most used, plus anything else in the top 30 that's faster than your fastest
+        for rank, (name, _) in enumerate(usage.ranked(30)):
             info = meta_speed(name, usage, dex)
             if info is None or info["common"] is None:
                 continue

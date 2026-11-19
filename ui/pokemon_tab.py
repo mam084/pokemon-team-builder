@@ -14,7 +14,7 @@ from src.stats import format_sps
 from src.usage import UsageData
 from ui import core_report as R
 from ui.common import SLOTS, sprite, type_badges
-from ui.meta_tab import bar_section, replay_line, species_effect
+from ui.meta_tab import bar_section, replay_line, species_effect, what_wins_section
 from ui.state import add_set_to_team, add_to_team
 
 
@@ -46,7 +46,8 @@ def pokemon_tab(dex: Dex, usage: UsageData | None, team_size: int, fmt) -> None:
     from src.builder import core_set as builder_set
     from ui.analysis_tab import _tournament_teams
     options = [n for n, _ in usage.ranked()]
-    name = st.selectbox("Pokémon", options, key="poke_name", help="Sorted by usage. Megas have their own entry.")
+    name = st.selectbox("Pokémon", options, key="poke_name",
+                        help="Sorted by usage. Megas have their own entry. Or tap one in **The meta** at the bottom.")
     species = dex.get_species(name)
     if species is None:
         return
@@ -209,6 +210,33 @@ def pokemon_tab(dex: Dex, usage: UsageData | None, team_size: int, fmt) -> None:
                     if team_size < SLOTS:
                         st.button("Add to team", key=f"poke_preset_{name}_{i}", width="stretch",
                                   on_click=add_set_to_team, args=(preset.pset,))
+    meta_section(dex, usage, fmt)
 
 
-__all__ = ["pokemon_tab"]
+def _open_from_board(names: list[str]) -> None:
+    rows = st.session_state.get("poke_board", {}).get("selection", {}).get("rows", [])
+    if rows:
+        st.session_state["poke_name"] = names[rows[0]]
+
+
+def meta_section(dex: Dex, usage: UsageData, fmt) -> None:
+    """The usage leaderboard (tap a row to open that Pokémon above) and what wins games."""
+    _section("The meta")
+    if usage.recent:
+        r = usage.recent
+        from src.replays import day_range
+        st.caption(f"Usage: {r['teams']:,} teams from ladder and Bo3 replays, {day_range(r['first_day'], r['last_day'])}, "
+                   f"players rated {r['min_rating']}+ (updated twice a day). Sets, items and spreads: Smogon ladder "
+                   f"stats for {usage.info['month']}.")
+    board = pd.DataFrame(usage.ranked(60), columns=["Pokémon", "usage %"])
+    names = list(board["Pokémon"])
+    board.index += 1
+    st.dataframe(board, width="stretch", height=360, key="poke_board", on_select=lambda: _open_from_board(names),
+                 selection_mode="single-row",
+                 column_config={"usage %": st.column_config.ProgressColumn(
+                     "usage %", min_value=0, max_value=float(board["usage %"].max()), format="%.1f%%")})
+    st.caption("Tap a row to open that Pokémon at the top of this tab.")
+    what_wins_section(fmt.regulation, dex)
+
+
+__all__ = ["pokemon_tab", "meta_section"]

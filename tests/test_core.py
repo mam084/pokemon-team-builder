@@ -1177,3 +1177,45 @@ class TestSheetSetsAndSetup(unittest.TestCase):
                          {"spa": 1, "spd": 1, "spe": 1})
         self.assertIsNone(after_setup(PokemonSet(species="Incineroar", item="Sitrus Berry", ability="Intimidate",
                                                  moves=["Fake Out", "Flare Blitz"]), self.usage, self.dex))
+
+
+class TestPlaybook(unittest.TestCase):
+    def test_turn1_choices_and_edges(self):
+        import src.playbook as P
+        dex = load_dex("regmc")
+        setters = {"Trick Room": {"Farigiraf"}}
+
+        def game(i, fake_out: bool, won: bool):
+            mine = [["Incineroar", "Fake Out", "Farigiraf"]] if fake_out else [["Incineroar", "Protect", "Incineroar"]]
+            mine.append(["Garchomp", "Earthquake", None] if fake_out else ["Garchomp", "Protect", "Garchomp"])
+            return {"uploadtime": 1795000000 + i, "forfeit": False, "winner": "p1" if won else "p2",
+                    "players": {"p1": {"name": f"a{i}", "rating": 1500}, "p2": {"name": f"b{i}", "rating": 1500}},
+                    "leads": {"p1": ["Incineroar", "Garchomp"], "p2": ["Farigiraf", "Kingambit"]},
+                    "brought": {"p1": ["Incineroar", "Garchomp"], "p2": ["Farigiraf", "Kingambit"]},
+                    "turn1": {"p1": mine, "p2": [["Farigiraf", "Trick Room", "Farigiraf"]]}, "moves": {}}
+        recs = [game(i, i % 2 == 0, i % 2 == 0 or i % 5 == 0) for i in range(400)]
+        old = P.MIN_GAMES
+        P.MIN_GAMES = 50
+        try:
+            book = P.replay_playbook(recs, dex, setters)["styles"]["Trick Room"]
+        finally:
+            P.MIN_GAMES = old
+        by = {c["choice"]: c for c in book["choices"]}
+        self.assertGreater(by["Fake Out on the setter"]["edge"], 0)        # Fake Out games all won
+        self.assertLess(by["Both Protected"]["edge"], 0)
+        self.assertEqual(by["Fake Out on the setter"]["n"], 200)
+        self.assertEqual(book["games"], 400)                               # only p1 faces a setter lead
+
+    def test_team_tools(self):
+        from src.analysis import build_members
+        from src.playbook import team_tools
+        from src.team import PokemonSet
+        team = [PokemonSet(species="Incineroar", ability="Intimidate", item="Sitrus Berry",
+                           moves=["Fake Out", "Taunt", "Flare Blitz", "Parting Shot"]),
+                PokemonSet(species="Pelipper", ability="Drizzle", item="Focus Sash", moves=["Tailwind", "Hurricane"])]
+        tools = team_tools(build_members(team, load_dex("regmc")))
+        self.assertEqual(tools["Fake Out"], ["Incineroar"])
+        self.assertEqual(tools["Taunt"], ["Incineroar"])
+        self.assertEqual(tools["Tailwind"], ["Pelipper"])
+        self.assertEqual(tools["Weather"], ["Pelipper"])
+        self.assertEqual(tools["Intimidate"], ["Incineroar"])

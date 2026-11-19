@@ -153,14 +153,28 @@ def analysis_tab(team, members, dex, usage, fmt) -> None:
                "Purifying Salt applied). Red = weak, blue = resists.")
 
     st.subheader("Role checklist")
-    st.dataframe(role_checklist(members, fmt.is_doubles), hide_index=True, width="stretch",
-                 column_config={"why it matters": st.column_config.TextColumn(width="medium")})
+    roles = role_checklist(members, fmt.is_doubles)
+    missing = roles[roles["status"].isin(["Missing", "Partly"])]
+    optional = roles[roles["status"] == "Optional"]
+    covered = roles[roles["status"] == "Yes"]
+    lines = []
+    if len(missing):
+        lines.append("**Missing:** " + ", ".join(f"{r['role']}" + (" (partly)" if r["status"] == "Partly" else "")
+                                                 for _, r in missing.iterrows()))
+    if len(covered):
+        lines.append("**Covered:** " + "; ".join(f"{r['role']} ({r['covered by']})" for _, r in covered.iterrows()))
+    if len(optional):
+        lines.append("**Not on the team (optional):** " + ", ".join(optional["role"]))
+    st.markdown("\n".join(f"- {x}" for x in lines))
+    with st.expander("Why each role matters"):
+        st.dataframe(roles, hide_index=True, width="stretch",
+                     column_config={"why it matters": st.column_config.TextColumn(width="medium")})
 
     st.subheader("Speed tiers")
     tr = st.toggle("Trick Room order (slowest first)", value=False)
     st.caption("Your Pokémon's Speed (with their Stat Points and nature) next to the meta's most common spreads."
                + ("" if usage else " Add usage data to see meta benchmarks."))
-    st.plotly_chart(speed_chart(speed_table(members, dex, usage, n=25), tr), width="stretch")
+    st.plotly_chart(speed_chart(speed_table(members, dex, usage, n=20), tr), width="stretch")
 
     st.subheader("Offensive coverage")
     off = offense_by_type(members)

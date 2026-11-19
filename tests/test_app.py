@@ -22,7 +22,7 @@ def click(at: AppTest, key: str | None = None, label: str | None = None) -> AppT
     return button.click().run()
 
 
-TABS = ["Team", "Analysis", "Matchups", "Damage calc", "Recommendations", "Pokémon", "Meta"]
+TABS = ["Team", "Analysis", "Matchups", "Playbook", "Damage calc", "Recommendations", "Pokémon"]
 
 
 def open_tab(at: AppTest, name: str) -> AppTest:
@@ -57,6 +57,7 @@ class TestApp(unittest.TestCase):
         md = " ".join(m.value for m in at.markdown)
         self.assertIn("Usually paired with", md)
         self.assertIn("After one Dragon Dance", md)
+        self.assertIn("The meta", md)
         at = at.button(key="poke_build").click().run()      # empty team: the builder on the Team screen
         self.assertClean(at)
         self.assertEqual(at.session_state["main_tabs"], "Team")
