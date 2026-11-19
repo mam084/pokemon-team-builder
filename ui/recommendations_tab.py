@@ -14,6 +14,7 @@ from src.matchup import verdict
 from src.recommend import HIDDEN_MAX, DEFAULT_WEIGHTS, EXPLORE_WEIGHTS, MODES, recommend
 from src.roles import meta_roles, role_text, set_roles
 from ui.common import SLOTS, sprite, type_badges
+from ui.core_report import core_report_section, threats_line
 from ui.matchups_tab import archetypes_for
 from ui.state import add_to_team, load_team
 from ui.theme import how_it_works
@@ -77,6 +78,8 @@ def team_builder_section(team, dex, usage, fmt, mode, weights) -> None:
         mine = next((p for p in team if to_id(p.species) == to_id(core_name)), None)
         use_mine = st.checkbox(f"Use my {core_name} set", value=mine is not None, disabled=mine is None,
                                key="build_use_mine")
+        core_set = mine if (use_mine and mine) else usage.popular_set(core_name, dex)
+        threats = core_report_section(core_name, core_set, dex, usage, fmt)
         st.caption("Three different teams, each filled one Pokémon at a time with the top recommendation "
                    f"({MODES[mode]} style). They're ranked by how well they fit together and how they'd "
                    "do against the meta teams, the mix that best matched real tournament results. "
@@ -104,6 +107,11 @@ def team_builder_section(team, dex, usage, fmt, mode, weights) -> None:
                     score = t.meta_score or 0.0
                     rated = f"vs meta {score:+.2f} ({verdict(score)})"
                 st.markdown(f"**Team {n + 1}**{theme} · {rated}")
+                core_form = t.sets[0].battle_form(dex)
+                covered = threats_line(t.sets, threats, core_form.name if core_form else core_label,
+                                       dex, usage, fmt.is_doubles) if core_label == core_name else ""
+                if covered:
+                    st.caption(covered)
                 cards = []
                 for p in t.sets:
                     form = p.battle_form(dex)
@@ -236,7 +244,7 @@ def recommendations_tab(team, members, dex, usage, fmt) -> None:
             accuracy_note(fmt)
         st.markdown("**Score breakdown** (each signal 0-1)")
         st.dataframe(
-            recs.drop(columns=["form", "starts", "extra_mega", "parts"], errors="ignore"), hide_index=True,
+            recs.drop(columns=["form", "starts", "extra_mega", "parts", "credited"], errors="ignore"), hide_index=True,
             width="stretch",
             column_config={
                 "score": st.column_config.ProgressColumn("score", min_value=0, max_value=100, format="%.0f"),

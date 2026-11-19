@@ -28,6 +28,13 @@ from src.team import MAX_MEGAS, PokemonSet
 from src.usage import UsageData
 
 TEAM_SIZE = 6
+# Popular sets are their top four moves, but a pick can be credited for any move on 25%+ of its
+# sets. Swapping the credited move in (carry_credited) made sets *less* like what tournament players
+# ran (held-out week: -0.37 matching moves per changed set, 95% -0.41 to -0.33; only 27% of swapped-in
+# moves were real; scripts/set_fit_lab.py), so it's off: sets stay as players run them, and the
+# reason line drops any claim the set doesn't carry (honest_reason).
+CARRY_CREDITED = False
+CARRY_KEEPS_PROTECT = True
 
 
 @dataclass
@@ -47,6 +54,70 @@ def _set_for(name: str, team: list[PokemonSet], dex: Dex, usage: UsageData) -> P
     return usage.popular_set(name, dex, taken_items=taken, allow_mega=megas < MAX_MEGAS, team=team)
 
 
+# Items that forbid status moves: a credited status move (Tailwind, Follow Me) can't go on these.
+_NO_STATUS = {"choicescarf", "choiceband", "choicespecs", "assaultvest"}
+_PROTECT = {"protect", "detect", "spikyshield", "kingsshield", "banefulbunker", "silktrap", "burningbulwark"}
+
+
+def carry_credited(pset: PokemonSet, credited, usage: UsageData, dex: Dex,
+                   keep_protect: bool = CARRY_KEEPS_PROTECT) -> tuple[PokemonSet, list[str]]:
+    """
+    Make the added set carry what the pick was credited for. A Pokemon earns credit for Tailwind or
+    Pivoting from any move on 25%+ of its sets, but its popular set is only the top four moves, so
+    Corviknight could join "for its Tailwind" without Tailwind. For each credited claim the set lacks,
+    swap in its most-used delivering move for the least-used move no claim needs. Returns the set and
+    the claims it still can't carry (a Choice item forbids the status move), which the reason drops.
+    """
+    form = pset.battle_form(dex)
+    pct = {to_id(m): v for m, v in usage.section(form.name if form else pset.species, "moves").items()}
+    if not pct:
+        pct = {to_id(m): v for m, v in usage.section(pset.species, "moves").items()}
+    moves = list(pset.moves)
+    no_status = to_id(pset.item or "") in _NO_STATUS
+    unmet = []
+    for label, options in credited:
+        have = {to_id(m) for m in moves}
+        if have & options:
+            continue
+        usable = [m for m in options if m in dex.moves and dex.can_learn(dex.get_species(pset.species).id, m)
+                  and not (no_status and dex.moves[m]["category"] == "Status")]
+        if not usable:
+            unmet.append(label)
+            continue
+        add = max(usable, key=lambda m: pct.get(m, 0))
+        needed = set().union(*(o for _, o in credited))
+        droppable = [m for m in moves if to_id(m) not in needed]
+        if keep_protect and any(to_id(m) not in _PROTECT for m in droppable):
+            droppable = [m for m in droppable if to_id(m) not in _PROTECT]
+        if len(moves) < 4:
+            moves.append(dex.moves[add]["name"])
+        elif droppable:
+            drop = min(droppable, key=lambda m: pct.get(to_id(m), 0))
+            moves[moves.index(drop)] = dex.moves[add]["name"]
+        else:
+            unmet.append(label)
+    out = PokemonSet.from_dict(pset.to_dict())
+    out.moves = moves
+    return out, unmet
+
+
+def honest_reason(why: str, unmet: list[str]) -> str:
+    """Drop claims the added set doesn't carry from a recommendation's reason line."""
+    if not unmet:
+        return why
+    parts = []
+    for part in why.split("; "):
+        if any(part.startswith(f"its {u} helps") for u in unmet):
+            continue
+        if part.startswith("adds "):
+            kept = [x for x in part[5:].split(", ") if x not in unmet]
+            if not kept:
+                continue
+            part = "adds " + ", ".join(kept)
+        parts.append(part)
+    return "; ".join(parts) or "solid all-round pick"
+
+
 # The core's pairings count twice while filling, so a team built around a rarely used Pokemon keeps
 # pairing with it instead of with its popular teammates (picks pairing with the core: 86-91% -> 93-96%).
 # Held-out (scripts/builder_lab.py): no loss; a gain toward winning teams (+0.047, 95% -0.003 to
@@ -63,12 +134,28 @@ def _complete(team: list[PokemonSet], reasons: list[str], dex: Dex, usage: Usage
         for _, row in recs.iterrows():
             pset = _set_for(row["pokemon"], team, dex, usage)
             if pset is not None and to_id(pset.species) not in {to_id(p.species) for p in team}:
+                pset, why = _carry(pset, row, dex, usage)
                 team.append(pset)
-                reasons.append(f"{pset.species}: {row['why']}")
+                reasons.append(f"{pset.species}: {why}")
                 added = True
                 break
         if not added:
             break
+
+
+def uncarried(pset: PokemonSet, credited) -> list[str]:
+    """Credited claims (Tailwind, Pivoting...) none of whose moves are on the set."""
+    have = {to_id(m) for m in pset.moves}
+    return [label for label, options in credited if not have & options]
+
+
+def _carry(pset: PokemonSet, row, dex: Dex, usage: UsageData) -> tuple[PokemonSet, str]:
+    credited = row.get("credited") or []
+    if CARRY_CREDITED:
+        pset, unmet = carry_credited(pset, credited, usage, dex)
+    else:
+        unmet = uncarried(pset, credited)
+    return pset, honest_reason(row["why"], unmet)
 
 
 def build_teams(core: PokemonSet | str, dex: Dex, usage: UsageData, doubles: bool = True,
@@ -98,7 +185,9 @@ def build_teams(core: PokemonSet | str, dex: Dex, usage: UsageData, doubles: boo
         second = _set_for(row["pokemon"], [core], dex, usage)
         if second is None:
             continue
-        built = BuiltTeam([core, second], [f"{second.species}: {row['why']}"], theme=row["starts"])
+        second, why = _carry(second, row, dex, usage)
+        theme = row["starts"] if row["starts"] and f"its {row['starts']} helps" in why else ""
+        built = BuiltTeam([core, second], [f"{second.species}: {why}"], theme=theme)
         _complete(built.sets, built.reasons, dex, usage, doubles, mode, weights)
         if len(built.sets) == TEAM_SIZE and all(
             {to_id(p.species) for p in built.sets} != {to_id(p.species) for p in t.sets} for t in teams

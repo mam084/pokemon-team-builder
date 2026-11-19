@@ -39,7 +39,7 @@ import pandas as pd
 from src.analysis import ROLES, Member, defense_matrix, meta_form, provides_role
 from src.dex import Dex, to_id
 from src.team import MAX_MEGAS
-from src.plan import enabler_score, plan_score, plan_users, profile_from, team_plans
+from src.plan import LABELS, SETTERS, enabler_score, plan_score, plan_users, profile_from, team_plans
 from src.type_chart import ALL_TYPES, ability_defensive_multiplier, move_type
 from src.usage import UsageData
 
@@ -212,6 +212,21 @@ def _build_profile(name: str, dex: Dex, usage: UsageData | None):
     return form, ability, move_ids, abilities, atk_types, spread, plan_profile
 
 
+_PLAN_KEY = {label: key for key, label in LABELS.items()}
+
+
+def _role_moves(role_key: str, move_ids: set[str], abilities: set[str], dex: Dex) -> frozenset:
+    """The candidate's common moves that fill a role it was credited for, or nothing when its
+    ability fills it (Intimidate, Drizzle...). The builder makes sure the set it adds carries one."""
+    role = next(r for r in ROLES if r.key == role_key)
+    if abilities & role.abilities:
+        return frozenset()
+    if role_key == "spread":
+        return frozenset(m for m in move_ids if dex.moves.get(m, {}).get("spread")
+                         and dex.moves[m]["category"] != "Status")
+    return frozenset(move_ids & role.moves)
+
+
 def recommend(
     members: list[Member],
     dex: Dex,
@@ -290,6 +305,7 @@ def recommend(
         cand_types = [t.lower() for t in form.types]
         reasons = []
         parts: dict[str, str] = {}  # the same reasons by kind, for the app's cards
+        credited: list[tuple[str, frozenset]] = []  # (claim, moves that deliver it) - see _role_moves
 
         synergy = 0.0
         tm_i = tm.index.get(dex.sheet_id(form)) if tm is not None else None
@@ -370,6 +386,10 @@ def recommend(
         if needs.missing_roles:
             filled = [r for r in needs.missing_roles if provides_role(r, move_ids, abilities, spread)]
             roles = len(filled) / len(needs.missing_roles)
+            for r in filled:
+                credit = _role_moves(r, move_ids, abilities, dex)
+                if credit:
+                    credited.append((next(x.label for x in ROLES if x.key == r), credit))
             if filled:
                 labels = {r.key: r.label for r in ROLES}
                 reasons.append("adds " + ", ".join(labels[r] for r in filled[:3]))
@@ -380,6 +400,9 @@ def recommend(
         start, start_why, starts = enabler_score(plan_profile, members, plans, dex)
         if start > plan:
             plan, plan_why = start, start_why
+            setter_abilities, setter_moves = SETTERS[_PLAN_KEY[starts]]
+            if not plan_profile.abilities & setter_abilities and move_ids & setter_moves:
+                credited.insert(0, (starts, frozenset(move_ids & setter_moves)))
         else:
             starts = ""
         if plan_why:
@@ -402,7 +425,7 @@ def recommend(
             "synergy": round(synergy, 4), "defense": round(defense, 2), "offense": round(offense, 2),
             "roles": round(roles, 2), "meta": round(meta, 2), "plan": round(plan, 2),
             "why": "; ".join(reasons) or "solid all-round pick", "note": note, "parts": parts,
-            "extra_mega": bool(extra_mega), "starts": starts,
+            "extra_mega": bool(extra_mega), "starts": starts, "credited": credited,
         })
 
     df = pd.DataFrame(rows)

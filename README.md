@@ -100,6 +100,13 @@ play on the ladder.
   complete teams. Each is filled one Pokémon at
   a time with the top recommendation, using popular sets that keep Item Clause
   and one Mega, then rated against the meta teams.
+- **What players do with it** (`src/core_report.py`), shown as soon as you pick the core: its
+  last 30 days of ladder and Bo3 games (wins next to what the players' ratings predicted, so a
+  small sample isn't read as a verdict), its usual partners, the moves and items on Bo3 open
+  team sheets, its tournament record and natures, what it beats one-on-one and what beats it
+  (damage calcs). Each built team says which of those threats it answers, and you can start
+  from a real winning team instead. Built twice a day with the replays
+  (`data/replays/summary/<format>_cores.json`), so the app never loads replays.
 - **Suggested swaps** (Matchups tab): "Garchomp → Emboar: Close Combat 116% to
   Incineroar, takes 22%". Pick a threat to fix, or ask for the best overall
   improvement. Every member × candidate swap is scored by **team score** (0-100:
@@ -466,6 +473,16 @@ builds with both fell from 33% to 21% and leaned toward the week's winning teams
 gain toward winners (+0.047, 95% -0.003 to +0.102) didn't clear zero. It is on anyway
 (`ANCHOR_WEIGHT = 2`), by choice: no measured loss, and teams built around a core should pair with it.
 
+**Builder reasons only claim what the set carries** (`scripts/set_fit_lab.py`, Nov 2026). A pick earns
+credit for Tailwind, Pivoting or Wide Guard from any move on 25%+ of its sets, but the set the builder adds
+is its top four moves, so 19% of the claims in "Why each Pokémon" weren't on the added set (Corviknight
+"for its Tailwind" with Brave Bird / Roost / Bulk Up / Power Trip). Swapping the credited move in was tested on
+the held-out week's tournament sheets (hide a member, credit it from the other five, compare with the moves that
+player ran): it made 1,592 sets *less* realistic, -0.37 matching moves each (95% -0.41 to -0.33); only 27% of
+swapped-in moves were real, against 62% of the moves they replaced. So sets stay as players run them, and the
+reason (and a team's *Tailwind* / *Rain* label) drops any claim the set doesn't carry: 0 of 1,743 claims now
+go beyond their set, and the teams themselves are unchanged.
+
 ## Battle replays
 
 A daily GitHub Action (`scripts/fetch_replays.py`, **Fetch replays** workflow)
@@ -593,6 +610,7 @@ The tests check:
 │   ├── recommend.py          explainable multi-signal recommender with popularity modes
 │   ├── plan.py               weather / Trick Room / Tailwind / terrain synergy
 │   ├── builder.py            build three full teams around one Pokémon
+│   ├── core_report.py        what players do with one Pokémon: replays, tournaments, calcs
 │   ├── swaps.py              swap suggestions (best upgrade / most similar per member)
 │   ├── gameplan.py           per-matchup game plan: bring, leads, threats, Speed order
 │   ├── cooccurrence.py       tournament team pairings as a second synergy source
@@ -611,6 +629,7 @@ The tests check:
 │   ├── fetch_tournaments.py  Limitless → data/tournaments
 │   ├── evaluate.py           runs the evaluation → data/evaluation
 │   ├── tool_count_lab.py     diminishing returns for support tools (tournaments and Bo3)
+│   ├── set_fit_lab.py        should builder sets carry the moves they were credited for? (no)
 │   └── make_damage_vectors.js  Showdown → damage test vectors
 ├── data/                     generated data (committed so the app runs without setup)
 ├── tests/                    unittest suite and fixtures
