@@ -559,6 +559,23 @@ both players 1100+, points of win chance above the ratings' prediction): leaving
 (143); bringing it in the back -0.8 (218, unclear). Protecting turn 1 and Mega Evolving turn 2 vs Mega Evolving
 turn 1 is the open question the new fields answer.
 
+### Does following the bring / lead model win? (`scripts/bring_value_lab.py`, Nov 2026)
+
+The bring model predicts what players choose (72% of brings, 44% of leads on held-out replays). Whether that's
+worth following is a different question: on 10,178 held-out rated sides, players whose real bring overlapped
+more with the model's picks won no more than their ratings predicted (-0.13 points per Pokémon, 90% -1.74 to
++1.33; leads -0.65, -2.01 to +0.70). Refitting on sides that beat their rating (winners only, or weighted by
+how much they beat it) leaned better for leads (+0.66 / +0.68) but stayed inside the noise, so the shipped model
+is unchanged: it's the best at predicting real choices, which is what the game plan shows.
+
+### Model health check (`scripts/health_check.py`, weekly)
+
+Every Monday and after each data refresh, a workflow reads the latest held-out evaluations and checks that the
+recommender still beats popularity, the learned win model still beats the damage-calc score (95% interval above
+0) and stays calibrated, the team check still ranks real teams in order, and the bring model still beats players'
+usual picks; plus that replays, usage stats and tournaments are fresh. A failure opens (or comments on) a GitHub
+issue labelled `health-check`.
+
 ## Off-meta cores: does the builder steer toward what wins? (`scripts/offmeta_lab.py`)
 
 Tournaments have too few off-meta teams to judge, so this uses the held-out week of rated ladder and Bo3
@@ -741,6 +758,8 @@ The tests check:
 │   ├── sheet_set_lab.py      real-sheet sets vs ladder sets on held-out tournament sheets
 │   ├── threat_builder_lab.py builder: sheet sets and a threat-answer bonus, held-out week
 │   ├── offmeta_lab.py        off-meta cores: do builder picks win more than ratings predict?
+│   ├── bring_value_lab.py    does following the bring / lead model win? (imitation vs outcome-weighted)
+│   ├── health_check.py       weekly: shipped models still beat their baselines; data is fresh
 │   └── make_damage_vectors.js  Showdown → damage test vectors
 ├── data/                     generated data (committed so the app runs without setup)
 ├── tests/                    unittest suite and fixtures
