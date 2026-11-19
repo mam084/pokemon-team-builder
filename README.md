@@ -538,6 +538,21 @@ target (they do nothing) came out at +8 points: that's who clicks Fake Out, not 
 the terrain isn't scored as a choice (unless the target is Flying or Levitates, or the player led a terrain setter
 of their own), and the tab states the rule instead.
 
+### Weather wars: what's being collected (Nov 2026)
+
+When two weather setters come in together, the slower one's weather stays; a Mega's ability (Mega Charizard Y's
+Drought) goes off when it Mega Evolves, so two Megas on turn 1 leave the slower one's weather up. Whether to lead a
+weather setter, keep it in the back, delay its Mega or leave it home can't be judged without knowing which turn it
+Mega Evolved and which weather ended up on the field, so since Nov 19 each replay record also keeps `mega_turn`,
+every `weather` change (turn, weather, who set it) and `field` events (Trick Room, terrains, Tailwind, screens).
+Older records don't have them; the plan is to look again once about three weeks of games have them.
+
+What the older records already say for Mega Froslass against a Charizard that Mega Evolved into Y (rated games,
+both players 1100+, points of win chance above the ratings' prediction): leaving Froslass home +6.1 (488 games,
+90% +2.4 to +9.8); leading it when Charizard also led -6.0 (295); leading it when Charizard didn't lead +10.0
+(143); bringing it in the back -0.8 (218, unclear). Protecting turn 1 and Mega Evolving turn 2 vs Mega Evolving
+turn 1 is the open question the new fields answer.
+
 ## Off-meta cores: does the builder steer toward what wins? (`scripts/offmeta_lab.py`)
 
 Tournaments have too few off-meta teams to judge, so this uses the held-out week of rated ladder and Bo3
