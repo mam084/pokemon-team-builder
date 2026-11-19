@@ -259,7 +259,7 @@ def reliability_box(check: dict | None, learned: dict | None = None) -> None:
                 f"won {cal[0]['actual']:.0%}; in the highest, {cal[-1]['predicted']:.0%} and "
                 f"{cal[-1]['actual']:.0%}.\n",
                 "Who's playing matters more than the team, and luck matters a lot, so a team win chance is a few "
-                "points of edge, not a sure thing. See **What wins games** on the Meta tab for what the model "
+                "points of edge, not a sure thing. See **What wins games** at the bottom of the Pokémon tab for what the model "
                 "learned.",
             ]
             st.markdown("\n".join(lines))
@@ -386,8 +386,9 @@ def matchups_tab(fmt_id, team, members, dex, usage, fmt) -> None:
                 k = check["models"]["team vs team (all 6)"]["k"]
                 table.insert(2, "win chance", [round(100 * win_chance(x, k)) for x in table["score"]])
         score_col = [c for c in ("score",) if c in table]
-        first = ["archetype"] + (["win chance"] if "win chance" in table else []) + ["verdict"] + score_col
-        table = table[first + [c for c in table.columns if c not in first and c != "with bring"]]
+        # phone width: the team and its win chance; the verdict only when there's no win chance to show
+        first = ["archetype"] + (["win chance"] if "win chance" in table else ["verdict"]) + score_col
+        table = table[first + [c for c in table.columns if c not in first and c not in ("with bring", "verdict")]]
         st.dataframe(
             table, hide_index=True, width="stretch",
             column_config={

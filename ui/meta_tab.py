@@ -1,4 +1,5 @@
-"""Meta tab: the usage leaderboard and what wins. One Pokemon in depth: ui/pokemon_tab.py."""
+"""Shared pieces for the Pokémon tab (ui/pokemon_tab.py): usage bars, replay and learned-effect lines,
+and what wins games. The old Meta tab's leaderboard now sits at the bottom of the Pokémon tab."""
 
 from __future__ import annotations
 
@@ -147,25 +148,3 @@ def _what_wins(model, dex) -> None:
                    "\\* on few teams (in under 5% of matches), so its number rests on a small sample.")
 
 
-def meta_tab(dex: Dex, usage: UsageData | None, team_size: int, regulation: str = "", format_id: str = "") -> None:
-    if usage is None:
-        st.info("No usage stats for this format yet. Run `python scripts/fetch_usage.py` "
-                "or wait for the monthly data refresh.")
-        return
-    info = usage.info
-    if usage.recent:
-        r = usage.recent
-        from src.replays import day_range
-        st.caption(f"Usage: {r['teams']:,} teams from ladder and Bo3 replays, {day_range(r['first_day'], r['last_day'])}, "
-                   f"players rated {r['min_rating']}+ (updated twice a day). Sets, items and spreads: Smogon "
-                   f"ladder stats for {info['month']} ({info['battles']:,} battles rated {info['cutoff']}+).")
-    else:
-        st.caption(f"Smogon ladder stats for {info['month']}: {info['battles']:,} battles, players rated "
-                   f"{info['cutoff']}+.")
-    board = pd.DataFrame(usage.ranked(60), columns=["Pokémon", "usage %"])
-    board.index += 1
-    st.dataframe(board, width="stretch", height=420,
-                 column_config={"usage %": st.column_config.ProgressColumn(
-                     "usage %", min_value=0, max_value=float(board["usage %"].max()), format="%.1f%%")})
-    st.caption("How any one Pokémon is played (partners, team styles, sets, matchups, real teams): the Pokémon tab.")
-    what_wins_section(regulation, dex)

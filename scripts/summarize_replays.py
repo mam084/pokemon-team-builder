@@ -65,6 +65,13 @@ def main() -> None:
         from src.usage import load_usage
         usage = load_usage(app_id)
         cores = replay_index(records, dex, setters=plan_setters(usage, dex) if usage is not None else None)
+        # how to play against Trick Room, Tailwind, weather... (src/playbook.py)
+        if usage is not None:
+            from src.playbook import replay_playbook, save as save_book, style_setters
+            book = replay_playbook(records, dex, style_setters(usage, dex))
+            if book:
+                save_book(book, app_id)
+                print(f"{app_id}: playbook for {len(book['styles'])} styles")
         if cores:
             (out_dir / f"{app_id}_cores.json").write_text(json.dumps({"format": app_id, **cores}, separators=(",", ":")))
             print(f"{app_id}: core report for {len(cores['pokemon'])} Pokémon ({cores['from']} to {cores['to']})")

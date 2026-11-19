@@ -110,6 +110,13 @@ play on the ladder.
   builder with it picked, and each built team says which of the Pokémon that beat the core it
   answers. Built twice a day with the replays (`data/replays/summary/<format>_cores.json`), so the
   app never loads replays.
+- **Playbook tab: how to play against Trick Room, Tailwind, weather, Psychic Terrain and setup sweepers**
+  (`src/playbook.py`, `ui/playbook_tab.py`). From the last 30 days of rated ladder and Bo3 games: in the
+  games where the opponent *led* with a setter, how each turn-1 choice (Fake Out on the setter, Taunt it,
+  attack it, your own speed control, double Protect...) did against what the players' ratings predicted,
+  next to which of your Pokémon can make each play and your hardest hit on the common setters. A glance
+  line per style says how many of the plays that worked your team can make. Associations, not proof; see
+  *How to play against a style* below.
 - **Suggested swaps** (Matchups tab): "Garchomp → Emboar: Close Combat 116% to
   Incineroar, takes 22%". Pick a threat to fix, or ask for the best overall
   improvement. Every member × candidate swap is scored by **team score** (0-100:
@@ -161,7 +168,7 @@ play on the ladder.
 - **Fit check** (Analysis tab): for each member, how usual it is next to the rest
   and what players most often run in that spot instead. Swaps use the same model:
   each member's second suggestion is the *usual pick* for that spot.
-- **Meta tab**: the usage leaderboard and what the learned model says wins games.
+- **The meta** (bottom of the Pokémon tab): the usage leaderboard (tap a row to open that Pokémon) and what the learned model says wins games.
 
 ## How accurate are the recommendations?
 
@@ -505,6 +512,48 @@ swapped-in moves were real, against 62% of the moves they replaced. So sets stay
 reason (and a team's *Tailwind* / *Rain* label) drops any claim the set doesn't carry: 0 of 1,743 claims now
 go beyond their set, and the teams themselves are unchanged.
 
+## How to play against a style (the Playbook)
+
+`src/playbook.py` picks the games where the opponent **led** with a Pokémon that sets a style up (Trick Room,
+Tailwind, Rain, Sun, Sand, Snow, Psychic Terrain, a setup sweeper), since that's what you see when you choose
+turn 1. The replay log only shows moves that happened (a setter stopped by Fake Out never shows its Trick
+Room), so games can't be picked by what the setter did. Each choice is scored by wins above the players'
+ratings (Elo) against players facing the same lead who chose otherwise. Some of what came out (Nov 2026,
+both players rated 1100+):
+
+- vs **Trick Room** (13,000 games): your own Trick Room +3.6 points; answering with Tailwind -5.4; Fake Out on
+  the partner -4.3.
+- vs **Tailwind** (24,000): Trick Room or speed drops +7.3; attacking the setter +2.4; Fake Out on it -1.1.
+- vs **Rain**: leading your own weather setter +12.8. vs **Sun**: Fake Out on the setter +8.4.
+- vs **setup sweepers**: Haze, Roar or Encore during the game +5.7; Fake Out on the sweeper +5.4.
+- **Double Protect on turn 1** did worse against every style (-7 to -15).
+
+A choice also says something about the team and the player, so these are associations, not causes.
+
+## Off-meta cores: does the builder steer toward what wins? (`scripts/offmeta_lab.py`)
+
+Tournaments have too few off-meta teams to judge, so this uses the held-out week of rated ladder and Bo3
+games (18,414 team-games, both players 1100+; 134 cores with 30+ games, 68 of them under 1% usage). Every model
+is fitted on data from before the week. For each game, how many Pokémon the player's team shares with the
+builder's three teams for each of its members, and whether teams sharing more won more than their ratings
+predicted:
+
+| picks from | slope, points of win chance per shared Pokémon (90% interval) |
+|---|---|
+| the core's top-5 partners (a usage site's teammate list) | -0.18 (-0.55 to +0.27) |
+| builder, Popular picks | -0.39 (-0.73 to -0.04) |
+| builder, Neutral | -0.42 (-1.04 to +0.11) |
+| builder, Hidden gems | **+1.65 (-0.02 to +3.18)**; cores at 3-10% usage: +2.69 (+0.68 to +4.74) |
+
+Building like everyone else around a core doesn't win more than the players' ratings say (the player decides
+most games); Hidden gems picks, the unusual ones, are the ones that over-perform, as in *Are Hidden gems picks
+any good?* above.
+
+**Tested, not shipped: a ladder-edge bonus.** Giving builder picks credit for how much more each Pokémon won than
+its players' ratings predicted (30 days before the week, shrunk toward 0) moved those slopes to Popular -0.10 /
++0.19 (weights 2 / 5), Neutral -0.11 / +0.16, Hidden gems +2.19 / +1.65: all inside the noise, while pulling teams
+away from what players pair with the core. `EDGE_WEIGHT = 0`.
+
 ## Battle replays
 
 A daily GitHub Action (`scripts/fetch_replays.py`, **Fetch replays** workflow)
@@ -635,6 +684,7 @@ The tests check:
 │   ├── core_report.py        what players do with one Pokémon: replays, tournaments, calcs, team styles
 │   ├── sheet_sets.py         whole sets from real team sheets (Bo3 open sheets, tournaments)
 │   ├── setup.py              what one setup move buys: calcs and Speed after Dragon Dance etc.
+│   ├── playbook.py           how to play against Trick Room, Tailwind, weather...: replays and your tools
 │   ├── swaps.py              swap suggestions (best upgrade / most similar per member)
 │   ├── gameplan.py           per-matchup game plan: bring, leads, threats, Speed order
 │   ├── cooccurrence.py       tournament team pairings as a second synergy source
@@ -656,6 +706,7 @@ The tests check:
 │   ├── set_fit_lab.py        should builder sets carry the moves they were credited for? (no)
 │   ├── sheet_set_lab.py      real-sheet sets vs ladder sets on held-out tournament sheets
 │   ├── threat_builder_lab.py builder: sheet sets and a threat-answer bonus, held-out week
+│   ├── offmeta_lab.py        off-meta cores: do builder picks win more than ratings predict?
 │   └── make_damage_vectors.js  Showdown → damage test vectors
 ├── data/                     generated data (committed so the app runs without setup)
 ├── tests/                    unittest suite and fixtures
