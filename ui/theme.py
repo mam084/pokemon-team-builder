@@ -99,6 +99,14 @@ div[data-testid="stVerticalBlockBorderWrapper"][style*="border"] {{ background: 
   [class*="st-key-rec_card"] {{ height: 100%; }}
   [class*="st-key-rec_add_"] {{ margin-top: auto; }}  /* extra height goes above the button, below the text */
 }}
+/* small sprites: built teams, partners and matchups on the Pokémon tab */
+.team-grid {{ display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .6rem 1rem; }}
+.team-mon, .mini-mon {{ display: flex; align-items: center; gap: .45rem; min-width: 0; }}
+.team-mon img, .mini-mon img {{ width: 44px; height: 44px; image-rendering: pixelated; flex: none; }}
+.mini-row {{ display: flex; flex-wrap: wrap; gap: .5rem 1.2rem; margin: .2rem 0 .5rem; }}
+.mini-mon span {{ font-size: .8rem; opacity: .75; }}
+@media (max-width: 640px) {{ .team-grid {{ grid-template-columns: repeat(2, minmax(0, 1fr)); }}
+  .team-mon img, .mini-mon img {{ width: 36px; height: 36px; }} }}
 .card-head .card-sprite {{ width: 56px; height: 56px; image-rendering: pixelated; flex: none; }}
 /* opponent lineup: six across, three per row on phones */
 .opp-grid {{ display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: .6rem; margin: .3rem 0 .6rem; }}

@@ -38,7 +38,7 @@ play on the ladder.
   Each popular item (and each Mega) starts its own preset. The item shapes the
   rest of the set: Choice items drop status moves and Protect, and Choice Scarf
   picks a max-Speed spread. Apply a preset from the editor, or add one to the
-  team straight from the Meta tab. Champions has no IVs; a "spread" is the
+  team straight from the Pokémon tab. Champions has no IVs; a "spread" is the
   nature plus Stat Points.
 - **Roles**: what a Pokémon usually does (Fake Out support, Trick Room or
   Tailwind setter, Rain/Sun/Sand setter, redirector, Intimidate, Choice Scarf
@@ -100,13 +100,16 @@ play on the ladder.
   complete teams. Each is filled one Pokémon at
   a time with the top recommendation, using popular sets that keep Item Clause
   and one Mega, then rated against the meta teams.
-- **What players do with it** (`src/core_report.py`), shown as soon as you pick the core: its
+- **Pokémon tab: how any one Pokémon is played** (`ui/pokemon_tab.py`, `src/core_report.py`): its
   last 30 days of ladder and Bo3 games (wins next to what the players' ratings predicted, so a
-  small sample isn't read as a verdict), its usual partners and the moves and items on real
-  team sheets (each player counted once), its tournament record and natures, what it beats
-  one-on-one and what beats it (damage calcs), and what one setup move adds. Each built team says which of those threats it answers, and you can start
-  from a real winning team instead. Built twice a day with the replays
-  (`data/replays/summary/<format>_cores.json`), so the app never loads replays.
+  small sample isn't read as a verdict) and tournament record; its top partners; the team styles
+  its teams carry a setter for (Trick Room, Tailwind, Rain...); the set the builder gives it and the
+  moves on real team sheets (each player counted once); what it beats one-on-one and what beats it
+  (damage calcs) and what one setup move adds; real winning teams to load; and the Smogon ladder
+  detail (moves, items, spreads, presets, checks & counters). *Build a team around it* opens the
+  builder with it picked, and each built team says which of the Pokémon that beat the core it
+  answers. Built twice a day with the replays (`data/replays/summary/<format>_cores.json`), so the
+  app never loads replays.
 - **Suggested swaps** (Matchups tab): "Garchomp → Emboar: Close Combat 116% to
   Incineroar, takes 22%". Pick a threat to fix, or ask for the best overall
   improvement. Every member × candidate swap is scored by **team score** (0-100:
@@ -158,8 +161,7 @@ play on the ladder.
 - **Fit check** (Analysis tab): for each member, how usual it is next to the rest
   and what players most often run in that spot instead. Swaps use the same model:
   each member's second suggestion is the *usual pick* for that spot.
-- **Meta explorer**: the usage leaderboard and each Pokémon's moves, items,
-  abilities, spreads, teammates, and checks & counters.
+- **Meta tab**: the usage leaderboard and what the learned model says wins games.
 
 ## How accurate are the recommendations?
 
@@ -630,7 +632,7 @@ The tests check:
 │   ├── recommend.py          explainable multi-signal recommender with popularity modes
 │   ├── plan.py               weather / Trick Room / Tailwind / terrain synergy
 │   ├── builder.py            build three full teams around one Pokémon
-│   ├── core_report.py        what players do with one Pokémon: replays, tournaments, calcs
+│   ├── core_report.py        what players do with one Pokémon: replays, tournaments, calcs, team styles
 │   ├── sheet_sets.py         whole sets from real team sheets (Bo3 open sheets, tournaments)
 │   ├── setup.py              what one setup move buys: calcs and Speed after Dragon Dance etc.
 │   ├── swaps.py              swap suggestions (best upgrade / most similar per member)
