@@ -233,7 +233,7 @@ if __name__ == "__main__":
     from src.formats import DEFAULT_FORMAT, FORMATS
     report = train_and_report(load_dex(FORMATS[DEFAULT_FORMAT].regulation), load_usage(DEFAULT_FORMAT, recent=False),
                               max_games=12000)
-    out = EVAL_DIR / "regmc_bring_model.json"
+    out = EVAL_DIR / f"{FORMATS[DEFAULT_FORMAT].regulation}_bring_model.json"
     out.write_text(json.dumps(report, indent=1))
     for label, r in report["results"].items():
         print(label, {k: v for k, v in r.items()})

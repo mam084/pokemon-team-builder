@@ -104,7 +104,12 @@ def sidebar() -> tuple[str, Dex, UsageData | None]:
         st.caption(f"{fmt.active} · bring 6, pick {fmt.pick} · Level 50 · 66 Stat Points")
         if usage:
             info = usage.info
-            if usage.recent:
+            if usage.from_replays:
+                r = usage.recent
+                from src.replays import day_range
+                st.caption(f"Usage and sets: replays {day_range(r['first_day'], r['last_day'])} ({r['teams']:,} teams). "
+                           "Smogon's monthly stats for this regulation aren't out yet.")
+            elif usage.recent:
                 r = usage.recent
                 from src.replays import day_range
                 st.caption(f"Usage: replays {day_range(r['first_day'], r['last_day'])} ({r['teams']:,} teams "

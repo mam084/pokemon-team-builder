@@ -175,7 +175,8 @@ def pokemon_tab(dex: Dex, usage: UsageData | None, team_size: int, fmt) -> None:
                   help="Replaces your team. Each Pokémon gets the set the builder would give it.")
 
     # the ladder detail, folded away
-    with st.expander(f"Ladder stats (Smogon {usage.info.get('month', '')}): moves, items, spreads, presets"):
+    source = "replays" if usage.from_replays else f"Smogon {usage.info.get('month', '')}"
+    with st.expander(f"Ladder stats ({source}): moves, items, spreads, presets"):
         learned = species_effect(name, dex, fmt.regulation)
         if learned:
             st.caption(learned)
@@ -224,7 +225,14 @@ def _open_from_board(names: list[str]) -> None:
 def meta_section(dex: Dex, usage: UsageData, fmt) -> None:
     """The usage leaderboard (tap a row to open that Pokémon above) and what wins games."""
     _section("The meta")
-    if usage.recent:
+    if usage.from_replays:
+        r = usage.recent
+        from src.replays import day_range
+        st.caption(f"Usage and sets: {r['teams']:,} teams from ladder and Bo3 replays, "
+                   f"{day_range(r['first_day'], r['last_day'])} (updated twice a day). Smogon's monthly stats for "
+                   "this regulation aren't out yet; Pokémon without enough open team sheets use their last "
+                   "regulation's sets.")
+    elif usage.recent:
         r = usage.recent
         from src.replays import day_range
         st.caption(f"Usage: {r['teams']:,} teams from ladder and Bo3 replays, {day_range(r['first_day'], r['last_day'])}, "

@@ -53,6 +53,17 @@ def main() -> None:
         if recent:
             path.write_text(json.dumps({"format": app_id, **recent}, indent=0))
             print(f"{app_id}: recent usage from {recent['teams']} teams ({recent['first_day']} to {recent['last_day']})")
+        # usage built from replays alone: the app's usage until Smogon has stats for the format
+        from src.replay_usage import build_for as build_replay_usage, save as save_replay_usage
+        from src.usage import USAGE_DIR
+        from src.usage import _before_start
+        smogon = USAGE_DIR / f"{app_id}.json"
+        if not smogon.exists() or _before_start(smogon, app_id):
+            built = build_replay_usage(fmt, records, dex)
+            if built:
+                save_replay_usage(built, app_id)
+                print(f"{app_id}: no Smogon stats yet; usage from {built['info']['teams']} replay teams "
+                      f"({built['info']['first_day']} to {built['info']['last_day']})")
         # whole sets from the last 30 days of real team sheets (src/sheet_sets.py)
         from src.evaluate import load_tournament_teams
         from src.sheet_sets import save as save_sheets, sheet_sets_from

@@ -111,6 +111,11 @@ class UsageData:
         self._mates = {to_id(name): {to_id(m): pct for m, pct in e["teammates"].items()}
                        for name, e in self.pokemon.items()}
 
+    @property
+    def from_replays(self) -> bool:
+        """Built from replays (src/replay_usage.py) because Smogon has no stats for the format yet."""
+        return self.info.get("source") == "replays"
+
     # ---- basic lookups ------------------------------------------------
     def name_of(self, species: str) -> str | None:
         return self._by_id.get(to_id(species))
@@ -409,14 +414,32 @@ def item_has_support(item_id: str, team: list[tuple[str, set[str]]], own: tuple[
     return any(a in abilities or ms & moves for a, ms in holders)
 
 
+def _before_start(path: Path, format_id: str) -> bool:
+    """Smogon stats from a month before the format officially started (a few pre-release games)."""
+    from src.formats import FORMATS as _FORMATS
+    fmt = _FORMATS.get(format_id)
+    if fmt is None or not fmt.start:
+        return False
+    try:
+        month = json.loads(path.read_text())["info"]["month"]
+    except (OSError, ValueError, KeyError):
+        return False
+    return month < fmt.start[:7]
+
+
 @lru_cache(maxsize=None)
 def load_usage(format_id: str, tournament_pairs: bool = True, recent: bool = True) -> UsageData | None:
     """Ladder usage for a format. For doubles formats with tournament team lists on disk,
     synergy also draws on those lists' pairings (see src/cooccurrence.py)."""
     path = USAGE_DIR / f"{format_id}.json"
-    if not path.exists():
-        return None
-    usage = UsageData(json.loads(path.read_text()))
+    if not path.exists() or _before_start(path, format_id):
+        # a new regulation before Smogon's first monthly stats: usage built from its replays
+        from src.replay_usage import load as _load_replay_usage
+        usage = _load_replay_usage(format_id)
+        if usage is None:
+            return None
+    else:
+        usage = UsageData(json.loads(path.read_text()))
     from src.formats import FORMATS as _FORMATS  # local: formats imports nothing heavy, but keep load order
     if format_id in _FORMATS:
         from src.dex import load_dex as _load_dex
@@ -424,7 +447,7 @@ def load_usage(format_id: str, tournament_pairs: bool = True, recent: bool = Tru
         # current meta: usage from the last two weeks of replays, when there are enough
         recent_path = Path(__file__).resolve().parent.parent / "data" / "replays" / "summary" / \
             f"{format_id}_recent_usage.json"
-        if recent and recent_path.exists():
+        if recent and recent_path.exists() and not usage.from_replays:
             try:
                 usage.apply_recent(json.loads(recent_path.read_text()), _load_dex(_FORMATS[format_id].regulation))
             except (OSError, ValueError, KeyError):
