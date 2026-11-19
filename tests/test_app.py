@@ -25,7 +25,7 @@ def click(at: AppTest, key: str | None = None, label: str | None = None) -> AppT
     return button.click().run()
 
 
-TABS = ["Team", "Analysis", "Matchups", "Playbook", "Damage calc", "Recommendations", "Pokémon"]
+TABS = ["Team", "Analysis", "Matchups", "Battle plan", "Playbook", "Damage calc", "Recommendations", "Pokémon"]
 
 
 def open_tab(at: AppTest, name: str) -> AppTest:
@@ -91,7 +91,7 @@ class TestApp(unittest.TestCase):
     def test_matchup_against_a_team_you_enter(self):
         at = fresh()
         at = next(b for b in at.button if b.label and "Example" in b.label).click().run()
-        at = open_tab(at, "Matchups")
+        at = open_tab(at, "Battle plan")
         at.selectbox(key="detail_pick").set_value("A team you're facing (enter its six)…")
         at = at.run()
         self.assertClean(at)
@@ -103,14 +103,15 @@ class TestApp(unittest.TestCase):
         md = " ".join(m.value for m in at.markdown)
         self.assertIn("Your team vs their team", md)
         self.assertIn("**Lead:**", md)
-        self.assertIn("vs their Psychic Terrain** (Indeedee-F)", md)
-        self.assertIn("vs their Snow** (Froslass-Mega)", md)       # Froslass Mega Evolves (the first stone)
-        self.assertNotIn("vs their Sun** (Charizard", md)          # so Charizard has no Drought
+        self.assertIn("Turn 1: what players click", md)
+        self.assertIn("Against their Psychic Terrain** (Indeedee-F)", md)
+        self.assertIn("Against their Snow** (Froslass-Mega)", md)       # Froslass Mega Evolves (the first stone)
+        self.assertNotIn("Against their Sun** (Charizard", md)          # so Charizard has no Drought
         at.selectbox(key="opp_mega").set_value("Charizard")
         at = at.run()
         md = " ".join(m.value for m in at.markdown)
         self.assertIn("Charizard-Mega-Y", md)
-        self.assertNotIn("vs their Snow", md)
+        self.assertNotIn("Against their Snow", md)
 
     def test_add_from_recommendations_and_remove(self):
         at = open_tab(fresh(), "Recommendations")

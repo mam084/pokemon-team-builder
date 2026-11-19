@@ -31,6 +31,56 @@ from src.dex import Dex, to_id
 from src.replay_parse import PLAYERS, is_usable
 
 REPLAY_DIR = Path(__file__).resolve().parent.parent / "data" / "replays"
+_COSMETIC: dict[str, str] | None = None
+
+
+def cosmetic_names() -> dict[str, str]:
+    """{cosmetic forme name: its base} over every regulation's dex (Maushold-Four -> Maushold,
+    Sinistcha-Masterpiece -> Sinistcha, Vivillon-Polar -> Vivillon). Team preview names the forme,
+    but the usage stats, team sheets and teammate model count it as its base Pokemon."""
+    global _COSMETIC
+    if _COSMETIC is None:
+        from src.dex import load_dex
+        out: dict[str, str] = {}
+        for path in sorted((REPLAY_DIR.parent / "dex").glob("reg*.json")):
+            if path.stem.endswith("_sprites"):
+                continue
+            dex = load_dex(path.stem)
+            for s in dex.selectable_species():
+                if dex.is_cosmetic(s):
+                    out[s.name] = s.base_species
+        _COSMETIC = out
+    return _COSMETIC
+
+
+def canonical(rec: dict) -> dict:
+    """The record with cosmetic formes written as their base Pokemon everywhere it names one."""
+    names = cosmetic_names()
+    if not names:
+        return rec
+    fix = lambda s: names.get(s, s)  # noqa: E731
+    for p in PLAYERS:
+        for key in ("preview", "brought", "leads"):
+            if rec.get(key) and rec[key].get(p):
+                rec[key][p] = [fix(s) for s in rec[key][p]]
+        if rec.get("moves") and rec["moves"].get(p):
+            merged: dict = {}
+            for s, moves in rec["moves"][p].items():
+                into = merged.setdefault(fix(s), {})
+                for m, n in moves.items():
+                    into[m] = into.get(m, 0) + n
+            rec["moves"][p] = merged
+        if rec.get("turn1") and rec["turn1"].get(p):
+            rec["turn1"][p] = [[fix(s), m, fix(tgt) if isinstance(tgt, str) else tgt] for s, m, tgt in rec["turn1"][p]]
+        for sheet in (rec.get("sheets") or {}).get(p) or []:
+            if sheet.get("species"):
+                sheet["species"] = fix(sheet["species"])
+    if rec.get("faints"):
+        rec["faints"] = [[t, side, fix(s)] for t, side, s in rec["faints"]]
+    for key in ("weather", "field"):
+        if rec.get(key):
+            rec[key] = [[*row[:-1], fix(row[-1])] if isinstance(row[-1], str) else row for row in rec[key]]
+    return rec
 
 
 def load_records(fmt: str, min_rating: int = 0, days: int | None = None) -> list[dict]:
@@ -51,6 +101,7 @@ def load_records(fmt: str, min_rating: int = 0, days: int | None = None) -> list
                 rec = json.loads(line)
                 if not is_usable(rec):
                     continue
+                rec = canonical(rec)
                 if min_rating and min((rec["players"][p]["rating"] or 0) for p in PLAYERS) < min_rating:
                     continue
                 out.append(rec)
@@ -253,3 +304,49 @@ def usual_picks(summary: dict, species: list[str]) -> tuple[list[str], list[str]
     bring = sorted(species, key=lambda s: -rate(s, "brought %"))[:4]
     lead = sorted(bring, key=lambda s: -rate(s, "leads %"))[:2]
     return bring, lead
+
+
+# --------------------------------------------------------------------------
+# Turn 1: what players click with a lead, against which opposing leads
+# --------------------------------------------------------------------------
+TURN1_MIN = 15  # games before a (lead, their lead) pairing gets its own turn-1 moves
+
+
+def turn1_table(records: list[dict], min_games: int = TURN1_MIN, top: int = 3) -> dict:
+    """{lead: {"all": [[move, share], ...], "n": games, "vs": {their lead: {"n": games, "moves": [...]}}}}:
+    the turn-1 moves players used with each lead, overall and against each opposing lead (pairings with
+    min_games+ games). What players do, not what wins."""
+    overall: dict[str, Counter] = defaultdict(Counter)
+    games: Counter = Counter()
+    vs: dict[tuple, Counter] = defaultdict(Counter)
+    vs_games: Counter = Counter()
+    for rec in records:
+        for p, o in (("p1", "p2"), ("p2", "p1")):
+            mine = {}
+            for species, move, _t in rec["turn1"][p]:
+                mine.setdefault(species, move)
+            for species in rec["leads"][p]:
+                move = mine.get(species)
+                if move is None:
+                    continue
+                games[species] += 1
+                overall[species][move] += 1
+                for theirs in rec["leads"][o]:
+                    vs_games[(species, theirs)] += 1
+                    vs[(species, theirs)][move] += 1
+    share = lambda c, n: [[m, round(k / n, 3)] for m, k in c.most_common(top)]  # noqa: E731
+    out = {s: {"n": n, "all": share(overall[s], n), "vs": {}} for s, n in games.items() if n >= min_games}
+    for (s, t), n in vs_games.items():
+        if n >= min_games and s in out:
+            out[s]["vs"][t] = {"n": n, "moves": share(vs[(s, t)], n)}
+    return out
+
+
+def load_turn1(format_id: str) -> dict | None:
+    path = REPLAY_DIR / "summary" / f"{format_id}_turn1.json"
+    if not path.exists():
+        return None
+    try:
+        return json.loads(path.read_text())
+    except (OSError, ValueError):
+        return None

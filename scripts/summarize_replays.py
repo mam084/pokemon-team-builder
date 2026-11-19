@@ -64,6 +64,13 @@ def main() -> None:
                 save_replay_usage(built, app_id)
                 print(f"{app_id}: no Smogon stats yet; usage from {built['info']['teams']} replay teams "
                       f"({built['info']['first_day']} to {built['info']['last_day']})")
+        # turn-1 moves per lead, overall and against each opposing lead (Battle plan tab)
+        from src.replays import turn1_table
+        from src.synergy import recent_records
+        t1 = turn1_table(recent_records(records, days=30))
+        (out_dir / f"{app_id}_turn1.json").write_text(json.dumps({"format": app_id, "pokemon": t1},
+                                                                  separators=(",", ":")))
+        print(f"{app_id}: turn-1 moves for {len(t1)} leads")
         # whole sets from the last 30 days of real team sheets (src/sheet_sets.py)
         from src.evaluate import load_tournament_teams
         from src.sheet_sets import save as save_sheets, sheet_sets_from

@@ -117,11 +117,15 @@ def pokemon_tab(dex: Dex, usage: UsageData | None, team_size: int, fmt) -> None:
         from src.sheet_sets import MIN_SHEETS, sheet_key
         sheet = usage.sheet_sets.get(sheet_key(pset, dex))
     if pset is not None:
-        source = ("most common full set on real team sheets" if sheet and sheet["n"] >= MIN_SHEETS
-                  else "ladder stats (too few team sheets yet)")
+        from src.sheet_sets import MODE_SHARE
+        if sheet and sheet["n"] >= MIN_SHEETS:
+            source = ("the full set most players run on real team sheets" if sheet.get("mode_n", 0) >= MODE_SHARE * sheet["n"]
+                      else "the four moves most often on real team sheets")
+        else:
+            source = "ladder stats (too few team sheets yet)"
         ability = f"{form.abilities[0]} (as a Mega)" if form is not None and form.is_mega else pset.ability
         st.markdown(f"**{pset.species}** @ {pset.item or 'no item'} · {ability} · {pset.nature}  \n"
-                    + " / ".join(pset.moves) + f"  \n<span class='rec-sub'>The set the builder uses: {source}.</span>",
+                    + " / ".join(pset.moves) + f"  \n<span class='rec-sub'>The set used everywhere in the app (autofill, builder, Matchups): {source}.</span>",
                     unsafe_allow_html=True)
     if sheet and sheet["n"] >= 3:
         name_of = lambda m: dex.moves[m]["name"] if m in dex.moves else m  # noqa: E731
@@ -176,7 +180,7 @@ def pokemon_tab(dex: Dex, usage: UsageData | None, team_size: int, fmt) -> None:
 
     # the ladder detail, folded away
     source = "replays" if usage.from_replays else f"Smogon {usage.info.get('month', '')}"
-    with st.expander(f"Ladder stats ({source}): moves, items, spreads, presets"):
+    with st.expander(f"Ladder stats ({source}, each move counted on its own): moves, items, spreads, presets"):
         learned = species_effect(name, dex, fmt.regulation)
         if learned:
             st.caption(learned)

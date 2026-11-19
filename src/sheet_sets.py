@@ -94,15 +94,16 @@ def sheet_sets_from(tournament_teams: list[dict], bo3_records: list[dict], dex: 
 
 
 MIN_SHEETS = 10                      # fewer sheets than this: keep the ladder set
+MODE_SHARE = 0.4   # whole set only when this share of sheets run it (scripts/sheet_set_lab.py)
 MIN_NATURES = 5                      # tournament sheets with a nature before it replaces the ladder's
-_NO_STATUS = {"choicescarf", "choiceband", "choicespecs", "assaultvest"}
 
 
 def apply(pset, dex: Dex, sets: dict | None):
     """The set with the moves (and nature) real sheets run most, when there are enough of them.
-    Held-out tournament sheets (scripts/sheet_set_lab.py): +0.075 matching moves per set (95% +0.063
-    to +0.088) and natures right 67.7% vs 62.7% of the time, against the ladder's popular set.
-    The item stays (it was picked for Item Clause); a status move never goes on a Choice item."""
+    Held-out tournament sheets (scripts/sheet_set_lab.py, 12,027 sets): +0.063 matching moves per set
+    (95% +0.054 to +0.072) with the whole-set-at-40% rule, against +0.025 for always the most common
+    whole set, and natures right 67.7% vs 62.5% of the time, against the ladder's popular set.
+    The item stays (it was picked for Item Clause); the moves must fit it (usage.item_fits_moves)."""
     if not sets:
         return pset
     s = sets.get(sheet_key(pset, dex))
@@ -111,9 +112,11 @@ def apply(pset, dex: Dex, sets: dict | None):
     from src.team import PokemonSet
     out = PokemonSet.from_dict(pset.to_dict())
     species = dex.get_species(pset.species)
-    moves = [m for m in s["mode"] if m in dex.moves and dex.can_learn(species.id, m)]
-    no_status = to_id(pset.item or "") in _NO_STATUS
-    if len(moves) == 4 and not (no_status and any(dex.moves[m]["category"] == "Status" for m in moves)):
+    # the most common whole set when 40%+ of sheets share it, else the four moves most often on them
+    pick = s["mode"] if s.get("mode_n", 0) >= MODE_SHARE * s["n"] else s["top4"]
+    moves = [m for m in pick if m in dex.moves and dex.can_learn(species.id, m)]
+    from src.usage import item_fits_moves
+    if len(moves) == 4 and item_fits_moves(to_id(pset.item or ""), moves, dex):
         order = {to_id(m): i for i, m in enumerate(pset.moves)}   # keep the ladder set's order where shared
         moves.sort(key=lambda m: order.get(m, 9))
         out.moves = [dex.moves[m]["name"] for m in moves]
