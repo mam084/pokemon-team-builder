@@ -439,9 +439,9 @@ plus win chance, `src/team_rating.py`) vs **win chance alone**, with the teammat
 | teams, by | win chance alone: won | team score: won |
 |---|---|---|
 | lowest quarter | 44.6% | 41.9% |
-| 2nd quarter | 48.9% | 50.0% |
-| 3rd quarter | 51.3% | 50.6% |
-| highest quarter | 52.1% | 53.8% |
+| 2nd quarter | 48.9% | 50.1% |
+| 3rd quarter | 51.3% | 50.3% |
+| highest quarter | 52.1% | 53.9% |
 
 Rank correlation with real records: 0.112 by win chance, 0.169
 by team score (paired 95% interval for the gain: +0.025 to +0.088). So swaps are judged by
