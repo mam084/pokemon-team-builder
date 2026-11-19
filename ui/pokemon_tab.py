@@ -13,7 +13,7 @@ from src.roles import meta_roles, role_text
 from src.stats import format_sps
 from src.usage import UsageData
 from ui import core_report as R
-from ui.common import SLOTS, sprite, type_badges
+from ui.common import SLOTS, anchor_id, jump_row, sprite, type_badges
 from ui.meta_tab import bar_section, replay_line, species_effect, what_wins_section
 from ui.state import add_set_to_team, add_to_team
 
@@ -35,8 +35,8 @@ def _build_around(base: str, team_size: int) -> None:
 
 
 def _section(title: str, sub: str = "") -> None:
-    st.markdown(f"<div class='box-title'>{title}" + (f" <span class='box-sub'>{sub}</span>" if sub else "")
-                + "</div>", unsafe_allow_html=True)
+    st.markdown(f"<div class='box-title' id='{anchor_id(title)}'>{title}"
+                + (f" <span class='box-sub'>{sub}</span>" if sub else "") + "</div>", unsafe_allow_html=True)
 
 
 def pokemon_tab(dex: Dex, usage: UsageData | None, team_size: int, fmt) -> None:
@@ -71,6 +71,8 @@ def pokemon_tab(dex: Dex, usage: UsageData | None, team_size: int, fmt) -> None:
     if team_size < SLOTS and pset is not None:
         b[1].button(f"Add {name} to my team", width="stretch", on_click=add_set_to_team, args=(pset,),
                     key="poke_add")
+
+    jump_row(["Usually paired with", "How it's built", "Against the top 30", "Real teams with it", "The meta"])
 
     # results, in one line each
     idx = R.index(fmt.id)

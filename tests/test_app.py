@@ -4,7 +4,10 @@ edit the team, since those are the easiest to break (widget state can only be
 changed from callbacks once a widget has rendered).
 """
 
+import os
 import unittest
+
+os.environ.setdefault("PTB_WARMUP", "0")   # no background warm-up competing with the tests
 from pathlib import Path
 
 from streamlit.testing.v1 import AppTest
@@ -67,6 +70,23 @@ class TestApp(unittest.TestCase):
         self.assertClean(at)
         self.assertEqual(at.session_state["s0_species"], "Feraligatr")
         self.assertNotEqual(at.session_state["s5_species"], "—")
+
+    def test_builder_set_choice_and_short_cards(self):
+        at = fresh()
+        at.session_state["build_core"] = "Garchomp"
+        at = at.run()
+        self.assertClean(at)
+        pick = at.selectbox(key="build_core_set_Garchomp")
+        self.assertEqual(pick.options[0], "Most common on real team sheets")   # AppTest shows the labels
+        self.assertTrue(any("Choice Scarf" in x for x in pick.options))
+        pick.set_value(1)
+        at = at.run()
+        self.assertClean(at)
+        at = next(b for b in at.button if b.label == "Build teams around Garchomp").click().run()
+        self.assertClean(at)
+        self.assertEqual(len(at.session_state["built_teams"]), 3)
+        core = at.session_state["built_teams"][0].sets[0]
+        self.assertEqual(core.species, "Garchomp")
 
     def test_add_from_recommendations_and_remove(self):
         at = open_tab(fresh(), "Recommendations")
