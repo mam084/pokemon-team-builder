@@ -53,6 +53,13 @@ def main() -> None:
         if recent:
             path.write_text(json.dumps({"format": app_id, **recent}, indent=0))
             print(f"{app_id}: recent usage from {recent['teams']} teams ({recent['first_day']} to {recent['last_day']})")
+        # whole sets from the last 30 days of real team sheets (src/sheet_sets.py)
+        from src.evaluate import load_tournament_teams
+        from src.sheet_sets import save as save_sheets, sheet_sets_from
+        sheets = sheet_sets_from(load_tournament_teams(fmt.regulation, dex), records, dex)
+        if sheets:
+            save_sheets(sheets, app_id)
+            print(f"{app_id}: sheet sets for {len(sheets)} Pokémon")
         # per-Pokemon "what players do with it" for the builder's core report (src/core_report.py)
         from src.core_report import replay_index
         cores = replay_index(records, dex)

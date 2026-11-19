@@ -60,7 +60,7 @@ def replay_index(records: list[dict], dex: Dex, days: int = DAYS) -> dict:
     stats: dict[str, dict] = defaultdict(lambda: {
         "previews": 0, "brought": 0, "won": 0, "rated": 0, "rated_won": 0, "rated_expected": 0.0,
         "mega": 0, "mega_won": 0, "mega_rated": 0, "mega_rated_won": 0, "mega_expected": 0.0,
-        "partners": Counter(), "teams": [], "sheets": 0, "moves": Counter(), "items": Counter()})
+        "partners": Counter(), "seen": set(), "teams": [], "sheets": 0, "moves": Counter(), "items": Counter()})
     for r in stamped:
         if r["uploadtime"] < start:
             continue
@@ -76,10 +76,13 @@ def replay_index(records: list[dict], dex: Dex, days: int = DAYS) -> dict:
             own, opp = r["players"][p].get("rating"), r["players"][q].get("rating")
             exp = _expected(own, opp)
             sheet = {root(s["species"]): s for s in (r.get("sheets") or {}).get(p) or [] if root(s["species"])}
+            team_key = ((r["players"][p].get("name") or "").lower(), frozenset(roots))
             for x in set(roots):
                 s = stats[x]
                 s["previews"] += 1
-                s["partners"].update(y for y in set(roots) if y != x)
+                if team_key not in s["seen"]:   # partners: each player's team once, not every game
+                    s["seen"].add(team_key)
+                    s["partners"].update(y for y in set(roots) if y != x)
                 if x in sheet:
                     s["sheets"] += 1
                     s["moves"].update(to_id(m) for m in sheet[x].get("moves") or [])
@@ -116,8 +119,9 @@ def replay_index(records: list[dict], dex: Dex, days: int = DAYS) -> dict:
             if len(teams) >= TOP_TEAMS:
                 break
         row = {k: (round(v, 2) if isinstance(v, float) else v) for k, v in s.items()
-               if k not in ("partners", "teams", "moves", "items")}
-        row["partners"] = {k: round(v / s["previews"], 3) for k, v in s["partners"].most_common(TOP_PARTNERS)}
+               if k not in ("partners", "seen", "teams", "moves", "items")}
+        row["players"] = len(s["seen"])
+        row["partners"] = {k: round(v / len(s["seen"]), 3) for k, v in s["partners"].most_common(TOP_PARTNERS)}
         row["teams"] = teams
         if s["sheets"]:
             row["moves"] = {k: round(v / s["sheets"], 3) for k, v in s["moves"].most_common(8)}
@@ -179,28 +183,28 @@ def core_matchups(core_set, usage, dex: Dex, doubles: bool = True, n: int = 30) 
     return {"beats": beats, "threats": threats}
 
 
+def wins_against(m, t, doubles: bool = True) -> bool:
+    """Does member m win the one-on-one against t (damage calcs both ways, then Speed)?"""
+    from src.matchup import best_attack, wins_one_on_one
+    from src.stats import effective_speed
+    taken, _ = best_attack(m, t, doubles)
+    dealt, _ = best_attack(t, m, doubles)
+    return wins_one_on_one(taken, dealt, effective_speed(m.stats["spe"], m.pset.item if m.pset else None),
+                           effective_speed(t.stats["spe"], t.pset.item if t.pset else None))
+
+
 def answered(team_sets, threats: list[str], usage, dex: Dex, doubles: bool = True) -> tuple[list[str], list[str]]:
     """Which of the core's threats a built team has an answer to (a member that wins the 1-on-1)."""
     from src.analysis import build_members
-    from src.matchup import best_attack, opponent_members, wins_one_on_one
-    from src.stats import effective_speed
+    from src.matchup import opponent_members
     members = build_members(team_sets, dex)
     yes, no = [], []
     for name in threats:
         opp = opponent_members([name], usage, dex)
         if not opp:
             continue
-        t = opp[0]
-        t_speed = effective_speed(t.stats["spe"], t.pset.item if t.pset else None)
-        ok = False
-        for m in members:
-            taken, _ = best_attack(m, t, doubles)
-            dealt, _ = best_attack(t, m, doubles)
-            if wins_one_on_one(taken, dealt, effective_speed(m.stats["spe"], m.pset.item if m.pset else None), t_speed):
-                ok = True
-                break
-        (yes if ok else no).append(name)
+        (yes if any(wins_against(m, opp[0], doubles) for m in members) else no).append(name)
     return yes, no
 
 
-__all__ = ["replay_index", "load_index", "tournament_core", "core_matchups", "answered"]
+__all__ = ["replay_index", "load_index", "tournament_core", "core_matchups", "answered", "wins_against"]

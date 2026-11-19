@@ -1134,3 +1134,46 @@ class TestBuilderHonesty(unittest.TestCase):
         self.assertFalse({n for n, _ in calcs["beats"]} & {n for n, _ in calcs["threats"]})
         yes, no = answered([core], [n for n, _ in calcs["threats"]], self.usage, self.dex)
         self.assertEqual(yes, [])                         # alone, it answers none of its own threats
+
+
+class TestSheetSetsAndSetup(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.dex = load_dex("regmc")
+        cls.usage = load_usage("gen9championsvgc2026regmc")
+
+    def test_sheet_sets(self):
+        from src.sheet_sets import apply, sheet_sets_from
+        from src.team import PokemonSet
+        dex = self.dex
+        mk = lambda moves, nat: PokemonSet(species="Feraligatr", item="Feraligite", nature=nat, moves=moves)  # noqa: E731
+        teams = [{"date": "2026-11-01", "player": f"p{i}", "tournament": "t",
+                  "sets": [mk(["Liquidation", "Protect", "Body Slam", "Aqua Jet"], "Adamant")]} for i in range(12)]
+        teams.append({"date": "2026-11-01", "player": "p0", "tournament": "t",   # same player again: once
+                      "sets": [mk(["Liquidation", "Protect", "Body Slam", "Aqua Jet"], "Adamant")]})
+        sets = sheet_sets_from(teams, [], dex, end="2026-11-10", days=30)
+        e = sets[("feraligatr", True)]
+        self.assertEqual(e["n"], 12)
+        self.assertEqual(e["mode"], sorted(["liquidation", "protect", "bodyslam", "aquajet"]))
+        lad = self.usage.popular_set("Feraligatr", dex)
+        out = apply(lad, dex, sets)
+        self.assertEqual({to_id(m) for m in out.moves}, {"liquidation", "protect", "bodyslam", "aquajet"})
+        self.assertEqual((out.nature, out.item), ("Adamant", lad.item))
+        self.assertEqual(apply(lad, dex, {}).moves, lad.moves)               # no sheets: ladder set
+        scarf = PokemonSet(species="Feraligatr", item="Choice Scarf", moves=["Liquidation", "Crunch", "Ice Punch", "Aqua Jet"])
+        sets2 = {("feraligatr", False): {**e, "mode": ["liquidation", "protect", "crunch", "icepunch"]}}
+        self.assertNotIn("Protect", apply(scarf, dex, sets2).moves)           # no status move on a Choice item
+
+    def test_after_setup(self):
+        from src.builder import core_set
+        from src.setup import after_setup, setup_move
+        from src.team import PokemonSet
+        fera = core_set("Feraligatr", self.dex, self.usage)
+        r = after_setup(fera, self.usage, self.dex)
+        self.assertEqual(r["boosts"], {"atk": 1, "spe": 1})
+        self.assertGreaterEqual(r["ohko"][1], r["ohko"][0])
+        self.assertGreater(r["speed"][1], r["speed"][0])
+        self.assertEqual(setup_move(PokemonSet(species="Volcarona", moves=["Quiver Dance", "Fiery Dance"]))[1],
+                         {"spa": 1, "spd": 1, "spe": 1})
+        self.assertIsNone(after_setup(PokemonSet(species="Incineroar", item="Sitrus Berry", ability="Intimidate",
+                                                 moves=["Fake Out", "Flare Blitz"]), self.usage, self.dex))

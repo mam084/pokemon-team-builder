@@ -98,6 +98,7 @@ class UsageData:
         self._set_cache: dict = {}
         self.cooc = None  # src.cooccurrence.Cooccurrence from tournament teams, when available
         self.teammates = None  # src.synergy.TeammateModel (learned from real teams), when available
+        self.sheet_sets = None  # src.sheet_sets: whole sets from real team sheets, when available
         self.recent = None  # set when usage comes from recent replays (see apply_recent)
         self.pokemon: dict = {
             display_name(name): {key: ({display_name(n): v for n, v in sec.items()}
@@ -428,6 +429,9 @@ def load_usage(format_id: str, tournament_pairs: bool = True, recent: bool = Tru
                 usage.apply_recent(json.loads(recent_path.read_text()), _load_dex(_FORMATS[format_id].regulation))
             except (OSError, ValueError, KeyError):
                 pass
+    if recent:  # whole sets from real team sheets, for the builder (src/sheet_sets.py)
+        from src.sheet_sets import load as _load_sheets
+        usage.sheet_sets = _load_sheets(format_id)
     if tournament_pairs:
         from src.cooccurrence import Cooccurrence  # local imports: these modules import this one
         from src.dex import load_dex
