@@ -1197,13 +1197,19 @@ class TestPlaybook(unittest.TestCase):
         old = P.MIN_GAMES
         P.MIN_GAMES = 50
         try:
-            book = P.replay_playbook(recs, dex, setters)["styles"]["Trick Room"]
+            book = P.replay_playbook(recs, dex, setters, common={"Incineroar": {"fakeout"}})["styles"]["Trick Room"]
+            # without knowing Incineroar has Fake Out, there's no one to compare a Fake Out with
+            bare = P.replay_playbook(recs, dex, setters)["styles"]["Trick Room"]
         finally:
             P.MIN_GAMES = old
         by = {c["choice"]: c for c in book["choices"]}
         self.assertGreater(by["Fake Out on the setter"]["edge"], 0)        # Fake Out games all won
         self.assertLess(by["Both Protected"]["edge"], 0)
         self.assertEqual(by["Fake Out on the setter"]["n"], 200)
+        self.assertEqual(by["Fake Out on the setter"]["against"], "had it, didn't")
+        self.assertEqual(by["Fake Out on the setter"]["compared"], 200)   # the Protect games: had it, didn't use it
+        self.assertEqual(by["Both Protected"]["against"], "everyone else")
+        self.assertNotIn("Fake Out on the setter", {c["choice"] for c in bare["choices"]})
         self.assertEqual(book["games"], 400)                               # only p1 faces a setter lead
 
     def test_fake_out_into_psychic_terrain(self):

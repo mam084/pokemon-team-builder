@@ -518,15 +518,19 @@ go beyond their set, and the teams themselves are unchanged.
 Tailwind, Rain, Sun, Sand, Snow, Psychic Terrain, a setup sweeper), since that's what you see when you choose
 turn 1. The replay log only shows moves that happened (a setter stopped by Fake Out never shows its Trick
 Room), so games can't be picked by what the setter did. Each choice is scored by wins above the players'
-ratings (Elo) against players facing the same lead who chose otherwise. Some of what came out (Nov 2026,
-both players rated 1100+):
+ratings (Elo) against players facing the same lead who **could have made it and didn't**: for a move (Fake Out,
+Taunt, Trick Room, Tailwind, speed drops, Haze), players who had it in play (open team sheet, used that game, or
+on 40%+ of that Pokémon's sets); for your own weather setter, players with one in team preview. Choices any
+team can make (attacking the setter, double Protect) are compared with everyone else. Having Fake Out isn't the
+story, using it is: against everyone else, "your own Trick Room" looked like +4.2 points; against players who
+had Trick Room and didn't use it, it's +2.7 and unclear. Some of what came out (Nov 2026, both players 1100+):
 
-- vs **Trick Room** (13,000 games): your own Trick Room +3.6 points; answering with Tailwind -5.4; Fake Out on
-  the partner -4.3.
-- vs **Tailwind** (24,000): Trick Room or speed drops +7.3; attacking the setter +2.4; Fake Out on it -1.1.
-- vs **Rain**: leading your own weather setter +12.8. vs **Sun**: Fake Out on the setter +8.4.
-- vs **setup sweepers**: Haze, Roar or Encore during the game +5.7; Fake Out on the sweeper +5.4.
-- **Double Protect on turn 1** did worse against every style (-7 to -15).
+- vs **Sun**: Fake Out on the setter +8.4 (it can't stop Drought, but it stops the turn-1 Eruption or Heat Wave).
+- vs **Rain**: leading your own weather setter +8.5.
+- vs **Tailwind**: Trick Room or speed drops +5.2; attacking the setter +2.5; Fake Out on it +0.1.
+- vs **Trick Room**: Taunt or Encore on the setter +10.9 (83 players); Fake Out on its partner -4.4.
+- vs **setup sweepers**: Haze, Roar or Encore during the game +6.1; Fake Out on the sweeper +3.9.
+- **Double Protect on turn 1** did worse against every style (-7 to -16).
 
 A choice also says something about the team and the player, so these are associations, not causes. The clearest
 example: the replay log shows a move even when it fails, and Fake Outs clicked into Psychic Terrain at a grounded
