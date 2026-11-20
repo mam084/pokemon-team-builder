@@ -119,6 +119,7 @@ div[data-testid="stVerticalBlockBorderWrapper"][style*="border"] {{ background: 
 .opp-card img {{ width: 56px; height: 56px; image-rendering: pixelated; display: block; }}
 .opp-name {{ font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }}
 .opp-meta {{ font-size: .78rem; color: {muted}; margin-top: .25rem; line-height: 1.3; }}
+.opp-item {{ font-size: .78rem; color: {muted}; margin-top: .25rem; line-height: 1.2; }}
 @media (max-width: 980px) {{ .opp-grid {{ grid-template-columns: repeat(3, minmax(0, 1fr)); }} }}
 /* metric rows stay one row on phones */
 [class*="st-key-metric_row"] [data-testid="stHorizontalBlock"] {{ flex-wrap: nowrap; gap: .5rem; }}

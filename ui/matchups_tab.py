@@ -438,23 +438,29 @@ def battle_plan_tab(fmt_id, team, members, dex, usage, fmt) -> None:
                         help="The six you see at team preview, or one of the common meta teams.")
     their_side = None
     if pick == FACING:
-        arch = facing_archetype(dex, usage)
-        if arch is None:
+        facing = facing_archetype(dex, usage)
+        if facing is None:
             return
-        theirs = opponent_members(arch.members, usage, dex)
+        arch, their_sets, filled = facing
+        theirs = build_members(their_sets, dex, evolve=0 if their_sets[0].is_mega(dex) else None)
         model_now = learned_meta_sides(fmt_id)[0]
         if model_now is not None:
-            sets = [x for x in (usage.popular_set(m, dex) for m in arch.members) if x is not None]
-            their_side = team_side(theirs, sets, dex, usage, swap_engine_for(fmt_id))
+            their_side = team_side(theirs, their_sets, dex, usage, swap_engine_for(fmt_id))
         pick = "their team"
+        if filled:
+            spread = [n for n, parts in filled.items() if parts == ["nature and stat points"]]
+            other = {n: parts for n, parts in filled.items() if parts != ["nature and stat points"]}
+            bits = ([f"nature and stat points for {', '.join(spread)}"] if spread else []) + \
+                   [f"{', '.join(parts)} for {n}" for n, parts in other.items()]
+            st.caption("Not on their sheet, so taken from the most common set: " + "; ".join(bits) + ".")
     else:
         arch = archetypes[names.index(pick)]
         theirs = opponent_members(arch.members, usage, dex)
     cards = "".join(
         f"<div class='opp-card'><img src='{sprite(opp.form, dex)}' alt=''>"
         f"<div class='opp-name'>{opp.label}</div><div>{type_badges(opp.form.types)}</div>"
-        f"<div class='opp-meta'>{opp.pset.item or 'No item'} · "
-        f"{role_text(meta_roles(arch.members[i], usage, dex, doubles), 2)}</div></div>"
+        f"<div class='opp-item'>{opp.pset.item or 'No item'}</div>"
+        f"<div class='opp-meta'>{role_text(meta_roles(arch.members[i], usage, dex, doubles), 2)}</div></div>"
         for i, opp in enumerate(theirs))
     st.markdown(f"<div class='opp-grid'>{cards}</div>", unsafe_allow_html=True)
     notes = []
@@ -556,31 +562,56 @@ def battle_plan_tab(fmt_id, team, members, dex, usage, fmt) -> None:
 FACING = "A team you're facing (enter its six)…"
 
 
+PICK, PASTE = "Pick their six", "Paste their team sheet"
+
+
 def facing_archetype(dex, usage):
-    """The six from team preview, entered by hand, as an Archetype the detail section can plan against.
-    Each gets its most common set; with two or more Mega Stones you say which one Mega Evolves."""
+    """The team you're facing, as (Archetype, sets in Mega-first order, {species: parts filled in}).
+    Picked by name, each gets its most common set; pasted (an open team sheet or a full Showdown paste),
+    it keeps their real items, abilities and moves, and only what the sheet leaves out comes from the
+    most common set. With two or more Mega Stones you say which one Mega Evolves. None until there are
+    two Pokémon to plan against."""
     from src.matchup import Archetype, _label
+    from src.opponent import mega_first, sets_from_sheet, style_of
     sheet = usage.team_sheet_usage(dex)
-    picked = st.multiselect("Their six (from team preview)", list(sheet), key="opp_team", max_selections=6,
-                            placeholder="Type to search…",
-                            help="Each gets its most common set. Sorted by how often it's on ladder teams.")
-    if len(picked) < 2:
-        st.caption("Pick at least two of their Pokémon to see the plan.")
-        return None
-    sets = {n: usage.popular_set(n, dex) for n in picked}
-    stones = [n for n in picked if sets[n] is not None and sets[n].is_mega(dex)]
+    how = st.segmented_control("Their team", [PICK, PASTE], default=PICK, key="opp_input",
+                               help="Bo3 and tournament games show open team sheets: paste theirs to plan "
+                                    "against their real items, abilities and moves.") or PICK
+    filled: dict[str, list[str]] = {}
+    if how == PASTE:
+        text = st.text_area("Their team sheet", key="opp_paste", height=180,
+                            placeholder="Paste their open team sheet or Showdown export…")
+        sets, filled, warnings = sets_from_sheet(text, dex, usage) if text.strip() else ([], {}, [])
+        for w in warnings:
+            st.caption(f"⚠ {w}")
+        if len(sets) < 2:
+            st.caption("Paste at least two of their Pokémon to see the plan.")
+            return None
+    else:
+        picked = st.multiselect("Their six (from team preview)", list(sheet), key="opp_team", max_selections=6,
+                                placeholder="Type to search…",
+                                help="Each gets its most common set. Sorted by how often it's on ladder teams.")
+        if len(picked) < 2:
+            st.caption("Pick at least two of their Pokémon to see the plan.")
+            return None
+        sets = [p for p in (usage.popular_set(n, dex) for n in picked) if p is not None]
+        if len(sets) < 2:
+            return None
+    stones = [p.species for p in sets if p.is_mega(dex)]
+    mega = None
     if len(stones) > 1:
-        first = st.selectbox("Which one Mega Evolves?", stones, key="opp_mega",
-                             help="Only one Mega per battle; the others play in their base forme.")
-        picked = [first] + [n for n in picked if n != first]
-    elif stones:
-        picked = stones + [n for n in picked if n not in stones]
-    members = [n for n in picked if sets[n] is not None]
-    if len(members) < 2:
-        return None
-    name, tr, weather = _label(members, usage, dex)
-    pop = sum(sheet.get(n, 0) for n in members) / len(members)
-    return Archetype("Their team: " + name.split(" (")[0], members, round(pop, 1), tr, weather)
+        mega = st.selectbox("Which one Mega Evolves?", stones, key="opp_mega",
+                            help="Only one Mega per battle; the others play in their base forme.")
+    sets = mega_first(sets, dex, mega)
+    # usage-entry names (a Mega by its Mega name) for roles and popularity
+    names = [(p.battle_form(dex).name if i == 0 and p.is_mega(dex) else p.species) for i, p in enumerate(sets)]
+    if how == PASTE:
+        trick_room, weather, tags = style_of(sets, dex)
+        name = f"{' + '.join(dict.fromkeys(tags[:2])) or 'Goodstuffs'} ({names[0]} + {names[1]})"
+    else:
+        name, trick_room, weather = _label(names, usage, dex)
+    pop = sum(sheet.get(n, 0) for n in names) / len(names)
+    return Archetype("Their team: " + name.split(" (")[0], names, round(pop, 1), trick_room, weather), sets, filled
 
 
 def playbook_box(theirs, my_members, dex, usage, fmt) -> None:
