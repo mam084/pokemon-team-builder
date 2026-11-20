@@ -154,9 +154,10 @@ play on the ladder.
   don't, three steps (make a team → Matchups → Battle plan / Playbook), *Load the example team* and *Hide
   this*; hiding is remembered in the visitor's browser (`ui/start_here.py`). After the example loads, the
   notice points to Matchups.
-- **Feedback**: a *Send feedback* link at the bottom of every page and in the sidebar opens a short GitHub
-  issue form (`.github/ISSUE_TEMPLATE/feedback.yml`, labelled `feedback`). To take feedback without a GitHub
-  account, set `feedback_url` in the app's secrets to another form (e.g. Google Forms).
+- **Feedback**: a *Send feedback* link at the bottom of every page and in the sidebar opens a short Google
+  Form (kind, tab, what happened, optional team link, device), so players can answer without any account.
+  The same questions exist as a GitHub issue form (`.github/ISSUE_TEMPLATE/feedback.yml`, labelled
+  `feedback`) for people who'd rather file an issue; `feedback_url` in the app's secrets overrides the link.
 - **My teams** (Team tab): name and save teams, then load or delete them later. They're kept in the
   visitor's own browser (localStorage), so there's no sign-up and nothing is stored on a server; the list is
   per browser and device, and the share link moves a team between devices. Storage sits behind one small

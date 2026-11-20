@@ -12,7 +12,10 @@ import streamlit as st
 from ui.team_store import store
 
 HIDDEN = "start_here_hidden"
-FEEDBACK_URL = "https://github.com/mam084/pokemon-team-builder/issues/new?template=feedback.yml"
+# A Google Form, so players can answer without any account (responses land in the owner's Google Forms).
+FEEDBACK_URL = ("https://docs.google.com/forms/d/e/1FAIpQLSfBbe2_8h75Ffej-NZ6lX_S_XoqZHQTw6YwJMhuP3OOQi905A/"
+                "viewform")
+GITHUB_FEEDBACK_URL = "https://github.com/mam084/pokemon-team-builder/issues/new?template=feedback.yml"
 
 PITCH = ("A team builder for Pokémon Champions VGC that learns from real results: win chances from "
          "tournament matches, plays measured against players who didn't make them, and game plans from the "
@@ -49,7 +52,7 @@ def start_here(team, dex) -> None:
 
 
 def feedback_url() -> str:
-    """The GitHub issue form; a no-account form (e.g. Google Forms) can replace it in the app's secrets."""
+    """The Google Form (no account needed); `feedback_url` in the app's secrets can point elsewhere."""
     try:
         return st.secrets.get("feedback_url", FEEDBACK_URL)
     except Exception:   # no secrets file
