@@ -69,7 +69,8 @@ Jolly Nature
 """
 
 
-EXAMPLE_NOTE = "Loaded the example: the team that won a 121-player tournament on Nov 14 (10-1)."
+EXAMPLE_NOTE = ("Loaded the example: the team that won a 121-player tournament on Nov 14 (10-1). "
+                "Next: the **Matchups** tab shows how it does against the meta.")
 
 
 def load_example(dex: Dex) -> None:
@@ -145,6 +146,8 @@ def sidebar() -> tuple[str, Dex, UsageData | None]:
             with st.expander("Copy a link to this team"):  # the link is long: keep it out of the way
                 st.code(share_link(team, fmt_id), language=None, wrap_lines=True)
         st.button("Clear team", width="stretch", type="secondary", on_click=load_team, args=([],))
+        from ui.start_here import feedback_url
+        st.caption(f"[Send feedback]({feedback_url()}): something confusing, wrong or missing.")
         st.caption("Light or dark: ⋮ menu (top right), then Settings.")
         st.caption(f"Legality data: Pokémon Showdown ({dex.format_name}), exported {dex.generated_at}.")
     return fmt_id, dex, usage
