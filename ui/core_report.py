@@ -74,6 +74,31 @@ def load_real(species: list[str], core_name: str, core_set, dex, usage) -> None:
     load_team(team)
 
 
+def thin_line(name: str, core_set, dex, usage, fmt, counts: bool = True) -> str:
+    """The 'Little data on X' line when the teammate model has few teams on this Pokémon, else ''.
+    With counts, it says how many tournament teams and rated games there are (the Pokémon tab already
+    shows them, so it passes counts=False)."""
+    from src.core_report import thin_data, thin_note, tournament_core
+    species = dex.get_species(name)
+    if species is None or usage is None:
+        return ""
+    root = dex.sheet_id(species)
+    thin = thin_data(root, getattr(usage, "teammates", None))
+    if thin is None:
+        return ""
+    if not counts:
+        return thin_note(name, thin, point_to_tab=False)
+    from ui.analysis_tab import _tournament_teams
+    form = core_set.battle_form(dex) if core_set is not None else None
+    mega = form is not None and form.is_mega
+    teams = _tournament_teams(fmt.regulation)
+    tour = tournament_core(root, teams, dex, form.required_item if mega else None) if teams else None
+    row = ((index(fmt.id) or {}).get("pokemon") or {}).get(root) or {}
+    games = (row.get("mega_rated") if mega and row.get("mega_rated") else row.get("rated"))
+    return thin_note(form.name if mega else name, thin, tour["teams"] if tour else None,
+                     tour["players"] if tour else None, games)
+
+
 def core_threats(core_set, fmt) -> list[str]:
     """The meta Pokémon that beat the core one-on-one, most used first (for the built-team cards)."""
     if core_set is None:
@@ -96,5 +121,5 @@ def threats_line(team_sets, threats: list[str], core_label: str, dex, usage, dou
     return text + (f" (not {', '.join(no[:3])}{'…' if len(no) > 3 else ''})" if no else "")
 
 
-__all__ = ["index", "matchups", "setup", "names", "pct_list", "vs_ratings", "load_real", "core_threats",
+__all__ = ["thin_line", "index", "matchups", "setup", "names", "pct_list", "vs_ratings", "load_real", "core_threats",
            "threats_line", "SHOWN"]
