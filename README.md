@@ -144,6 +144,11 @@ play on the ladder.
   how the team compares with real tournament teams, from teammate fit plus the
   learned win chance vs the meta), and a swap is only offered if it doesn't make
   the team noticeably worse. One tap applies it.
+- **Compare versions** (Matchups tab): save a version, then change the team or apply a swap (which saves
+  the version before it when nothing is saved yet). It shows the win chance and favorable / unfavorable
+  counts against the saved version, the meta teams it got better and worse against, which top threats are
+  now answered or no longer answered, and every meta team for both versions. Go back, keep the new one, or
+  clear (`ui/compare.py`). The saved version lasts for the session.
 - **Team grade** (Matchups tab): Strong, Solid, Shaky or Weak, by where the team
   score falls among real tournament teams (quarters, the precision the held-out
   test supports).
