@@ -41,7 +41,8 @@ class TestMyTeams(unittest.TestCase):
         self.assertEqual(list(saved), ["Sun main"])
         self.assertEqual(saved["Sun main"]["f"], FMT)
         write = at.session_state["my_teams_write"]
-        self.assertEqual(json.loads(write["write"]), saved)          # what the browser is told to keep
+        from ui.team_store import STORAGE_KEY
+        self.assertEqual(json.loads(write["writes"][STORAGE_KEY]), saved)          # what the browser is told to keep
         species = [at.session_state[f"s{i}_species"] for i in range(6)]
 
         click(at, label="Clear team")

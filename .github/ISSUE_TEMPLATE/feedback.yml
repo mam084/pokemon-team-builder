@@ -1,0 +1,53 @@
+name: Feedback
+description: Something confusing, wrong or missing in the team builder
+title: "[Feedback] "
+labels: ["feedback"]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for trying the Champions Team Builder! A sentence or two is plenty.
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What kind of feedback?
+      options:
+        - Something is confusing
+        - Something looks wrong (a calc, a number, a suggestion)
+        - Something is missing
+        - It broke (an error or a blank page)
+        - Other
+    validations:
+      required: true
+  - type: dropdown
+    id: where
+    attributes:
+      label: Where in the app?
+      options:
+        - Team
+        - Analysis
+        - Matchups
+        - Battle plan
+        - Playbook
+        - Damage calc
+        - Recommendations
+        - Pokémon
+        - Not sure / everywhere
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, or what would help?
+    validations:
+      required: true
+  - type: input
+    id: link
+    attributes:
+      label: Team link (optional)
+      description: The page's address holds your team, so pasting it lets me see exactly what you saw.
+  - type: dropdown
+    id: device
+    attributes:
+      label: Device
+      options:
+        - Phone
+        - Tablet
+        - Computer

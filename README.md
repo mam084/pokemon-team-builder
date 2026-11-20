@@ -150,6 +150,13 @@ play on the ladder.
   now answered or no longer answered, and every meta team for both versions. Go back, keep the new one, or
   clear (`ui/compare.py`). The saved version rides along in the page address (`v`, `vl`), so a refresh,
   a bookmark or a shared link keeps the comparison.
+- **Start here** (top of the page while the team is empty): one line on what the app does that others
+  don't, three steps (make a team → Matchups → Battle plan / Playbook), *Load the example team* and *Hide
+  this*; hiding is remembered in the visitor's browser (`ui/start_here.py`). After the example loads, the
+  notice points to Matchups.
+- **Feedback**: a *Send feedback* link at the bottom of every page and in the sidebar opens a short GitHub
+  issue form (`.github/ISSUE_TEMPLATE/feedback.yml`, labelled `feedback`). To take feedback without a GitHub
+  account, set `feedback_url` in the app's secrets to another form (e.g. Google Forms).
 - **My teams** (Team tab): name and save teams, then load or delete them later. They're kept in the
   visitor's own browser (localStorage), so there's no sign-up and nothing is stored on a server; the list is
   per browser and device, and the share link moves a team between devices. Storage sits behind one small

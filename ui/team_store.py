@@ -24,6 +24,7 @@ import streamlit as st
 MAX_TEAMS = 50
 NAME_MAX = 40
 STORAGE_KEY = "ptb_my_teams_v1"     # localStorage key; bump the version if the entry format changes
+PREFS_KEY = "ptb_prefs_v1"          # small flags, e.g. the Start here card hidden
 
 
 class TeamStore(Protocol):
@@ -32,6 +33,10 @@ class TeamStore(Protocol):
     def teams(self) -> dict[str, dict]: ...  # name -> {"team": token, "f": format id, "saved": "YYYY-MM-DD"}
 
     def put(self, name: str, token: str, fmt_id: str) -> None: ...
+
+    def pref(self, name: str, default=None): ...             # small per-visitor flags
+
+    def set_pref(self, name: str, value) -> None: ...
 
     def delete(self, name: str) -> None: ...
 
@@ -42,23 +47,25 @@ class TeamStore(Protocol):
 _JS = """
 export default function(component) {
     const { data, setStateValue } = component;
-    const KEY = "%s";
-    // write the list Python sent, once per write id
-    if (data && data.write_id && data.write_id !== window.__ptbTeamsWriteId) {
-        window.__ptbTeamsWriteId = data.write_id;
-        try { localStorage.setItem(KEY, data.write); } catch (e) {}
+    const KEYS = %s;
+    // write what Python sent, once per write id
+    if (data && data.write_id && data.write_id !== window.__ptbWriteId) {
+        window.__ptbWriteId = data.write_id;
+        for (const [k, v] of Object.entries(data.writes || {})) {
+            if (KEYS.includes(k)) { try { localStorage.setItem(k, v); } catch (e) {} }
+        }
     }
     // read the browser's copy once per page load
-    if (!window.__ptbTeamsRead) {
-        window.__ptbTeamsRead = true;
-        let stored = "";
-        try { stored = localStorage.getItem(KEY) || ""; } catch (e) {}
-        setStateValue("stored", stored || "{}");
+    if (!window.__ptbRead) {
+        window.__ptbRead = true;
+        const out = {};
+        for (const k of KEYS) { try { out[k] = localStorage.getItem(k) || ""; } catch (e) { out[k] = ""; } }
+        setStateValue("stored", JSON.stringify(out));
     }
 }
-""" % STORAGE_KEY
+""" % json.dumps([STORAGE_KEY, PREFS_KEY])
 
-_LIST, _WRITE = "my_teams", "my_teams_write"
+_LIST, _WRITE, _PREFS = "my_teams", "my_teams_write", "my_prefs"
 
 
 @st.cache_resource(show_spinner=False)
@@ -82,6 +89,16 @@ def _clean(raw) -> dict[str, dict]:
     return out
 
 
+def _clean_prefs(raw) -> dict:
+    """Flags only: short string keys with true/false values."""
+    try:
+        data = json.loads(raw) if isinstance(raw, str) and raw else {}
+    except ValueError:
+        return {}
+    return {k[:40]: v for k, v in data.items() if isinstance(k, str) and isinstance(v, bool)} \
+        if isinstance(data, dict) else {}
+
+
 class BrowserStore:
     def __init__(self) -> None:
         self._ss = st.session_state
@@ -95,8 +112,22 @@ class BrowserStore:
 
     def _write(self, teams: dict[str, dict]) -> None:
         self._ss[_LIST] = teams
+        self._send()
+
+    def _send(self) -> None:
+        """Queue both values, in full, for the component to write (two changes in one run can't clash)."""
         n = (self._ss.get(_WRITE) or {}).get("write_id", 0) + 1
-        self._ss[_WRITE] = {"write_id": n, "write": json.dumps(teams)}
+        self._ss[_WRITE] = {"write_id": n, "writes": {STORAGE_KEY: json.dumps(self.teams()),
+                                                      PREFS_KEY: json.dumps(self._ss.get(_PREFS) or {})}}
+
+    def pref(self, name: str, default=None):
+        return (self._ss.get(_PREFS) or {}).get(name, default)
+
+    def set_pref(self, name: str, value) -> None:
+        prefs = dict(self._ss.get(_PREFS) or {})
+        prefs[name] = value
+        self._ss[_PREFS] = prefs
+        self._send()
 
     def put(self, name: str, token: str, fmt_id: str) -> None:
         teams = self.teams()
@@ -116,11 +147,17 @@ class BrowserStore:
             result = _component()(key="ptb_store", data=self._ss.get(_WRITE) or {},
                                   on_stored_change=lambda: None)
         if self._ss.get(_LIST) is None and result is not None and getattr(result, "stored", None) is not None:
-            self._ss[_LIST] = _clean(result.stored)
+            try:
+                stored = json.loads(result.stored)
+            except (TypeError, ValueError):
+                stored = {}
+            stored = stored if isinstance(stored, dict) else {}
+            self._ss[_LIST] = _clean(stored.get(STORAGE_KEY))
+            self._ss[_PREFS] = _clean_prefs(stored.get(PREFS_KEY))
 
 
 def store() -> TeamStore:
     return BrowserStore()
 
 
-__all__ = ["TeamStore", "BrowserStore", "store", "MAX_TEAMS", "NAME_MAX"]
+__all__ = ["TeamStore", "BrowserStore", "store", "MAX_TEAMS", "NAME_MAX", "STORAGE_KEY", "PREFS_KEY"]

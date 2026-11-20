@@ -34,6 +34,7 @@ from ui.sidebar import notices, sidebar  # noqa: E402
 from ui.state import current_team, keep_state  # noqa: E402
 from ui.team_tab import team_tab  # noqa: E402
 from ui.theme import inject_css, status_html, team_stage, title_row  # noqa: E402
+from ui.start_here import footer, start_here  # noqa: E402
 from ui.team_store import store  # noqa: E402
 from ui.url_state import restore_from_url, sync_url  # noqa: E402
 
@@ -105,8 +106,9 @@ def main() -> None:
     else:
         month = usage.info["month"] if usage else None
         title_row(fmt.label + (f", ladder data from {month}" if month else ""))
-    legality(team, dex, fmt)
     notices()
+    start_here(team, dex)   # new visitors: what it does and three steps (ui/start_here.py)
+    legality(team, dex, fmt)
 
     tabs = st.tabs(["Team", "Analysis", "Matchups", "Battle plan", "Playbook", "Damage calc", "Recommendations", "Pokémon"], key="main_tabs", on_change="rerun")
     # Only the open tab is built: each edit used to recompute every tab, swaps included (~4 s).
@@ -123,6 +125,7 @@ def main() -> None:
             with tab:
                 page()
 
+    footer()
     # Keep the address bar in step with the team (read again: tab buttons may have changed it).
     sync_url(current_team(), fmt_id)
 
