@@ -1,6 +1,7 @@
 """
 The team lives in the page URL (see src/share.py), so refreshing or
-bookmarking the page keeps it and the link can be shared.
+bookmarking the page keeps it and the link can be shared. Compare's saved
+version rides along as v (and its label as vl) while it differs from the team.
 
 restore_from_url() runs once per browser session, before any widget renders;
 sync_url() runs at the end of every rerun and rewrites the address bar to
@@ -30,19 +31,41 @@ def restore_from_url() -> None:
     params = st.query_params
     fmt_id = params.get("f")
     ss["format"] = fmt_id if fmt_id in FORMATS else ss.get("format", DEFAULT_FORMAT)
+    dex = load_dex(FORMATS[ss["format"]].regulation)
+    saved = params.get("v")
+    if saved:   # Compare's saved version rides along in the link
+        from ui.compare import SAVED
+        from ui.matchups_tab import team_key
+        old, _ = decode_team(saved, dex)
+        if old:
+            ss[SAVED] = {"key": team_key(old), "label": (params.get("vl") or "saved version")[:LABEL_MAX]}
     token = params.get("team")
     if not token:
         return
-    team, warnings = decode_team(token, load_dex(FORMATS[ss["format"]].regulation))
+    team, warnings = decode_team(token, dex)
     if team:
         load_team(team)
         ss["url_notice"] = f"Loaded a team of {len(team)} from the link."
     ss["import_warnings"] = ss.get("import_warnings", []) + warnings
 
 
+LABEL_MAX = 60
+
+
 def team_params(team: list[PokemonSet], fmt_id: str) -> dict:
+    """The link's parameters: format, team, and Compare's saved version (v, vl) when there is one."""
     token = encode_team(team)
-    return {"f": fmt_id, "team": token} if token else {}
+    if not token:
+        return {}
+    params = {"f": fmt_id, "team": token}
+    from ui.compare import SAVED
+    saved = st.session_state.get(SAVED)
+    if saved:
+        from ui.matchups_tab import _unkey
+        old = encode_team(_unkey(saved["key"]))
+        if old and old != token:
+            params.update({"v": old, "vl": saved["label"][:LABEL_MAX]})
+    return params
 
 
 def sync_url(team: list[PokemonSet], fmt_id: str) -> None:

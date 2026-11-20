@@ -124,6 +124,7 @@ div[data-testid="stVerticalBlockBorderWrapper"][style*="border"] {{ background: 
 /* metric rows stay one row on phones */
 [class*="st-key-metric_row"] [data-testid="stHorizontalBlock"] {{ flex-wrap: nowrap; gap: .5rem; }}
 [class*="st-key-metric_row"] [data-testid="stColumn"] {{ min-width: 0 !important; }}
+.st-key-ptb_store_box {{ display: none; }}
 [class*="st-key-button_row"] [data-testid="stHorizontalBlock"] {{ flex-wrap: nowrap; gap: .4rem; }}
 [class*="st-key-button_row"] [data-testid="stColumn"] {{ min-width: 0 !important; }}
 [class*="st-key-button_row"] button {{ padding-left: .3rem; padding-right: .3rem; }}

@@ -128,7 +128,7 @@ def sidebar() -> tuple[str, Dex, UsageData | None]:
         c1, c2 = st.columns(2)
         c1.button("Import", width="stretch", disabled=not paste.strip(),
                   on_click=import_paste, args=(dex, "paste_side"))
-        c2.button("Example team", width="stretch", help="A Garganacl team for VGC Reg M-C",
+        c2.button("Example team", width="stretch", help="The team that won a 121-player Reg M-C tournament on Nov 14",
                   on_click=load_example, args=(dex,))
 
         team = current_team()
@@ -140,8 +140,8 @@ def sidebar() -> tuple[str, Dex, UsageData | None]:
 
             st.divider()
             st.subheader("Share")
-            st.caption("This page's address always holds your current team, so a refresh or a bookmark "
-                       "keeps it.")
+            st.caption("This page's address always holds your current team (and Compare's saved version), "
+                       "so a refresh or a bookmark keeps it. To keep several teams, use My teams on the Team tab.")
             with st.expander("Copy a link to this team"):  # the link is long: keep it out of the way
                 st.code(share_link(team, fmt_id), language=None, wrap_lines=True)
         st.button("Clear team", width="stretch", type="secondary", on_click=load_team, args=([],))

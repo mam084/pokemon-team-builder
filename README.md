@@ -148,7 +148,15 @@ play on the ladder.
   the version before it when nothing is saved yet). It shows the win chance and favorable / unfavorable
   counts against the saved version, the meta teams it got better and worse against, which top threats are
   now answered or no longer answered, and every meta team for both versions. Go back, keep the new one, or
-  clear (`ui/compare.py`). The saved version lasts for the session.
+  clear (`ui/compare.py`). The saved version rides along in the page address (`v`, `vl`), so a refresh,
+  a bookmark or a shared link keeps the comparison.
+- **My teams** (Team tab): name and save teams, then load or delete them later. They're kept in the
+  visitor's own browser (localStorage), so there's no sign-up and nothing is stored on a server; the list is
+  per browser and device, and the share link moves a team between devices. Storage sits behind one small
+  interface (`ui/team_store.py`: `TeamStore`), so accounts can come later as a second backend without
+  changing the Team tab. A built-in Streamlit component (no extra package) reads the browser's copy once per
+  page load and writes the list back after each change; entries hold the share-link token, so loading one
+  goes through the same checks as a pasted team.
 - **Team grade** (Matchups tab): Strong, Solid, Shaky or Weak, by where the team
   score falls among real tournament teams (quarters, the precision the held-out
   test supports).

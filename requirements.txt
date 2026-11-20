@@ -1,4 +1,4 @@
 requests
 pandas
-streamlit>=1.50
+streamlit>=1.67  # st.components.v2 for My teams (browser storage)
 plotly
