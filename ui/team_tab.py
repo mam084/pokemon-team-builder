@@ -373,10 +373,87 @@ def slot_editor(slot: int, dex: Dex, usage: UsageData | None, picks: list[tuple[
     bottom[1].button("Remove", key=k(slot, "rm"), on_click=write_slot, args=(slot, None), width="stretch")
 
 
+def default_name(team) -> str:
+    return " + ".join(p.species for p in team[:2]) + (" + …" if len(team) > 2 else "")
+
+
+def save_mine(token: str, fmt_id: str, fallback: str) -> None:
+    from ui.team_store import NAME_MAX, store
+    name = ((st.session_state.get("my_team_name") or "").strip() or fallback)[:NAME_MAX]
+    if name and token:
+        store().put(name, token, fmt_id)
+        st.session_state["my_team_pick"] = name
+        st.session_state["my_team_name"] = ""
+        st.toast(f"Saved \u201c{name}\u201d on this device.")
+
+
+def load_mine(dex_for) -> None:
+    from src.formats import FORMATS
+    from ui.state import load_team
+    from src.share import decode_team
+    from ui.team_store import store
+    name = st.session_state.get("my_team_pick")
+    entry = store().teams().get(name)
+    if not entry:
+        return
+    if entry["f"] in FORMATS:
+        st.session_state["format"] = entry["f"]
+    team, warnings = decode_team(entry["team"], dex_for(st.session_state.get("format")))
+    if team:
+        load_team(team)
+        st.session_state["url_notice"] = f"Loaded \u201c{name}\u201d."
+    st.session_state["import_warnings"] = warnings
+
+
+def delete_mine() -> None:
+    from ui.team_store import store
+    name = st.session_state.get("my_team_pick")
+    if name:
+        store().delete(name)
+        st.session_state.pop("my_team_pick", None)
+
+
+def my_teams_section(team, fmt_id: str) -> None:
+    """Named teams kept in this browser (ui/team_store.py)."""
+    from src.dex import load_dex
+    from src.formats import FORMATS
+    from src.share import encode_team
+    from ui.team_store import MAX_TEAMS, NAME_MAX, store
+    s = store()
+    saved = s.teams()
+    with st.expander(f"My teams ({len(saved)})" if saved else "My teams"):
+        if not s.ready:
+            st.caption("Reading the teams saved in this browser…")
+            return
+        if saved:
+            def label(n):
+                e = saved[n]
+                other = f" · {FORMATS[e['f']].label}" if e["f"] != fmt_id and e["f"] in FORMATS else ""
+                return f"{n}{other}"
+            if st.session_state.get("my_team_pick") not in saved:
+                st.session_state["my_team_pick"] = next(iter(saved))
+            st.selectbox("Saved team", list(saved), key="my_team_pick", format_func=label)
+            b = st.container(key="button_row_myteams").columns(2)
+            b[0].button("Load", key="my_team_load", width="stretch", type="primary",
+                        on_click=load_mine, args=(lambda f: load_dex(FORMATS[f].regulation),),
+                        help="Replaces the team you're editing.")
+            b[1].button("Delete", key="my_team_delete", width="stretch", on_click=delete_mine)
+        if team:
+            st.text_input("Save the current team as", key="my_team_name", max_chars=NAME_MAX,
+                          placeholder=default_name(team))
+            st.button("Save team", key="my_team_save", width="stretch",
+                      on_click=save_mine, args=(encode_team(team), fmt_id, default_name(team)),
+                      help="Leave the name blank to use the one shown. Saving under an existing name replaces it.")
+        st.caption(f"Kept in this browser on this device (up to {MAX_TEAMS}); nothing is sent anywhere. "
+                   "To move a team to another device, open the share link there.")
+
+
 def team_tab(dex: Dex, usage: UsageData | None) -> None:
     # The selected slot must survive reruns: a key keeps it when a warning box appears
     # above the tabs, and the remembered index re-selects it when its label changes
     # (Streamlit treats tabs with new labels as new tabs).
+    from src.formats import DEFAULT_FORMAT
+    my_teams_section(current_team(), st.session_state.get("format", DEFAULT_FORMAT))
     labels = slot_labels()
     picks = quick_picks(dex, usage) if any(lb.startswith("Slot ") for lb in labels) else []
     index = min(st.session_state.get("slot_tab_index", 0), len(labels) - 1)

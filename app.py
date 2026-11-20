@@ -34,6 +34,7 @@ from ui.sidebar import notices, sidebar  # noqa: E402
 from ui.state import current_team, keep_state  # noqa: E402
 from ui.team_tab import team_tab  # noqa: E402
 from ui.theme import inject_css, status_html, team_stage, title_row  # noqa: E402
+from ui.team_store import store  # noqa: E402
 from ui.url_state import restore_from_url, sync_url  # noqa: E402
 
 
@@ -90,6 +91,7 @@ def main() -> None:
     keep_state()        # only the open tab is built: keep the team when another tab is open
     restore_from_url()  # a team in the link loads before any widget renders
     fmt_id, dex, usage = sidebar()
+    store().sync()      # "My teams": reads/writes this browser's saved list (ui/team_store.py)
     fmt = FORMATS[fmt_id]
     st.session_state["doubles"] = fmt.is_doubles
     team = current_team()
