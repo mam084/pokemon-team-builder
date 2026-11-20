@@ -34,6 +34,15 @@ TOP_PARTNERS = 8
 TOP_TEAMS = 3
 MIN_TEAM_RATING = 1300   # "proven" ladder teams: won, by a player rated at least this
 
+# Thin data (scripts/thin_core_lab.py, held-out week, Nov 19): hide each member of 1,701 held-out tournament
+# teams and rank it from the other five. Grouped by how many weighted teams the teammate model has on the
+# least-seen of the five (its `counts`), the hidden teammate lands in the top 10 this often (87% overall):
+#   under 100: 55%   100-200: 59%   200-400: 70%   400-800: 79%   800-1600: 91%   1600+: 94%
+# Under 400 the builder's picks around a Pokemon rest on few real teams, and the app says so.
+THIN_EVIDENCE = 400
+THIN_TOP10 = ((100, 0.55), (200, 0.59), (400, 0.70))
+OVERALL_TOP10 = 0.87
+
 
 def _expected(own: float | None, opp: float | None) -> float | None:
     if not own or not opp:
@@ -189,7 +198,7 @@ def tournament_core(root: str, teams: list[dict], dex: Dex, mega_item: str | Non
     all_l = sum(int(t.get("losses") or 0) for t in teams)
     n = len(hits)
     return {
-        "teams": n, "wins": w, "losses": l, "base": all_w / max(all_w + all_l, 1),
+        "teams": n, "players": len({(t.get("player") or "").lower() for t in hits}), "wins": w, "losses": l, "base": all_w / max(all_w + all_l, 1),
         "best": [{"placing": t.get("placing"), "players": t.get("players"), "wins": t.get("wins"),
                   "losses": t.get("losses"), "date": t["date"], "player": t.get("player", ""),
                   "team": [p.species for p in t["sets"]]} for t in hits[:TOP_TEAMS]],
@@ -239,4 +248,37 @@ def answered(team_sets, threats: list[str], usage, dex: Dex, doubles: bool = Tru
     return yes, no
 
 
-__all__ = ["plan_setters", "team_style", "replay_index", "load_index", "tournament_core", "core_matchups", "answered", "wins_against"]
+def thin_data(root: str, teammates) -> dict | None:
+    """{'evidence': weighted teams, 'top10': held-out top-10 rate for that much data} when the teammate
+    model has under THIN_EVIDENCE weighted teams on this Pokemon (or none), else None."""
+    if teammates is None:
+        return None
+    i = teammates.index.get(root)
+    evidence = float(teammates.counts[i]) if i is not None else 0.0
+    if evidence >= THIN_EVIDENCE:
+        return None
+    top10 = next(rate for ceiling, rate in THIN_TOP10 if evidence < ceiling)
+    return {"evidence": evidence, "top10": top10, "overall": OVERALL_TOP10}
+
+
+def thin_note(name: str, thin: dict, tournament_teams: int | None = None, players: int | None = None,
+              rated_games: int | None = None, point_to_tab: bool = True) -> str:
+    """One line for a Pokemon with little data: what there is, and how far the builder's picks around it
+    can be trusted (measured on held-out tournaments)."""
+    have = []
+    if tournament_teams is not None:
+        if tournament_teams == 0:
+            have.append("no tournament teams")
+        else:
+            have.append(f"{tournament_teams} tournament team{'s' if tournament_teams != 1 else ''}"
+                        + (f" from {players} player{'s' if players != 1 else ''}"
+                           if players is not None and players != tournament_teams else ""))
+    if rated_games is not None:
+        have.append(f"{rated_games} rated games in {DAYS} days")
+    lead = f"**Little data on {name}**" + (f" ({', '.join(have)})" if have else "")
+    return (f"{lead}. With this little data, the builder's top 10 holds the real teammate about "
+            f"{thin['top10']:.0%} of the time ({thin['overall']:.0%} overall), and a \"players pair it\" reason "
+            "may rest on a few teams." + (" Real teams with it: Pokémon tab." if point_to_tab else ""))
+
+
+__all__ = ["thin_data", "thin_note", "THIN_EVIDENCE", "plan_setters", "team_style", "replay_index", "load_index", "tournament_core", "core_matchups", "answered", "wins_against"]

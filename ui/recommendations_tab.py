@@ -14,7 +14,7 @@ from src.matchup import verdict
 from src.recommend import HIDDEN_MAX, DEFAULT_WEIGHTS, EXPLORE_WEIGHTS, MODES, recommend
 from src.roles import meta_roles, role_text, set_roles
 from ui.common import SLOTS, sprite, type_badges
-from ui.core_report import core_threats, threats_line
+from ui.core_report import core_threats, thin_line, threats_line
 from ui.matchups_tab import archetypes_for
 from ui.state import add_to_team, load_team
 from ui.theme import how_it_works
@@ -111,6 +111,9 @@ def team_builder_section(team, dex, usage, fmt, mode, weights) -> None:
             core_set = options[pick][1] if options else None
             if core_set is not None:
                 st.caption(f"{core_set.item or 'no item'} · {core_set.nature} · " + " / ".join(core_set.moves))
+        thin = thin_line(core_name, core_set, dex, usage, fmt)
+        if thin:
+            st.caption(thin)
         threats = core_threats(core_set, fmt)
         st.caption("Three different teams, each filled one Pokémon at a time with the top recommendation "
                    f"({MODES[mode]} style). They're ranked by how well they fit together and how they'd "

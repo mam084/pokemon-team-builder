@@ -61,10 +61,13 @@ class TestApp(unittest.TestCase):
         self.assertIn("Usually paired with", md)
         self.assertIn("After one Dragon Dance", md)
         self.assertIn("The meta", md)
+        self.assertTrue(any("Little data on Feraligatr-Mega" in c.value for c in at.caption))
         at = at.button(key="poke_build").click().run()      # empty team: the builder on the Team screen
         self.assertClean(at)
         self.assertEqual(at.session_state["main_tabs"], "Team")
         self.assertEqual(at.session_state["build_core"], "Feraligatr")
+        thin = [c.value for c in at.caption if "Little data on Feraligatr-Mega" in c.value]
+        self.assertTrue(thin and "tournament team" in thin[0] and "Pokémon tab" in thin[0])
         at = open_tab(at, "Pokémon")
         at = at.button(key="poke_proven_load").click().run()
         self.assertClean(at)
@@ -76,6 +79,7 @@ class TestApp(unittest.TestCase):
         at.session_state["build_core"] = "Garchomp"
         at = at.run()
         self.assertClean(at)
+        self.assertFalse(any("Little data" in c.value for c in at.caption))   # plenty of data on Garchomp
         pick = at.selectbox(key="build_core_set_Garchomp")
         self.assertEqual(pick.options[0], "Most common on real team sheets")   # AppTest shows the labels
         self.assertTrue(any("Choice Scarf" in x for x in pick.options))

@@ -116,7 +116,8 @@ play on the ladder.
   detail (moves, items, spreads, presets, checks & counters). *Build a team around it* opens the
   builder with it picked, and each built team says which of the Pokémon that beat the core it
   answers. Built twice a day with the replays (`data/replays/summary/<format>_cores.json`), so the
-  app never loads replays.
+  app never loads replays. When there's little data on it, one line says how far the builder's picks around
+  it can be trusted (*Little data on a core*, below).
 - **Battle plan tab: against a team you're facing** (first option; the common meta teams are below it): enter
   the six you see at team preview (and which one Mega Evolves, if they bring two Mega Stones). Each gets its
   most common set, and the matchup gets a plan: win chance, what to bring and lead, what they usually lead,
@@ -512,6 +513,28 @@ that rule ships (`MODE_SHARE = 0.4`), and every set in the app now uses it, not 
 it. Built teams lean toward the week's winners the same as before (+0.001) and score higher (Popular 53.0 → 55.7,
 Neutral 21.9 → 22.8; `scripts/threat_builder_lab.py`).
 
+**Little data on a core** (`scripts/thin_core_lab.py`, held-out week, Nov 19). Hide each member of 1,701 held-out
+tournament teams and rank it from the other five; grouped by how many weighted teams the teammate model has on the
+least-seen of the five, the real teammate is in the builder's top 10:
+
+| least-seen Pokémon, weighted teams | under 100 | 100-200 | 200-400 | 400-800 | 800-1600 | 1600+ |
+|---|---|---|---|---|---|---|
+| top 10 | 55% | 59% | 70% | 79% | 91% | 94% |
+
+So under 400 (`THIN_EVIDENCE`; 145 of the 228 Pokémon in the builder list, all from its less-used end) the builder and
+the Pokémon tab say so in one line: *Little data on Feraligatr-Mega (7 tournament teams from 4 players, 103 rated games
+in 30 days). With this little data, the builder's top 10 holds the real teammate about 59% of the time (87% overall)...*
+A Pokémon with little data isn't a weak one: Mega Feraligatr's rated games are within the noise of what its players'
+ratings predicted, and put in the Mega slot of 250 real one-Mega tournament teams it rates 46.9% vs the meta, 23rd of
+57 Megas (Metagross 50.6%, Blastoise 47.3%).
+
+**Counting a player's repeat tournament entries once: tested, not shipped** (`scripts/repeat_entries_lab.py`). 29% of
+tournament sheets repeat a six the same player already entered (one six 18 times), so one player can make a pull on
+their own (Feraligatr + Empoleon 3.4x was one team entered twice). On the held-out week (10,206 queries), counting each
+player's six once lowered MRR by 0.0026 (95% -0.0045 to -0.0008); keeping the first entry at 3x and repeats at 1x moved
+it +0.0014 (-0.0000 to +0.0029), and -0.0012 (-0.0041 to +0.0015) around rarely seen Pokémon, the case it was for. So
+every sheet still counts; the thin-data line covers the rest.
+
 **Answering the core's threats: tested, not shipped** (`scripts/threat_builder_lab.py`). A bonus for picks that
 beat the meta Pokémon the core loses to: the builder's teams already answer 93-95% of them, 99% with the bonus,
 but the lean toward winners moved +0.066 (95% -0.003 to +0.136) in Popular and +0.003 in Neutral, with slightly
@@ -812,6 +835,8 @@ The tests check:
 │   ├── set_fit_lab.py        should builder sets carry the moves they were credited for? (no)
 │   ├── sheet_set_lab.py      real-sheet sets vs ladder sets on held-out tournament sheets
 │   ├── threat_builder_lab.py builder: sheet sets and a threat-answer bonus, held-out week
+│   ├── thin_core_lab.py      how well the builder does around Pokémon with little data (the note's cutoff)
+│   ├── repeat_entries_lab.py repeat tournament entries in the teammate model: once vs every sheet (kept)
 │   ├── offmeta_lab.py        off-meta cores: do builder picks win more than ratings predict?
 │   ├── bring_value_lab.py    does following the bring / lead model win? (imitation vs outcome-weighted)
 │   ├── health_check.py       weekly: shipped models still beat their baselines; data is fresh

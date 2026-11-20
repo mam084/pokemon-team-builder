@@ -97,6 +97,9 @@ def pokemon_tab(dex: Dex, usage: UsageData | None, team_size: int, fmt) -> None:
     if results:
         st.markdown("\n".join(f"- {x}" for x in results))
         st.caption("The player decides most games, so wins are shown next to what the players' ratings predicted.")
+    thin = R.thin_line(name, pset, dex, usage, fmt, counts=False)
+    if thin:
+        st.caption(thin)
 
     # partners and team styles
     if row and row.get("partners"):
