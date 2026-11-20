@@ -119,8 +119,11 @@ play on the ladder.
   app never loads replays. When there's little data on it, one line says how far the builder's picks around
   it can be trusted (*Little data on a core*, below).
 - **Battle plan tab: against a team you're facing** (first option; the common meta teams are below it): enter
-  the six you see at team preview (and which one Mega Evolves, if they bring two Mega Stones). Each gets its
-  most common set, and the matchup gets a plan: win chance, what to bring and lead, what they usually lead,
+  the six you see at team preview (and which one Mega Evolves, if they bring two Mega Stones), and each gets its
+  most common set; or paste their team sheet (an open team sheet from Bo3 and tournaments, or a Showdown
+  export) to plan against their real items, abilities and moves. Open team sheets don't show nature or Stat
+  Points, so those come from the most common set and the plan says which; Trick Room and weather are read
+  from their sets (`src/opponent.py`). The matchup gets a plan: win chance, what to bring and lead, what they usually lead,
   the Speed order and who answers what. The bring and lead come from the replay-learned model, which leans on
   your own team more than theirs, so the damage calcs' lead against this team is shown too when it differs.
   **Turn 1** lists what players clicked with each of your leads against their likely lead (Incineroar: Fake
