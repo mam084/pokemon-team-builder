@@ -265,6 +265,10 @@ def recommendations_tab(team, members, dex, usage, fmt) -> None:
                    "Evolves each game.")
     full = len(team) >= SLOTS
     top = recs.head(10)
+    # a full team can't add any of them: the top 3, the rest on request (keeps the phone scroll short)
+    shown_all = len(top)
+    if full and not st.session_state.get("rec_show_all", False):
+        top = top.head(3)
     for i, row in top.iterrows():
         if i % 2 == 0:  # a new row per pair keeps 1, 2, 3... in order when columns stack on a phone
             cols = st.columns(2)
@@ -298,6 +302,8 @@ def recommendations_tab(team, members, dex, usage, fmt) -> None:
                         on_click=add_to_team, args=(row["pokemon"], dex, usage),
                         help="Adds its most popular set to the first empty slot",
                     )
+    if full and shown_all > 3:   # under the cards, so it reads "show more"
+        st.toggle(f"Show all {shown_all} picks", key="rec_show_all")
     with st.expander("Fine-tune the ranking"):
         weight_sliders(mode)
         if mode == "popular":

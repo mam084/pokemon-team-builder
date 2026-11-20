@@ -217,6 +217,8 @@ def core_matchups(core_set, usage, dex: Dex, doubles: bool = True, n: int = 30) 
     if df.empty:
         return {"beats": [], "threats": []}
     df = df.sort_values("usage %", ascending=False)
+    own = dex.sheet_id(dex.get_species(core_set.species))   # not its own mirror match
+    df = df[[dex.sheet_id(sp) != own if (sp := dex.get_species(p)) else True for p in df["pokemon"]]]
     beats = [(r["pokemon"], r["your best hits"].split("(", 1)[-1].rstrip(")")) for _, r in df.iterrows()
              if r["answers"] != "none"]
     threats = [(r["pokemon"], r["hardest hits"].split(" to ")[0]) for _, r in df.iterrows()
