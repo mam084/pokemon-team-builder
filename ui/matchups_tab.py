@@ -394,7 +394,7 @@ def matchups_tab(fmt_id, team, members, dex, usage, fmt) -> None:
         st.dataframe(
             table, hide_index=True, width="stretch",
             column_config={
-                "archetype": st.column_config.TextColumn("meta team", width="medium"),
+                "archetype": st.column_config.TextColumn("meta team", width="medium", pinned=True),
                 "popularity": st.column_config.NumberColumn("avg usage %", format="%.1f"),
                 "score": st.column_config.NumberColumn("score", format="%+.2f"),
                 "calc score": st.column_config.NumberColumn("calc score", format="%+.2f",
@@ -710,8 +710,9 @@ def threats_section(fmt_id: str, team, members, dex, usage, doubles: bool) -> pd
                 img = f"<img class='card-sprite' src='{sprite(form, dex)}' alt=''>" if form else ""
                 st.markdown(f"<div class='card-head'>{img}<div><b>{row['pokemon']}</b><br>"
                             f"{row['usage %']:.1f}% usage</div></div>", unsafe_allow_html=True)
-                st.caption(f"2HKOs {row['2HKOs']} of your team. Hardest hits: {row['hardest hits']}.  \n"
-                           f"Beats it 1-on-1: {row['answers']}.  \nYour hardest hits on it: {row['your best hits']}.")
+                answers = (f"Your answers (win 1-on-1): {row['answers']}." if row["answers"] != "none" else
+                           f"Nothing on your team wins 1-on-1. Your hardest hits on it: {row['your best hits']}.")
+                st.caption(f"2HKOs {row['2HKOs']} of your team. Hardest hits: {row['hardest hits']}.  \n{answers}")
     with st.expander(f"All {len(threats)} threats"):
         st.dataframe(threats, hide_index=True, width="stretch",
                      column_config={"threat score": st.column_config.ProgressColumn(
@@ -809,10 +810,11 @@ def pick_label(row) -> str:
     """'Best upgrade' only when it really raises the team; otherwise it's the best alternative."""
     if row["pick"] != "Best upgrade":
         return row["pick"]
-    for col in ("rating change", "win change", "overall change"):
+    # the same test change_text uses for "about the same", so an upgrade is never "about the same"
+    for col, same in (("score change", 1.0), ("win change", 0.2), ("overall change", 0.02)):
         value = row.get(col)
         if value is not None and not pd.isna(value):
-            return "Best upgrade" if value > 0 else "Best alternative"
+            return "Best upgrade" if value >= same else "Best alternative"
     return row["pick"]
 
 

@@ -7,7 +7,7 @@ import streamlit as st
 
 from src.analysis import build_members
 from src.playbook import BLURB, STYLES, setter_hits, style_setters, team_tools
-from ui.common import anchor_id, jump_row, sprite
+from ui.common import sprite
 from ui.theme import how_it_works
 
 # what each choice needs from your team (a tool from src.playbook.team_tools); None: any team can
@@ -99,7 +99,6 @@ def playbook_tab(team, dex, usage, fmt) -> None:
         can = [c for c in good if (w := _who(c["choice"], tools)) is None or w]
         rows.append((style, good, can))
     if members:
-        jump_row(["Against"])
         st.markdown("**Your team at a glance** (plays that worked, and how many your team can make)")
         st.markdown("\n".join(
             f"- **{style}**: " + (f"{len(can)} of {len(good)}" if good else "no clear winning play")
@@ -108,7 +107,6 @@ def playbook_tab(team, dex, usage, fmt) -> None:
     else:
         st.caption("Add your team to see which of these plays it can make.")
 
-    st.markdown(f"<div id='{anchor_id('Against')}'></div>", unsafe_allow_html=True)
     style = st.segmented_control("Against", styles, default=styles[0], key="playbook_style") or styles[0]
     data = book["styles"][style]
     names = sorted(setters.get(style, set()), key=lambda x: -usage.usage(x))[:4]
@@ -161,7 +159,7 @@ def playbook_tab(team, dex, usage, fmt) -> None:
             extra.append(f"Your own Trick Room ({', '.join(tools['Trick Room'])}) cancels theirs if it goes second.")
         if extra:
             st.markdown("\n".join(f"- {x}" for x in extra))
-    st.caption("Game-by-game plans against each meta team (bring, leads, Speed order) are on the Matchups tab.")
+    st.caption("Game-by-game plans against each meta team (bring, leads, Speed order) are on the Battle plan tab.")
 
 
 __all__ = ["playbook_tab"]
