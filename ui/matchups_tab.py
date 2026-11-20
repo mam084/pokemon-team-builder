@@ -27,7 +27,7 @@ from src.team import PokemonSet
 from src.usage import load_usage
 from src.validate import win_chance
 from ui.common import jump_row, matchup_scale, section, sprite, type_badges
-from ui.state import write_slot
+from ui.compare import apply_swap, compare_section
 from ui.theme import how_it_works
 
 VALIDATION_DIR = Path(__file__).resolve().parent.parent / "data" / "evaluation"
@@ -325,7 +325,7 @@ def matchups_tab(fmt_id, team, members, dex, usage, fmt) -> None:
     archetypes = archetypes_for(fmt_id)
     doubles = fmt.is_doubles
     if members:
-        jump_row(["Biggest threats to your team", "Suggested swaps"])
+        jump_row(["Compare versions", "Biggest threats to your team", "Suggested swaps"])
     section("Against the meta")
     how_it_works(
         "- **Meta teams** are rebuilt from Smogon teammate data: start from a popular Pokémon and keep adding "
@@ -406,6 +406,8 @@ def matchups_tab(fmt_id, team, members, dex, usage, fmt) -> None:
             },
         )
 
+    if members:
+        compare_section(fmt_id, team, fmt)
     reliability_box(match_check(fmt.regulation), learned_meta_sides(fmt_id)[0])
 
     st.markdown("Facing a specific team? Plan the game on the **Battle plan** tab: bring, leads, turn 1, "
@@ -834,7 +836,8 @@ def swaps_section(team, dex, usage, fmt, threats: pd.DataFrame) -> None:
             )
             cols[0].caption(swap_detail(row))
             cols[1].button("Apply swap", key=f"swap_{i}_{row['swap in']}", width="stretch",
-                           on_click=write_slot, args=(int(row["slot"]), row["_set"]))
+                           on_click=apply_swap, args=(int(row["slot"]), row["_set"], team_key(team),
+                                                       team[int(row["slot"])].nickname or team[int(row["slot"])].species))
 
 
 def pick_label(row) -> str:
@@ -909,4 +912,5 @@ def member_alternatives(team, swaps: pd.DataFrame, focus_name: str | None, same_
                                  f"{change_text(row)}{extra}")
                 cols[0].caption(swap_detail(row))
                 cols[1].button("Apply swap", key=f"alt_{slot}_{i}_{row['swap in']}", width="stretch",
-                               on_click=write_slot, args=(int(row["slot"]), row["_set"]))
+                               on_click=apply_swap, args=(int(row["slot"]), row["_set"], team_key(team),
+                                                       team[int(row["slot"])].nickname or team[int(row["slot"])].species))
