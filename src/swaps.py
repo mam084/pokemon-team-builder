@@ -147,6 +147,18 @@ class SwapEngine:
         from src.team_rating import rate
         return rate(team, self.dex, self.teammates, win, self.rating_ref)
 
+    def rating_parts(self, team: list[PokemonSet], win: float | None) -> tuple[float, float, float] | None:
+        """(combined rating, percentile, teammate fit): the rating with its fit half, so a swap can say
+        which of the two signals backs it."""
+        if getattr(self, "rating_ref", None) is None or getattr(self, "teammates", None) is None or win is None:
+            return None
+        from src.team_rating import combined, percentile, teammate_fit
+        fit = teammate_fit(team, self.dex, self.teammates)
+        if fit is None:
+            return None
+        score = combined(fit, win, self.rating_ref)
+        return score, percentile(score, self.rating_ref), fit
+
     def win_chance(self, team: list[PokemonSet], meta: float | None = None,
                    versions: list[list[Member]] | None = None) -> float | None:
         """Usage-weighted learned win chance against the meta teams (best Mega per opponent).
@@ -337,6 +349,20 @@ def _answer(members: list[Member], threat: Member, doubles: bool) -> tuple[float
     return best, label
 
 
+PLAYERS_PICK = "Players' pick"
+
+
+def backing(fit_change: float, win_change: float) -> str:
+    """Which signals a swap's score change rests on: "both", "fit only", "win model only" or "neither"."""
+    if fit_change >= 0 and win_change >= 0:
+        return "both"
+    if fit_change >= 0:
+        return "fit only"
+    if win_change >= 0:
+        return "win model only"
+    return "neither"
+
+
 def suggest_swaps(team: list[PokemonSet], dex: Dex, usage: UsageData, engine: SwapEngine,
                   focus: str | None = None, pool: list[str] | None = None, top_n: int = 8,
                   same_role: bool = False, per_member: int | None = None) -> pd.DataFrame:
@@ -352,7 +378,9 @@ def suggest_swaps(team: list[PokemonSet], dex: Dex, usage: UsageData, engine: Sw
         return pd.DataFrame()
     base_overall = engine.overall(team)
     base_win = engine.win_chance(team, meta=base_overall)  # None without a learned model
-    base_rating = engine.rating(team, base_win)            # None without the team rating models
+    base_parts = engine.rating_parts(team, base_win)       # None without the team rating models
+    base_rating = base_parts[:2] if base_parts else None
+    ref = getattr(engine, "rating_ref", None)
     threat = None
     if focus:
         opp = opponent_members([focus], usage, dex)
@@ -398,7 +426,8 @@ def suggest_swaps(team: list[PokemonSet], dex: Dex, usage: UsageData, engine: Sw
             versions = engine.versions(new_team)
             overall = engine.overall(new_team, versions=versions)
             win = engine.win_chance(new_team, meta=overall, versions=versions) if base_win is not None else None
-            rating = engine.rating(new_team, win) if base_rating is not None else None
+            parts = engine.rating_parts(new_team, win) if base_rating is not None else None
+            rating = parts[:2] if parts else None
             # judged on the team rating when there is one, else the learned win chance, else the calc score
             if rating is not None:
                 change, max_loss = rating[0] - base_rating[0], MAX_SCORE_LOSS
@@ -444,6 +473,10 @@ def suggest_swaps(team: list[PokemonSet], dex: Dex, usage: UsageData, engine: Sw
                 "score": round(rating[1]) if rating is not None else None,
                 "score change": round(rating[1] - base_rating[1]) if rating is not None else None,
                 "vs threat": round(focus_gain, 1) if threat is not None else None,
+                # which half of the team score backs it (scripts/swap_quality_lab.py): in real games,
+                # swaps where fit and win chance both rose won more; win-chance-only ones showed no edge
+                "backing": backing((parts[2] - base_parts[2]) / ref["fit_sd"],
+                                   (win - base_win) / ref["chance_sd"]) if parts else None,
                 "key calc": key_calc,
                 "set": f"{pset.item or 'no item'} · {', '.join(pset.moves)}",
                 "_set": pset,
@@ -468,12 +501,24 @@ def suggest_swaps(team: list[PokemonSet], dex: Dex, usage: UsageData, engine: Sw
             row = (fresh if not fresh.empty else g).iloc[[0]]
             used.add(row["swap in"].iloc[0])
             best_rows[slot] = row.assign(pick="Best upgrade")
+        # Players' pick: what players with the other five most often run here (scripts/swap_choice_lab.py:
+        # it finds the replacement real players chose 3.5x as often as ranking by shared roles and types).
+        # Like Best upgrade, each Pokemon is offered for one member at most (where players run it most),
+        # so a team-wide favourite doesn't fill every slot.
+        rests = {slot: groups[slot][groups[slot]["swap in"] != best_rows[slot]["swap in"].iloc[0]]
+                       .sort_values(["fit"] + sort, ascending=False, na_position="last") for slot in groups}
+        top_fit = {slot: (r["fit"].iloc[0] if len(r) and pd.notna(r["fit"].iloc[0]) else -1.0)
+                   for slot, r in rests.items()}
+        taken_pp, pp_rows = set(), {}
+        for slot in sorted(rests, key=lambda sl: -top_fit[sl]):
+            r = rests[slot]
+            fresh = r[~r["swap in"].isin(taken_pp)]
+            chosen = (fresh if len(fresh) >= per_member - 1 else r).head(per_member - 1)
+            taken_pp.update(chosen["swap in"])
+            pp_rows[slot] = chosen.assign(pick=PLAYERS_PICK)
         picks = []
         for slot in sorted(groups):
-            best = best_rows[slot]
-            rest = groups[slot][groups[slot]["swap in"] != best["swap in"].iloc[0]]
-            rest = rest.sort_values(["similarity"] + sort, ascending=False)  # the same job: shared roles, types
-            picks += [best, rest.head(per_member - 1).assign(pick="Most similar")]
+            picks += [best_rows[slot], pp_rows[slot]]
         df = pd.concat(picks).reset_index(drop=True)
     else:
         # one suggestion per incoming Pokemon (its best slot), then the best few
@@ -498,4 +543,4 @@ def mode_pool(usage: UsageData, mode: str, dex: Dex | None = None) -> list[str]:
     return ranked
 
 
-__all__ = ["HIDDEN_MAX", "SwapEngine", "suggest_swaps", "mode_pool", "to_id"]
+__all__ = ["HIDDEN_MAX", "SwapEngine", "suggest_swaps", "mode_pool", "to_id", "backing", "PLAYERS_PICK"]

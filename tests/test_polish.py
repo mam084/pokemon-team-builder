@@ -26,7 +26,7 @@ class TestSwapLabels(unittest.TestCase):
         up = self.row(**{"score change": 3.0})
         self.assertEqual(pick_label(up), "Best upgrade")
         self.assertEqual(pick_label(self.row(**{"score change": -5.0})), "Best alternative")
-        self.assertEqual(pick_label(self.row(pick="Most similar")), "Most similar")
+        self.assertEqual(pick_label(self.row(pick="Players' pick")), "Players' pick")
         win = self.row(score=None, **{"score change": None, "win change": 0.1})
         self.assertEqual(pick_label(win), "Best alternative")
         self.assertEqual(pick_label(self.row(score=None, **{"score change": None, "win change": 1.5})),

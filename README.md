@@ -490,6 +490,47 @@ team score. Keep applying the best swap that way (any role, bounds on):
 | Rain + Tailwind (Archaludon + Pelipper) | 68 → 68 | 49.1% | 228 |
 <!-- /generated:teamcheck -->
 
+## How good are the swaps? (Nov 21, `scripts/swap_quality_lab.py`, `scripts/swap_choice_lab.py`)
+
+Two questions, both answered on rated ladder and Bo3 replays (186,000 games) that neither the teammate model
+nor the match model learned outcomes from.
+
+**Does the swap the app prefers win more?** Wherever teams share the same five Pokémon and differ in the sixth
+(1,334 pairs of sixths in 516 cores, each sixth 20+ games), compare their wins above what the players' ratings
+predicted (Elo expected), with 95% intervals from resampling cores:
+
+| scorer | correlation with real results | the sixth it prefers did |
+|---|---|---|
+| team score (what swaps are ranked by) | +0.18 (+0.09 to +0.25) | +1.4 pts (+0.3 to +2.5) |
+| teammate fit alone | +0.15 (+0.06 to +0.25) | +1.4 pts |
+| win chance vs the meta alone | +0.06 (-0.03 to +0.13) | +0.4 pts |
+| popularity | -0.02 | -0.3 pts |
+
+When fit and win chance agree (671 pairs) the preferred sixth did **+1.8 pts** (+0.3 to +3.2); where they
+disagree and the team score follows win chance (307 pairs) it did **+0.05**, a coin flip. A joint fit puts win
+chance at ~0.6 of fit's weight (95% -0.1 to 1.3) and a time split pointed both ways, so the weights stay equal;
+instead each upgrade says which signals back it ("Backed by both" / "Win model only"). An evidence term ("teams
+with your five plus Y won N points above expected") leaned positive on the newest games but its interval
+spanned zero (292 test pairs), so it isn't used. Players' own one-Pokémon changes (312 swaps with 5+ games on
+each side) were too few to tell scorers apart.
+
+**Would the app suggest what players actually switch to?** 1,312 real one-Pokémon swaps made after the newest
+30% of games began, with the teammate model fitted only before that. Where the real replacement lands among
+the app's candidates for that slot:
+
+| ranking | top 1 | top 3 | top 10 | MRR |
+|---|---|---|---|---|
+| shared roles and types (the old "Most similar") | 5.6% | 8.9% | 16.5% | 0.099 |
+| **teammate fit (now "Players' pick")** | **21.2%** | **41.5%** | **61.4%** | **0.345** |
+| popularity | 7.3% | 17.8% | 39.2% | 0.179 |
+| shared roles + fit | 12.4% | 25.5% | 48.6% | 0.236 |
+| fit + what players who dropped it switched to | 23.7% | 42.9% | 62.6% | 0.367 |
+
+The real replacement had a different job (Support / Attacker / Hybrid) **54%** of the time, and when players
+replaced a team's only weather / terrain / Trick Room setter they kept that plan just **16%** of the time, so
+*Same role only* hid what most players do: it's now off by default (still available). The past-swaps signal
+adds little over fit, so it isn't used. Each Pokémon is a Players' pick for one member at most.
+
 ## Two lenses: proven, and on paper
 
 Tournament data can only vouch for combinations people play, so one grade built from it marks every
@@ -892,6 +933,8 @@ The tests check:
 │   ├── set_fit_lab.py        should builder sets carry the moves they were credited for? (no)
 │   ├── sheet_set_lab.py      real-sheet sets vs ladder sets on held-out tournament sheets
 │   ├── threat_builder_lab.py builder: sheet sets and a threat-answer bonus, held-out week
+│   ├── swap_quality_lab.py   do the swaps the app prefers win more? (replays, rating-adjusted)
+│   ├── swap_choice_lab.py    would the app suggest what players actually switch to?
 │   ├── load_test.py          several visitors at once against a running app (make_load_teams.py makes the teams)
 │   ├── thin_core_lab.py      how well the builder does around Pokémon with little data (the note's cutoff)
 │   ├── repeat_entries_lab.py repeat tournament entries in the teammate model: once vs every sheet (kept)

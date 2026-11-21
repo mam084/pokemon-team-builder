@@ -794,7 +794,13 @@ def swaps_section(team, dex, usage, fmt, threats: pd.DataFrame) -> None:
         "(damage calcs, Speed, bulk and support tools). Together they tracked real tournament results better "
         "than win chance alone. Each newcomer uses its popular set (keeping Item Clause and at most two Mega "
         "Stones). In Best swaps, a swap that makes the team noticeably worse is never shown. Each Pokémon is "
-        "suggested as the best upgrade for one member at most.",
+        "suggested as the best upgrade for one member at most. **Players' pick** is what players most often run "
+        "with your other five instead.  \n\n"
+        "**How well it works** (186,000 rated ladder and Bo3 games, which neither model learned from): "
+        "comparing teams that share five Pokémon, the sixth the app scores higher won **1.4 points** more "
+        "above what the players' ratings predicted. When fit and win chance agree it's **1.8 points**; when only "
+        "the win model likes a swap, there's no measurable edge, and the swap says so. Players' pick names "
+        "the replacement real players chose in its top 3 for 42% of real swaps.",
         "How swaps are chosen")
     threat_names = list(threats["pokemon"].head(10)) if not threats.empty else []
     others = [n for n, _ in usage.ranked(60) if n not in threat_names]
@@ -803,9 +809,13 @@ def swaps_section(team, dex, usage, fmt, threats: pd.DataFrame) -> None:
                          format_func=lambda o: o if o == options[0] else
                          (f"{o} (threat #{threat_names.index(o) + 1})" if o in threat_names else o))
     focus_name = None if focus == options[0] else focus
-    same_role = st.toggle("Same role only", value=True, key="swap_same_role",
+    # Off by default: when real players replace a member, the newcomer has a different job 54% of the time,
+    # and a team's only weather / Trick Room setter is replaced by another one just 16% of the time
+    # (scripts/swap_choice_lab.py), so the filter hid what most players actually do.
+    same_role = st.toggle("Same role only", value=False, key="swap_same_role",
                           help="Swap a support for a support and an attacker for an attacker, and keep the "
-                               "team's weather, terrain or Trick Room setter.")
+                               "team's weather, terrain or Trick Room setter. Real players change a member's "
+                               "job about half the time, so it's off by default.")
     view = st.segmented_control("Show", ["For each member", "Best swaps"], default="For each member",
                                 key="swap_view") or "For each member"
     per_member = view == "For each member"
@@ -862,8 +872,29 @@ def pick_label(row) -> str:
     return row["pick"]
 
 
+# Measured on real games (scripts/swap_quality_lab.py, Nov 21): where one sixth beat another for the same
+# five, the sixth the app preferred did +1.8 points better when teammate fit and win chance both favored it,
+# and +0.05 (a coin flip) when only the win model did.
+BACKING_NOTE = {
+    "both": "Backed by both: your team gets closer to what players bring, and its win chance rises.",
+    "win model only": "Win model only: your team gets less like what players bring. Swaps like this showed no "
+                      "clear edge in real games.",
+}
+
+
+def backing_note(row) -> str:
+    """One line on how much to trust an upgrade, for swaps that raise the team score."""
+    b, change = row.get("backing"), row.get("score change")
+    if not isinstance(b, str) or change is None or pd.isna(change) or change < 1:
+        return ""
+    return BACKING_NOTE.get(b, "")
+
+
 def swap_detail(row) -> str:
     detail = row["set"]
+    note = backing_note(row)
+    if note:
+        detail = f"{note}  \n{detail}"
 
     if row["shared roles"]:
         detail += f"  \nShared roles: {row['shared roles']}"
