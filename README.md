@@ -785,8 +785,19 @@ Matchups, Battle plan, Recommendations and Pokémon.
 - **Shared caches are bounded.** The damage-calc cache (~1.4 KB an entry) used to clear at 200k entries,
   reaching ~270 MB first; it now drops least-recently-used entries past 60k (~85 MB). The swap engine's
   per-set cache had no limit; it now keeps 3,000 sets (~40 MB). Swap results are unchanged and no slower.
-- **Still heavy:** *Find swaps* itself, ~7 s of server time. Ten visitors pressing it within the same minute
-  wait up to ~70 s. Fine for a small launch; the next step if traffic grows is a faster swap search.
+- **Faster swap search (Nov 21).** *Find swaps* scores ~450 candidate teams against every meta team. It
+  used to do that one meta team at a time (~30,000 small numpy calls per team); it now scores all meta
+  teams at once, with the same operations in the same order, so results are identical to the last bit
+  (checked on 10 real teams in every mode and view, and by a test). The team rating's fit check also
+  stopped doing work it threw away. Same machine, cold caches, median of 3 runs:
+
+  | *Find swaps* | before | after |
+  |---|---|---|
+  | 10 teams one after another | 35.1 s | 13.8 s (2.5x faster) |
+  | 10 visitors pressing it at the same moment (median / worst wait) | 50 s / 52 s | 20 s / 21 s |
+  | server CPU per visitor, full browser load test | ~8 s | ~5.5 s |
+
+  What's left is mostly the damage calcs for newcomers no visitor has tried yet (cached after that).
 
 ## Run it
 

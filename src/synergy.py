@@ -201,10 +201,19 @@ class TeammateModel:
         """P(each vocab entry is the next pick | these team roots): the model's softmax with the
         team itself excluded. 'Players with your other five pick X 12% of the time.'"""
         s = self.scores(team)
-        on = np.array([r in set(team) for r in self.vocab])
+        roots = set(team)
+        on = np.array([r in roots for r in self.vocab])
         s = np.where(on, -np.inf, s)
         p = np.exp(s - s[~on].max())
         return p / p.sum()
+
+    def member_probs(self, team: list[str]) -> list[float | None]:
+        """fit_check's probabilities alone (the team rating needs only these)."""
+        out = []
+        for root in team:
+            rest = [r for r in team if r != root]
+            out.append(float(self.pick_probs(rest)[self.index[root]]) if root in self.index and rest else None)
+        return out
 
     def fit_check(self, team: list[str], top: int = 3) -> list[dict]:
         """For each member: how usual it is next to the rest (probability and rank among every
