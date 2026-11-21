@@ -26,6 +26,8 @@ per member, so ~6 x 80 candidate swaps x ~10 meta teams evaluate in seconds.
 
 from __future__ import annotations
 
+from collections import OrderedDict
+
 from dataclasses import dataclass
 
 import numpy as np
@@ -60,6 +62,9 @@ class _Field:
     support: Support
 
 
+ROWS_MAX = 3000   # ~40 MB: every candidate's rows plus recent visitors' own sets
+
+
 class SwapEngine:
     def __init__(self, archetypes: list[Archetype], usage: UsageData, dex: Dex, doubles: bool = True):
         self.usage, self.dex, self.doubles = usage, dex, doubles
@@ -68,15 +73,28 @@ class SwapEngine:
             for a in archetypes
             for theirs in [opponent_members(a.members, usage, dex)]
         ]
-        self._rows: dict[tuple, list[dict]] = {}
+        self._rows: OrderedDict[tuple, list[dict]] = OrderedDict()
 
     def rows(self, m: Member) -> list[dict]:
-        """Raw pair parts of one member against each meta team's members (cached by set);
-        support is applied per team in overall(), since it depends on the teammates."""
+        """Raw pair parts of one member against each meta team's members (cached by set, least recently
+        used dropped past ROWS_MAX, ~13 KB each); support is applied per team in overall(), since it
+        depends on the teammates."""
         key = _set_key(m)
-        if key not in self._rows:
-            self._rows[key] = [pair_parts([m], f.theirs, self.doubles, f.weather) for f in self.fields]
-        return self._rows[key]
+        hit = self._rows.get(key)
+        if hit is not None:
+            try:
+                self._rows.move_to_end(key)
+            except KeyError:
+                pass
+            return hit
+        rows = [pair_parts([m], f.theirs, self.doubles, f.weather) for f in self.fields]
+        self._rows[key] = rows
+        while len(self._rows) > ROWS_MAX:
+            try:
+                self._rows.popitem(last=False)
+            except KeyError:
+                break
+        return rows
 
     def attach_model(self, model: dict | None) -> None:
         """Use the learned match model (src/match_model.py) for win chances vs the meta teams."""

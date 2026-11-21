@@ -31,6 +31,7 @@ class TestCompareApp(unittest.TestCase):
         click(at, key="save_version")
         self.assertIn(SAVED, at.session_state)
         self.assertTrue(any("same as the saved version" in c.value for c in at.caption))
+        click(at, key="find_swaps")
         swap = next(b for b in at.button if b.key and b.key.startswith(("swap_", "alt_")))
         swap.click().run()
         self.assertFalse(at.exception, [e.value for e in at.exception])
@@ -45,6 +46,7 @@ class TestCompareApp(unittest.TestCase):
 
     def test_apply_swap_saves_the_version_before_it(self):
         at = open_tab(click(fresh(), label="Example team"), "Matchups")
+        click(at, key="find_swaps")
         swap = next(b for b in at.button if b.key and b.key.startswith(("swap_", "alt_")))
         swap.click().run()
         self.assertFalse(at.exception)
