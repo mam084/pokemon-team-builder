@@ -18,6 +18,8 @@ on:
       - "!scripts/*_lab*.py"           # experiments: they don't change the data
       - "!scripts/app_vs_results.py"
       - "!scripts/replay_matches.py"
+      - "!scripts/load_test.py"        # load testing: doesn't change the data
+      - "!scripts/make_load_teams.py"
       - "src/formats.py"
       - "src/usage.py"
       - ".github/workflows/refresh-data.yml"

@@ -42,6 +42,8 @@ were checked on real match results; see the constants below. From the pair matri
 
 from __future__ import annotations
 
+from collections import OrderedDict
+
 import math
 from dataclasses import dataclass
 from itertools import combinations
@@ -165,7 +167,11 @@ def opponent_members(archetype_members: list[str], usage: UsageData, dex: Dex) -
 # Pair scoring
 # --------------------------------------------------------------------------
 MAX_HITS = 8  # "can't realistically KO": a move doing under ~12% is treated like no attack
-_CALC_CACHE: dict[tuple, tuple[float, str]] = {}
+# Shared by every visitor. Least-recently-used entries go past the cap (~1.4 KB each in memory, so ~85 MB):
+# calcs for popular Pokemon stay, one-off sets drop out (load test, Nov 20: the old clear-at-200k let it
+# reach ~270 MB, near the hosting's 690 MB throttling line).
+CALC_CACHE_MAX = 60_000
+_CALC_CACHE: "OrderedDict[tuple, tuple[float, str]]" = OrderedDict()
 
 
 def _set_key(m: Member) -> tuple:
@@ -180,8 +186,13 @@ def _set_key(m: Member) -> tuple:
 def best_attack(a: Member, b: Member, doubles: bool = True, weather: str | None = None) -> tuple[float, str]:
     """(average % of b's HP, move name) for a's strongest move against b (no terrain or boosts)."""
     key = (_set_key(a), _set_key(b), doubles, weather)
-    if key in _CALC_CACHE:
-        return _CALC_CACHE[key]
+    hit = _CALC_CACHE.get(key)
+    if hit is not None:
+        try:
+            _CALC_CACHE.move_to_end(key)
+        except KeyError:   # dropped by another visitor's thread just now
+            pass
+        return hit
     best = (0.0, "")
     if a.battler is not None and b.battler is not None:
         f = Field(doubles=doubles, weather=weather)
@@ -194,9 +205,12 @@ def best_attack(a: Member, b: Member, doubles: bool = True, weather: str | None 
                 avg += 25.0 if {"Water", "Steel"} & set(b.form.types) else 12.5
             if avg > best[0]:
                 best = (avg, mv["name"])
-    if len(_CALC_CACHE) > 200_000:
-        _CALC_CACHE.clear()
     _CALC_CACHE[key] = best
+    while len(_CALC_CACHE) > CALC_CACHE_MAX:
+        try:
+            _CALC_CACHE.popitem(last=False)
+        except KeyError:
+            break
     return best
 
 

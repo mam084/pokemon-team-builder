@@ -72,6 +72,7 @@ class TestSavedVersionInLink(unittest.TestCase):
     def test_round_trip(self):
         at = open_tab(click(with_store(), label="Example team"), "Matchups")
         click(at, key="save_version")
+        click(at, key="find_swaps")
         swap = next(b for b in at.button if b.key and b.key.startswith(("swap_", "alt_")))
         swap.click().run()
         params = dict(at.query_params)

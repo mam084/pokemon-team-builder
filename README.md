@@ -766,6 +766,28 @@ once Smogon has stats for the format, they're used as before. More days barely h
 14 days 0.633). Caveat: this is late Reg M-C, when teams had settled; a regulation's real first days
 will be noisier.
 
+## Holding up under load (`scripts/load_test.py`, Nov 20)
+
+Streamlit Community Cloud gives an app up to 2 cores and throttles it past ~690 MB (2.7 GB max). Streamlit
+runs every visitor's page in one Python process, so their work shares roughly one core. Load test: the app
+pinned to 2 cores, simulated visitors each with a different real tournament team, through Analysis,
+Matchups, Battle plan, Recommendations and Pokémon.
+
+| | before | after |
+|---|---|---|
+| server CPU per visitor | ~8 s | ~2 s |
+| Matchups, 10 visitors at once (median) | 45 s | 1 s |
+| memory over 60 new teams with swaps | 410 → 598 MB, still climbing | 519 → 550 MB, levelling off |
+
+- **Suggested swaps run on request.** The swap search was ~9 of the ~11 s of server work in opening
+  Matchups, paid by every new team even if nobody scrolled to it. It's now behind *Find swaps*; once a
+  visitor uses it, it runs automatically for the rest of their visit.
+- **Shared caches are bounded.** The damage-calc cache (~1.4 KB an entry) used to clear at 200k entries,
+  reaching ~270 MB first; it now drops least-recently-used entries past 60k (~85 MB). The swap engine's
+  per-set cache had no limit; it now keeps 3,000 sets (~40 MB). Swap results are unchanged and no slower.
+- **Still heavy:** *Find swaps* itself, ~7 s of server time. Ten visitors pressing it within the same minute
+  wait up to ~70 s. Fine for a small launch; the next step if traffic grows is a faster swap search.
+
 ## Run it
 
 ```bash
@@ -859,6 +881,7 @@ The tests check:
 │   ├── set_fit_lab.py        should builder sets carry the moves they were credited for? (no)
 │   ├── sheet_set_lab.py      real-sheet sets vs ladder sets on held-out tournament sheets
 │   ├── threat_builder_lab.py builder: sheet sets and a threat-answer bonus, held-out week
+│   ├── load_test.py          several visitors at once against a running app (make_load_teams.py makes the teams)
 │   ├── thin_core_lab.py      how well the builder does around Pokémon with little data (the note's cutoff)
 │   ├── repeat_entries_lab.py repeat tournament entries in the teammate model: once vs every sheet (kept)
 │   ├── offmeta_lab.py        off-meta cores: do builder picks win more than ratings predict?

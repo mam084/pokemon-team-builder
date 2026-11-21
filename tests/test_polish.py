@@ -68,6 +68,18 @@ class TestAppPolish(unittest.TestCase):
         caps = " ".join(c.value for c in at.caption)
         self.assertIn("are on the Battle plan tab", caps)
 
+    def test_swaps_run_on_request(self):
+        at = open_tab(click(fresh(), label="Example team"), "Matchups")
+        keys = [b.key for b in at.button if b.key]
+        self.assertIn("find_swaps", keys)
+        self.assertFalse([k for k in keys if k.startswith(("swap_", "alt_"))])   # not searched yet
+        click(at, key="find_swaps")
+        self.assertFalse(at.exception)
+        self.assertTrue([b for b in at.button if b.key and b.key.startswith(("swap_", "alt_"))])
+        self.assertNotIn("find_swaps", [b.key for b in at.button])
+        at = open_tab(open_tab(at, "Analysis"), "Matchups")                      # stays on for the visit
+        self.assertTrue([b for b in at.button if b.key and b.key.startswith(("swap_", "alt_"))])
+
     def test_no_background_warmup(self):
         self.assertFalse((ROOT / "ui" / "warmup.py").exists())
         self.assertNotIn("warmup", (ROOT / "app.py").read_text())

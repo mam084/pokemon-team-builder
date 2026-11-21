@@ -774,6 +774,9 @@ def candidate_help(usage, dex) -> str:
             f"(everything outside the top {common}).")
 
 
+SWAPS_ON = "swaps_on"
+
+
 def swaps_section(team, dex, usage, fmt, threats: pd.DataFrame) -> None:
     section("Suggested swaps")
     if len(team) < 2:
@@ -806,6 +809,13 @@ def swaps_section(team, dex, usage, fmt, threats: pd.DataFrame) -> None:
     view = st.segmented_control("Show", ["For each member", "Best swaps"], default="For each member",
                                 key="swap_view") or "For each member"
     per_member = view == "For each member"
+    # The search is the app's heaviest step (~9 s of server time per team), so it runs on request:
+    # once a visitor has asked, it runs for each new version of their team for the rest of the visit.
+    if not st.session_state.get(SWAPS_ON):
+        st.button("Find swaps", key="find_swaps", type="primary", width="stretch",
+                  on_click=lambda: st.session_state.update({SWAPS_ON: True}),
+                  help="Tries every member against every candidate. Takes a few seconds.")
+        return
     with st.spinner("Trying swaps…"):
         swaps = cached_swaps(fmt.id, team_key(team), focus_name, mode, same_role, 2 if per_member else None)
     if per_member:
