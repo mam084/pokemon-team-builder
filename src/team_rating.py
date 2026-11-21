@@ -44,7 +44,7 @@ def teammate_fit(sets, dex: Dex, tm) -> float | None:
     if tm is None:
         return None
     roots = [r for s in sets if (r := root_of(s.species, dex))]
-    probs = [x["prob"] for x in tm.fit_check(roots) if x["prob"]]
+    probs = [p for p in tm.member_probs(roots) if p]
     return float(np.mean(np.log(probs))) if probs else None
 
 

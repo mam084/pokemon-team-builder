@@ -733,6 +733,47 @@ class TestPlanBuilderSwaps(unittest.TestCase):
         self.assertTrue(swaps["rating change"].is_monotonic_decreasing)
         self.assertTrue(((swaps["score"] >= 0) & (swaps["score"] <= 100)).all())
 
+    def test_swap_engine_matches_one_team_at_a_time(self):
+        """The engine scores all meta teams at once; it must give exactly (to the bit) what scoring one meta
+        team at a time with scores_from_parts and match_model.predict_match gives."""
+        from src.match_model import load_model, predict_match, team_side
+        import numpy as np
+        from src.matchup import scores_from_parts, side_support
+        model = load_model("regmc")
+        if not model:
+            self.skipTest("learned model not built")
+        engine = SwapEngine(build_archetypes(self.usage, self.dex, keep=4), self.usage, self.dex)
+        engine.attach_model(model)
+        team, _ = parse_paste(GARGANACL_TEAM, self.dex)
+        newcomers = [p for name, _ in self.usage.ranked(15) if (p := self.usage.popular_set(name, self.dex))]
+        teams = [team] + [team[:i] + [p] + team[i + 1:] for i in range(len(team)) for p in newcomers]
+        for t in teams:
+            versions = engine.versions(t)
+            total = weights = 0.0
+            for i, f in enumerate(engine.fields):
+                best = None
+                for members in versions:
+                    rows = [engine.rows(m) for m in members]
+                    parts = {k: np.vstack([r[i][k] for r in rows]) for k in rows[0][i]}
+                    matrix = scores_from_parts(parts, side_support(members), f.support, f.trick_room)
+                    score = matrix.max(axis=0).mean() - (-matrix).max(axis=1).mean()
+                    best = score if best is None else max(best, score)
+                total += best * f.weight
+                weights += f.weight
+            meta = total / weights
+            self.assertEqual(engine.overall(t), meta)
+            total = weights = 0.0
+            for i, f in enumerate(engine.fields):
+                best = max(predict_match(model, team_side(members, t, self.dex, self.usage, engine, meta=meta),
+                                         engine.sides[i],
+                                         {k: np.vstack([engine.rows(m)[i][k] for m in members])
+                                          for k in engine.rows(members[0])[i]})
+                           for members in versions)
+                total += best * f.weight
+                weights += f.weight
+            from src.match_model import cap_chance
+            self.assertEqual(engine.win_chance(t), cap_chance(model, total / weights))
+
     def test_swaps_same_role(self):
         team, _ = parse_paste(GARGANACL_TEAM, self.dex)
         engine = SwapEngine(build_archetypes(self.usage, self.dex, keep=4), self.usage, self.dex)
