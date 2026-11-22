@@ -42,9 +42,12 @@ class TestSwapsOutput(unittest.TestCase):
         for _, g in pm.groupby("slot"):
             fits = list(g[g["pick"] == PLAYERS_PICK]["fit"])
             self.assertEqual(fits, sorted(fits, reverse=True))
+        labels = {"both", "fit only", "win model only", "neither"}
+        self.assertTrue(pm["backing"].notna().all() and set(pm["backing"]) <= labels)
+        # the best-upgrade list can be empty when nothing beats the team (data-dependent)
         best = cached_swaps(FMT, team_key(team), None, "neutral", False, None)
-        self.assertTrue(set(best["backing"].dropna()) <= {"both", "fit only", "win model only", "neither"})
-        self.assertTrue(best["backing"].notna().all())
+        if not best.empty:
+            self.assertTrue(best["backing"].notna().all() and set(best["backing"]) <= labels)
 
 
 class TestDefaults(unittest.TestCase):
