@@ -623,6 +623,14 @@ player's six once lowered MRR by 0.0026 (95% -0.0045 to -0.0008); keeping the fi
 it +0.0014 (-0.0000 to +0.0029), and -0.0012 (-0.0041 to +0.0015) around rarely seen Pokémon, the case it was for. So
 every sheet still counts; the thin-data line covers the rest.
 
+**Borrowing partners from similar Pokémon: tested, not shipped** (`scripts/rare_prior_lab.py`, Nov 21). Instead of
+shrinking an unseen pair's pull toward 0, shrink it toward a guess from what the two are: types, Speed band,
+physical / special, Mega, the support tools of its usual set (Trick Room, Tailwind, weather, Fake Out, redirection,
+Intimidate...) and weather abusers, 49 features, with the guess learned from the well-backed pairs. Strength chosen
+on the tuning tournaments; on the held-out week (10,602 queries) MRR moved +0.0000 (95% -0.0006 to +0.0006), and
+around rarely seen Pokémon -0.005 to +0.002, all within noise (under 100 weighted teams: top 10 60.0% either way).
+What a Pokémon is says little about who players pair it with beyond what the data already shows.
+
 **Answering the core's threats: tested, not shipped** (`scripts/threat_builder_lab.py`). A bonus for picks that
 beat the meta Pokémon the core loses to: the builder's teams already answer 93-95% of them, 99% with the bonus,
 but the lean toward winners moved +0.066 (95% -0.003 to +0.136) in Popular and +0.003 in Neutral, with slightly
@@ -807,7 +815,7 @@ Reg M-C ends Dec 2, 2026. Most of the switch-over is automatic:
    until early the next month. Until then the app's usage comes from the regulation's own replays
    (`src/replay_usage.py`, rebuilt twice a day): who's on teams, teammates, Mega rates, and sets from open
    team sheets, with the last regulation's sets for Pokémon that carry over and too few sheets. The
-   teammate model retrains on the replays from the first fetch. Tournament-based parts (the win model,
+   teammate model retrains on the replays from the first fetch, with a head start from the last regulation (below). Tournament-based parts (the win model,
    team rating, real tournament teams) fill in as Limitless events happen; until they do, the app shows
    what it has, and the health check reports them as waiting, not failing, for 35 days.
 
@@ -829,6 +837,22 @@ alone by +0.37. It stays below the full setup (−0.045, 95% −0.054 to −0.03
 once Smogon has stats for the format, they're used as before. More days barely help (1 day 0.624,
 14 days 0.633). Caveat: this is late Reg M-C, when teams had settled; a regulation's real first days
 will be noisier.
+
+**A head start for the teammate model** (`scripts/regulation_start_lab.py`, Nov 21). On a regulation's first days
+the teammate model has a few days of replays, and every pair's pull starts at 0. Most Pokémon carry over, so for
+the first 15 days (`HEAD_START_DAYS`) `scripts/train_teammates.py` shrinks pulls toward the previous regulation's
+Smogon teammate lifts at half strength instead (`HEAD_START_STRENGTH`, chosen on the week after each window).
+Simulated on Reg M-C's first days with Reg M-B's stats, judged on M-C's 1,500 tournament teams from Oct 30 on
+(9,000 queries):
+
+| days of replays | replays | top 10: no head start → head start | MRR gain (95%) |
+|---|---|---|---|
+| 1 | 1,870 | 74.3% → 75.3% | +0.011 (+0.007 to +0.014) |
+| 3 | 4,587 | 75.9% → 76.4% | +0.006 (+0.003 to +0.008) |
+| 7 | 9,344 | 77.4% → 78.2% | +0.005 (+0.003 to +0.008) |
+| 14 | 22,273 | 79.3% → 79.7% | +0.004 (+0.003 to +0.006) |
+
+The gain fades as replays pile up, so after 15 days the model is fitted as before.
 
 ## Holding up under load (`scripts/load_test.py`, Nov 20)
 
