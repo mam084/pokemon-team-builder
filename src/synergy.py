@@ -62,6 +62,49 @@ class TeamRow:
     source: str
 
 
+# A new regulation's first days: pulls start from the previous regulation's Smogon teammate stats
+# instead of 0 (scripts/regulation_start_lab.py: better at 1, 3, 7 and 14 days of data, gain fading).
+HEAD_START_DAYS = 15
+HEAD_START_STRENGTH = 0.5
+
+
+def previous_lifts(usage_path: Path, dex: Dex) -> dict[tuple[str, str], float]:
+    """log-lift by root pair from a regulation's Smogon stats: share of teams with both over
+    (share with a x share with b), forms merged into their root, clipped to +-2."""
+    import ast
+    data = json.loads(Path(usage_path).read_text())["pokemon"]
+    use, joint = defaultdict(float), defaultdict(float)
+    for name, e in data.items():
+        ra = root_of(name, dex)
+        if not ra:
+            continue
+        u = float(e["usage"])
+        use[ra] += u
+        mates = e.get("teammates") or {}
+        mates = mates if isinstance(mates, dict) else ast.literal_eval(mates)
+        for other, pct in mates.items():
+            rb = root_of(other, dex)
+            if rb and rb != ra:
+                joint[(ra, rb)] += u * float(pct) / 100.0
+    lifts = {}
+    for (a, b), j in joint.items():
+        jj = (j + joint.get((b, a), j)) / 2
+        if use[a] > 0 and use[b] > 0 and jj > 0:
+            lifts[(a, b)] = float(np.clip(np.log(jj * 100.0 / (use[a] * use[b])), -2.0, 2.0))
+    return lifts
+
+
+def prior_matrix(vocab: list[str], lifts: dict, strength: float = HEAD_START_STRENGTH) -> np.ndarray:
+    idx = {r: i for i, r in enumerate(vocab)}
+    W0 = np.zeros((len(vocab), len(vocab)))
+    for (a, b), v in lifts.items():
+        if a in idx and b in idx:
+            W0[idx[a], idx[b]] = strength * v
+    W0 = (W0 + W0.T) / 2
+    np.fill_diagonal(W0, 0.0)
+    return W0
+
+
 def root_of(name: str, dex: Dex) -> str | None:
     s = dex.get_species(name)
     return dex.sheet_id(s) if s is not None else None
@@ -129,8 +172,12 @@ class TeammateModel:
         return x[keep], w[keep]
 
     def fit(self, rows: list[TeamRow], l2: float = 2.0, epochs: int = 60, lr: float = 0.05,
-            batch: int = 4096, seed: int = 0, verbose: bool = False) -> "TeammateModel":
+            batch: int = 4096, seed: int = 0, verbose: bool = False,
+            prior: np.ndarray | None = None) -> "TeammateModel":
+        """prior: pulls to shrink toward instead of 0 (a head start, see head_start_prior)."""
         x, w = self._encode(rows)
+        W0 = np.zeros((len(self.vocab), len(self.vocab))) if prior is None else prior
+        self.W = W0.copy()
         self.counts = (x * w[:, None]).sum(0)
         rng = np.random.default_rng(seed)
         v = len(self.vocab)
@@ -148,7 +195,7 @@ class TeammateModel:
                 gb, gW, loss = self._grad(xb, wb)
                 # objective: mean weighted NLL + l2/2 ||W||^2 / total weight (l2 ~ "teams of
                 # evidence" a pair needs before its pull moves far from 0)
-                gb, gW = gb / wb.sum(), gW / wb.sum() + l2 * self.W / total_w
+                gb, gW = gb / wb.sum(), gW / wb.sum() + l2 * (self.W - W0) / total_w
                 gW = (gW + gW.T) / 2
                 np.fill_diagonal(gW, 0.0)
                 step += 1
