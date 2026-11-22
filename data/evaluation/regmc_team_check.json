@@ -21,21 +21,21 @@
     },
     {
      "predicted": 0.4901,
-     "actual": 0.4872,
+     "actual": 0.4873,
      "teams": 434,
-     "games": 2116
+     "games": 2118
     },
     {
      "predicted": 0.5104,
-     "actual": 0.5109,
+     "actual": 0.5096,
      "teams": 434,
-     "games": 2151
+     "games": 2137
     },
     {
      "predicted": 0.532,
-     "actual": 0.5109,
+     "actual": 0.5122,
      "teams": 434,
-     "games": 2196
+     "games": 2208
     }
    ],
    "max": 0.5895
@@ -51,21 +51,21 @@
     },
     {
      "predicted": 0.4901,
-     "actual": 0.4872,
+     "actual": 0.4873,
      "teams": 434,
-     "games": 2116
+     "games": 2118
     },
     {
      "predicted": 0.5104,
-     "actual": 0.5109,
+     "actual": 0.5096,
      "teams": 434,
-     "games": 2151
+     "games": 2137
     },
     {
      "predicted": 0.532,
-     "actual": 0.5109,
+     "actual": 0.5122,
      "teams": 434,
-     "games": 2196
+     "games": 2208
     }
    ],
    "max": 0.5895
@@ -84,21 +84,21 @@
     },
     {
      "predicted": 0.4901,
-     "actual": 0.4872,
+     "actual": 0.4873,
      "teams": 434,
-     "games": 2116
+     "games": 2118
     },
     {
      "predicted": 0.5104,
-     "actual": 0.5109,
+     "actual": 0.5096,
      "teams": 434,
-     "games": 2151
+     "games": 2137
     },
     {
      "predicted": 0.532,
-     "actual": 0.5109,
+     "actual": 0.5122,
      "teams": 434,
-     "games": 2196
+     "games": 2208
     }
    ]
   },
@@ -119,20 +119,20 @@
     },
     {
      "predicted": 0.9063,
-     "actual": 0.5226,
+     "actual": 0.5223,
      "teams": 434,
-     "games": 2172
+     "games": 2177
     },
     {
      "predicted": 1.6939,
-     "actual": 0.5089,
+     "actual": 0.5092,
      "teams": 434,
-     "games": 2179
+     "games": 2174
     }
    ]
   },
   "gain_ci": [
-   0.0066,
+   0.0065,
    0.0668
   ]
  },

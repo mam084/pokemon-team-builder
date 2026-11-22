@@ -55,19 +55,19 @@
     {
      "score": -0.77,
      "predicted": 0.453,
-     "actual": 0.501,
+     "actual": 0.502,
      "matches": 803
     },
     {
      "score": -0.29,
      "predicted": 0.482,
-     "actual": 0.484,
+     "actual": 0.483,
      "matches": 803
     },
     {
      "score": -0.0,
      "predicted": 0.5,
-     "actual": 0.488,
+     "actual": 0.489,
      "matches": 802
     },
     {
@@ -79,7 +79,7 @@
     {
      "score": 0.78,
      "predicted": 0.548,
-     "actual": 0.527,
+     "actual": 0.526,
      "matches": 802
     }
    ]
