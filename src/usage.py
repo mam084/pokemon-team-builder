@@ -166,10 +166,12 @@ class UsageData:
         if not ea or not eb:
             return 1.0, False
         known = True
-        if self.teammate_pct(a, b):
-            raw = self.teammate_pct(a, b) / eb.get("smogon_usage", eb["usage"])
-        elif self.teammate_pct(b, a):
-            raw = self.teammate_pct(b, a) / ea.get("smogon_usage", ea["usage"])
+        use_a = ea.get("smogon_usage", ea["usage"])
+        use_b = eb.get("smogon_usage", eb["usage"])
+        if self.teammate_pct(a, b) and use_b > 0:
+            raw = self.teammate_pct(a, b) / use_b
+        elif self.teammate_pct(b, a) and use_a > 0:
+            raw = self.teammate_pct(b, a) / use_a
         else:
             known = False
             floor = min(ea["teammates"].values(), default=0.0)
