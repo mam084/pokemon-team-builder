@@ -190,3 +190,22 @@ class TestDayOne(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestZeroUsage(unittest.TestCase):
+    def test_pair_lift_with_zero_usage(self):
+        """Day one of a regulation can list a Pokémon at 0% usage; pair_lift must not divide by it."""
+        from src.usage import load_usage
+        u = load_usage("gen9championsvgc2026regmc")
+        a, b = [n for n, _ in u.ranked(2)]
+        ea, eb = u.entry(a), u.entry(b)
+        old = (dict(ea), dict(eb))
+        try:
+            for e in (ea, eb):
+                e["usage"] = 0.0
+                if "smogon_usage" in e:
+                    e["smogon_usage"] = 0.0
+            lift, _ = u.pair_lift(a, b)
+            self.assertTrue(lift > 0 and lift == lift)
+        finally:
+            ea.clear(); ea.update(old[0]); eb.clear(); eb.update(old[1])
