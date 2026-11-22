@@ -490,6 +490,29 @@ team score. Keep applying the best swap that way (any role, bounds on):
 | Rain + Tailwind (Archaludon + Pelipper) | 68 → 68 | 49.1% | 228 |
 <!-- /generated:teamcheck -->
 
+**Support tools: count each copy, or just "has it"? Tested, not shipped** (`scripts/win_model_lab.py`, Nov 21).
+The match model counts how many of your Pokémon carry each tool, so every extra Wide Guard earns the same
+points as the first (the trust bounds below cap how far that goes), and rare tools can take huge weights
+(Paralysis, different in ~1% of matches: -16 points per Pokémon) because features are standardized before
+the penalty. Variants fitted and judged like the shipped model (C by forward CV on the oldest 70% of
+tournaments, judged on the newest 30%, 4,087 matches):
+
+| variant | test log loss vs shipped (95%) | swap test: win chance corr (vs shipped) | Paralysis pts |
+|---|---|---|---|
+| shipped: count per Pokémon | — | +0.059 | -13.6 |
+| has it (0/1) | +0.0004 better (-0.0005 to +0.0013) | +0.045 (-0.021) | -13.4 |
+| sqrt(count) | +0.0003 (-0.0001 to +0.0008) | | -13.6 |
+| has it, rare tools shrunk like common ones | +0.0003 (-0.0007 to +0.0012) | +0.044 (-0.022) | -3.5 |
+| count, rare tools shrunk | +0.0001 (-0.0005 to +0.0006) | +0.057 (-0.004) | -7.4 |
+
+(Coefficients here are from the training-period fit; the swap test refits each on all tournaments, trust
+bounds off, and scores the same-five / different-sixth replay pairs from `scripts/swap_quality_lab.py`.)
+None predicts match results better, and counting "has it" picked slightly *worse* swaps, so the shipped
+model stays: a second copy of a tool seems to carry real signal, and the trust bounds already stop stacking
+past what real teams reach. Weakness to keep in mind: on the newest tournaments the team features add
+little beyond player skill (log loss gain 95% -0.002 to +0.004), and win chance alone barely predicts which
+swap wins (+0.06), which is why swaps lean on teammate fit and say when they don't.
+
 ## How good are the swaps? (Nov 21, `scripts/swap_quality_lab.py`, `scripts/swap_choice_lab.py`)
 
 Two questions, both answered on rated ladder and Bo3 replays (186,000 games) that neither the teammate model
