@@ -2,13 +2,13 @@
 swap_choice_lab.py - when a player replaces one Pokemon, would the app have suggested what they chose?
 
 Real swaps come from rated ladder and Bo3 replays: a player's next team differs from the last by exactly
-one Pokemon (scripts/swap_quality_lab.py). The teammate model is fitted only on teams from before the
+one Pokemon (labs/swap_quality_lab.py). The teammate model is fitted only on teams from before the
 newest 30% of games and judged on swaps made after that, so it never saw them. For each swap (old member
 X, the other five R, new member Y), every candidate the app could offer is ranked by each method, and we
 record where Y lands. This measures whether suggestions are ones players actually find sensible; whether
-they win more is scripts/swap_quality_lab.py's question.
+they win more is labs/swap_quality_lab.py's question.
 
-    python scripts/swap_choice_lab.py
+    python labs/swap_choice_lab.py
 """
 
 from __future__ import annotations
@@ -33,7 +33,7 @@ from src.swaps import PLAN_ROLE  # noqa: E402
 from src.synergy import (L2, TOURNAMENT_WEIGHT, TeammateModel, build_vocab, recent_records,  # noqa: E402
                          replay_rows, root_of, tournament_rows)
 from src.usage import load_usage  # noqa: E402
-from scripts.swap_quality_lab import swaps, versions  # noqa: E402
+from labs.swap_quality_lab import swaps, versions  # noqa: E402
 
 FMT = CURRENT.id
 CACHE = Path("/tmp/swap_choice_model.pkl")

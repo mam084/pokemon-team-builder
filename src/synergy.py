@@ -20,7 +20,7 @@ every team left out in turn (L2-regularised, so pairs seen rarely stay near 0), 
       higher ratings weighted more
 
 The pairing of W[m, c] values gives the "why": which members a candidate fits with, in
-log-odds. scripts/synergy_lab.py compares this against lift on held-out tournaments.
+log-odds. labs/synergy_lab.py compares this against lift on held-out tournaments.
 """
 
 from __future__ import annotations
@@ -36,12 +36,12 @@ import numpy as np
 from src.dex import Dex
 
 MODEL_DIR = Path(__file__).resolve().parent.parent / "data" / "evaluation"
-# Chosen on held-out tournaments (scripts/synergy_lab.py): light regularisation, and tournament
+# Chosen on held-out tournaments (labs/synergy_lab.py): light regularisation, and tournament
 # teams counted 3x (curated teams; the ladder adds volume and the rarer Pokemon)
 L2 = 2.0
 TOURNAMENT_WEIGHT = 3.0
 # Replays older than this stopped helping as the meta moved: on held-out tournaments, the last
-# 21-30 days scored MRR 0.656-0.657 and 45+ days 0.650 (scripts/synergy_lab.py, Nov 17)
+# 21-30 days scored MRR 0.656-0.657 and 45+ days 0.650 (labs/synergy_lab.py, Nov 17)
 REPLAY_DAYS = 30
 
 
@@ -63,7 +63,7 @@ class TeamRow:
 
 
 # A new regulation's first days: pulls start from the previous regulation's Smogon teammate stats
-# instead of 0 (scripts/regulation_start_lab.py: better at 1, 3, 7 and 14 days of data, gain fading).
+# instead of 0 (labs/regulation_start_lab.py: better at 1, 3, 7 and 14 days of data, gain fading).
 HEAD_START_DAYS = 15
 HEAD_START_STRENGTH = 0.5
 

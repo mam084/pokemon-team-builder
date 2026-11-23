@@ -1,4 +1,4 @@
-"""The teammate model's head start from the previous regulation (scripts/regulation_start_lab.py)."""
+"""The teammate model's head start from the previous regulation (labs/regulation_start_lab.py)."""
 
 import time
 

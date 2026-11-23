@@ -1,4 +1,4 @@
-"""Battle plan from their team sheet (src/opponent.py, ui/matchups_tab.facing_archetype)."""
+"""Battle plan from their team sheet (src/opponent.py, ui/battle_plan_tab.facing_archetype)."""
 
 import unittest
 

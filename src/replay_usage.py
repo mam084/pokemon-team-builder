@@ -155,7 +155,7 @@ def usage_from_replays(records: list[dict], dex: Dex, format_id: str, prev=None,
 # Saved by scripts/summarize_replays.py; read by src/usage.py's load_usage when the
 # format has no Smogon stats yet.
 # --------------------------------------------------------------------------
-REPLAY_USAGE_DAYS = 7  # set by scripts/new_regulation_lab.py
+REPLAY_USAGE_DAYS = 7  # set by labs/new_regulation_lab.py
 
 
 def path_for(format_id: str):

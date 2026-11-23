@@ -9,7 +9,7 @@ This checks diminishing returns two ways:
    extra user" per tool with both players' ladder ratings, bootstrapped by player; then use the
    tournament-fitted tool effects (linear vs capped) to predict the Bo3 games.
 
-    python scripts/tool_count_lab.py
+    python labs/tool_count_lab.py
 """
 import re
 import sys

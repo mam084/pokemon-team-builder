@@ -26,7 +26,8 @@ from src.formats import FORMATS  # noqa: E402
 from src.legality import check_team  # noqa: E402
 from ui.analysis_tab import analysis_tab  # noqa: E402
 from ui.damage_tab import damage_tab  # noqa: E402
-from ui.matchups_tab import battle_plan_tab, matchups_tab  # noqa: E402
+from ui.battle_plan_tab import battle_plan_tab  # noqa: E402
+from ui.matchups_tab import matchups_tab  # noqa: E402
 from ui.playbook_tab import playbook_tab  # noqa: E402
 from ui.pokemon_tab import pokemon_tab  # noqa: E402
 from ui.recommendations_tab import recommendations_tab  # noqa: E402

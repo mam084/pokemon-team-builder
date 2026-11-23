@@ -2,7 +2,7 @@
 """
 update_readme.py
 
-Rewrites the README's result tables from data/evaluation/*.json, between
+Rewrites the result tables in README.md and docs/experiments.md from data/evaluation/*.json, between
 <!-- generated:NAME --> and <!-- /generated:NAME --> markers, so the numbers
 stay in step with the monthly refresh. Run after the evaluations.
 """
@@ -11,11 +11,13 @@ from __future__ import annotations
 
 import json
 import re
+import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 README = ROOT / "README.md"
 EVAL = ROOT / "data" / "evaluation"
+sys.path.insert(0, str(ROOT))
 
 
 def load(name: str) -> dict | None:
@@ -68,7 +70,8 @@ Split into fifths by score, the side the model favors most strongly won
 
 
 def learned(r: dict) -> str:
-    t, g = r["test"], r["gain_ci95"]
+    from src.evidence import team_signal_sentence
+    t = r["test"]
     rows = "\n".join(f"| {name} | {v['accuracy']:.1%} | {v['log_loss']:.4f} | {v['auc']:.3f} |"
                      for name, v in t.items())
     return f"""chosen by forward-chaining cross-validation inside the older {r['train_matches']:,}
@@ -79,8 +82,7 @@ matches, and it's tested once on the newest {r['test_matches']:,}
 |---|---|---|---|
 {rows}
 
-- **Who's playing matters most**, but the team adds real signal on top: log-loss
-  gain {g['team beyond skill'][0]:+.4f} to {g['team beyond skill'][1]:+.4f} over ratings alone (95% paired bootstrap)."""
+- **Who's playing matters most.** {team_signal_sentence(r)}"""
 
 
 def bring(r: dict) -> str:
@@ -155,10 +157,43 @@ def replace(text: str, name: str, body: str) -> str:
     return pattern.sub(lambda m: m.group(1) + body + m.group(2), text)
 
 
-def main() -> None:
-    text = README.read_text()
+def summary(reg: str) -> str | None:
+    """The README's short table: one line per shipped model, from the same evaluation files."""
+    from src.evidence import team_signal_sentence
+    rec, mm, bm = load(f"{reg}.json"), load(f"{reg}_match_model.json"), load(f"{reg}_bring_model.json")
+    rows = []
+    if rec:
+        r = rec["results"]
+        rows.append(f"| Recommender: find the missing member of a real tournament team (MRR) | "
+                    f"{r['tuned weights']['mrr']:.3f} | {r['popularity only']['mrr']:.3f} (popularity only) | "
+                    f"{rec['test_teams']:,} teams |")
+    if mm:
+        t = mm["test"]
+        rows.append(f"| Win model: pick the winner of a real match | "
+                    f"{t['learned model (skill + team)']['accuracy']:.1%} | "
+                    f"{t['player skill only']['accuracy']:.1%} (ratings only) | {mm['test_matches']:,} matches |")
+        rows.append(f"| Teams alone (no ratings): pick the winner | {t['team only']['accuracy']:.1%} | 50.0% (coin flip) | "
+                    f"{mm['test_matches']:,} matches |")
+    if bm:
+        b = bm["results"]["bring"]
+        rows.append(f"| Bring model: predict the 4 a player brings | {b['learned'][0]:.1%} | "
+                    f"{b['usual picks'][0]:.1%} (usual picks) | {bm['test_sides']:,} team previews |")
+    if not rows:
+        return None
+    dates = f" ({mm['test_dates'][0]} to {mm['test_dates'][1]})" if mm else ""
+    table = ("| held-out test | model | baseline | tested on |\n|---|---|---|---|\n" + "\n".join(rows))
+    note = team_signal_sentence(mm)
+    return f"Newest held-out data{dates}; the model never saw it.\n\n{table}" + (f"\n\n{note}" if note else "")
+
+
+FILES = [README, ROOT / "docs" / "experiments.md"]
+
+
+def render() -> dict[Path, str]:
+    """Every file with its generated blocks rewritten (nothing written)."""
     from src.formats import CURRENT
     reg = CURRENT.regulation
+    blocks = {}
     for name, fn, file in (("recommender", recommender, f"{reg}.json"),
                            ("validation", validation, f"{reg}_matches.json"),
                            ("learned", learned, f"{reg}_match_model.json"),
@@ -166,9 +201,34 @@ def main() -> None:
                            ("teamcheck", team_check, f"{reg}_team_check.json")):
         data = load(file)
         if data:
-            text = replace(text, name, fn(data))
-    README.write_text(text)
+            blocks[name] = fn(data)
+    s = summary(reg)
+    if s:
+        blocks["summary"] = s
+    out = {}
+    for path in FILES:
+        if not path.exists():
+            continue
+        text = path.read_text()
+        for name, body in blocks.items():
+            if f"<!-- generated:{name} -->" in text:
+                text = replace(text, name, body)
+        out[path] = text
+    return out
+
+
+def main() -> int:
+    """Rewrite the tables; with --check, only report whether any file is out of date (exit 1 if so)."""
+    rendered = render()
+    stale = [p for p, text in rendered.items() if p.read_text() != text]
+    if "--check" in sys.argv:
+        for p in stale:
+            print(f"out of date: {p.relative_to(ROOT)} (run python scripts/update_readme.py)")
+        return 1 if stale else 0
+    for p in stale:
+        p.write_text(rendered[p])
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

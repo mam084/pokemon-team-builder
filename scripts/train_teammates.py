@@ -5,7 +5,7 @@ list and ladder / Bo3 replay team, and save it for the app:
     data/evaluation/<regulation>_teammates.json
 
 Run by the Refresh data workflow after new replays and tournaments arrive. How well it predicts
-real teams (and the regularisation used here) comes from scripts/synergy_lab.py.
+real teams (and the regularisation used here) comes from labs/synergy_lab.py.
 
     python scripts/train_teammates.py
 """

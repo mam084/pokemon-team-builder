@@ -38,7 +38,10 @@ def start_here(team, dex) -> None:
     if team:
         return
     s = store()
-    if not s.ready or s.pref(HIDDEN, False):
+    # Shown before the browser's saved preferences arrive, so a new visitor's page doesn't jump when the card
+    # pops in a moment later; only someone who hid it sees it briefly. Hiding waits for the saved list to
+    # load: writing before then would overwrite "My teams" with an empty list.
+    if s.ready and s.pref(HIDDEN, False):
         return
     from ui.sidebar import load_example
     with st.container(border=True, key="start_here"):
@@ -47,7 +50,7 @@ def start_here(team, dex) -> None:
         b = st.container(key="button_row_start").columns(2)
         b[0].button("Load the example team", key="start_example", type="primary", width="stretch",
                     on_click=load_example, args=(dex,))
-        b[1].button("Hide this", key="start_hide", width="stretch", on_click=hide,
+        b[1].button("Hide this", key="start_hide", width="stretch", on_click=hide, disabled=not s.ready,
                     help="It stays hidden in this browser.")
 
 

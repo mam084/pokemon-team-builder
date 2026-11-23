@@ -1,4 +1,4 @@
-"""The 'Little data on X' note (src/core_report.thin_data / thin_note; scripts/thin_core_lab.py)."""
+"""The 'Little data on X' note (src/core_report.thin_data / thin_note; labs/thin_core_lab.py)."""
 
 import unittest
 

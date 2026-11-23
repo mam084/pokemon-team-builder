@@ -9,7 +9,7 @@ Test: tournament team sheets publish moves. For every member of every team in th
 other five to the recommender (ladder usage only, no tournament data), take its credits for the hidden
 Pokemon, and compare the plain popular set and the carried set with the moves that player really ran.
 
-    python scripts/set_fit_lab.py
+    python labs/set_fit_lab.py
 """
 import random
 import sys

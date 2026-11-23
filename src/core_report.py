@@ -34,7 +34,7 @@ TOP_PARTNERS = 8
 TOP_TEAMS = 3
 MIN_TEAM_RATING = 1300   # "proven" ladder teams: won, by a player rated at least this
 
-# Thin data (scripts/thin_core_lab.py, held-out week, Nov 19): hide each member of 1,701 held-out tournament
+# Thin data (labs/thin_core_lab.py, held-out week, Nov 19): hide each member of 1,701 held-out tournament
 # teams and rank it from the other five. Grouped by how many weighted teams the teammate model has on the
 # least-seen of the five (its `counts`), the hidden teammate lands in the top 10 this often (87% overall):
 #   under 100: 55%   100-200: 59%   200-400: 70%   400-800: 79%   800-1600: 91%   1600+: 94%

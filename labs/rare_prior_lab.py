@@ -16,9 +16,9 @@ weather and Trick Room abusers. Two stages (empirical Bayes):
 Same split as src/evaluate.py: fitted on the oldest tournaments plus replays from before the tuning
 tournaments, judged on the newest tournaments (each member hidden in turn, ranked from the other five
 among every Pokemon the model or the test teams know). Results by how much data the least-seen of the
-five has, like scripts/thin_core_lab.py; the prior's strength is chosen on the tuning tournaments.
+five has, like labs/thin_core_lab.py; the prior's strength is chosen on the tuning tournaments.
 
-    python scripts/rare_prior_lab.py
+    python labs/rare_prior_lab.py
 """
 
 from __future__ import annotations
@@ -39,7 +39,7 @@ from src.match_model import TOOLS, tools_of  # noqa: E402
 from src.replays import load_records  # noqa: E402
 from src.synergy import L2, TOURNAMENT_WEIGHT, build_vocab, recent_records, replay_rows, root_of, tournament_rows  # noqa: E402
 from src.usage import load_usage  # noqa: E402
-from scripts.regulation_start_lab import PriorModel, queries, ranks  # noqa: E402
+from labs.regulation_start_lab import PriorModel, queries, ranks  # noqa: E402
 
 FMT = CURRENT.id
 ABUSERS = {"swiftswim": "rain abuser", "chlorophyll": "sun abuser", "solarpower": "sun abuser",

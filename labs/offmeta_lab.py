@@ -13,7 +13,7 @@ usage site's "teammates" list suggests), as one team.
 
 Cores are grouped by ladder usage (Smogon's monthly stats from before the week).
 
-    python scripts/offmeta_lab.py
+    python labs/offmeta_lab.py
 """
 import sys
 import time

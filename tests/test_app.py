@@ -92,6 +92,23 @@ class TestApp(unittest.TestCase):
         core = at.session_state["built_teams"][0].sets[0]
         self.assertEqual(core.species, "Garchomp")
 
+    def test_quick_picks_fill_their_six(self):
+        """Tapping the common Pokemon adds them to their six; untapping removes only that one."""
+        at = fresh()
+        at = next(b for b in at.button if b.label and "Example" in b.label).click().run()
+        at = open_tab(at, "Battle plan")
+        at.selectbox(key="detail_pick").set_value("A team you're facing (enter its six)…")
+        at = at.run()
+        common = list(at.pills(key="opp_quick").options)
+        self.assertGreaterEqual(len(common), 6)
+        at.pills(key="opp_quick").set_value(common[:3])
+        at = at.run()
+        self.assertClean(at)
+        self.assertEqual(list(at.multiselect(key="opp_team").value), common[:3])
+        at.pills(key="opp_quick").set_value(common[:2])
+        at = at.run()
+        self.assertEqual(list(at.multiselect(key="opp_team").value), common[:2])
+
     def test_matchup_against_a_team_you_enter(self):
         at = fresh()
         at = next(b for b in at.button if b.label and "Example" in b.label).click().run()
@@ -106,7 +123,7 @@ class TestApp(unittest.TestCase):
         self.assertEqual(set(at.selectbox(key="opp_mega").options), {"Froslass", "Charizard"})
         md = " ".join(m.value for m in at.markdown)
         self.assertIn("Your team vs their team", md)
-        self.assertIn("**Lead:**", md)
+        self.assertRegex(md, r"\*\*(Usual lead|Lead):\*\*")
         self.assertIn("Turn 1: what players click", md)
         self.assertIn("Against their Psychic Terrain** (Indeedee-F)", md)
         self.assertIn("Against their Snow** (Froslass-Mega)", md)       # Froslass Mega Evolves (the first stone)

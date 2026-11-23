@@ -11,7 +11,7 @@ newest 25% (log loss, accuracy):
 If the pair terms don't beat "+ species" on new games, pair win-rates are noise at this data
 size and shouldn't drive recommendations.
 
-    python scripts/win_synergy_lab.py
+    python labs/win_synergy_lab.py
 """
 
 from __future__ import annotations

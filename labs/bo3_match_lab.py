@@ -11,8 +11,8 @@ counts relative to a Bo3 game, regularization) are picked by validation on the n
 *training* tournaments; the held-out week is touched once. Bo3 ships only if held-out log loss
 improves with a 95% paired-bootstrap interval above zero.
 
-    python scripts/bo3_match_lab.py build     # feature rows -> .cache/regmc_bo3_rows.pkl (slow, ~15 min)
-    python scripts/bo3_match_lab.py           # the comparison
+    python labs/bo3_match_lab.py build     # feature rows -> .cache/regmc_bo3_rows.pkl (slow, ~15 min)
+    python labs/bo3_match_lab.py           # the comparison
 """
 import datetime as dt
 import math

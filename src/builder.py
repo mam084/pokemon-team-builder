@@ -32,12 +32,12 @@ TEAM_SIZE = 6
 # Popular sets are their top four moves, but a pick can be credited for any move on 25%+ of its
 # sets. Swapping the credited move in (carry_credited) made sets *less* like what tournament players
 # ran (held-out week: -0.37 matching moves per changed set, 95% -0.41 to -0.33; only 27% of swapped-in
-# moves were real; scripts/set_fit_lab.py), so it's off: sets stay as players run them, and the
+# moves were real; labs/set_fit_lab.py), so it's off: sets stay as players run them, and the
 # reason line drops any claim the set doesn't carry (honest_reason).
 CARRY_CREDITED = False
 # Moves and nature from real team sheets when there are enough (src/sheet_sets.apply). Held-out week:
-# sets closer to what players ran (scripts/sheet_set_lab.py); built teams lean toward winners the same
-# (+0.001) and score higher, 53.0 -> 55.7 (Popular), 21.9 -> 22.8 (Neutral) (scripts/threat_builder_lab.py).
+# sets closer to what players ran (labs/sheet_set_lab.py); built teams lean toward winners the same
+# (+0.001) and score higher, 53.0 -> 55.7 (Popular), 21.9 -> 22.8 (Neutral) (labs/threat_builder_lab.py).
 SHEET_SETS = True
 CARRY_KEEPS_PROTECT = True
 
@@ -134,7 +134,7 @@ def honest_reason(why: str, unmet: list[str]) -> str:
 
 # The core's pairings count twice while filling, so a team built around a rarely used Pokemon keeps
 # pairing with it instead of with its popular teammates (picks pairing with the core: 86-91% -> 93-96%).
-# Held-out (scripts/builder_lab.py): no loss; a gain toward winning teams (+0.047, 95% -0.003 to
+# Held-out (labs/builder_lab.py): no loss; a gain toward winning teams (+0.047, 95% -0.003 to
 # +0.102) that didn't quite clear zero. On by choice, for building around the core you picked.
 ANCHOR_WEIGHT = 2.0
 
@@ -142,7 +142,7 @@ ANCHOR_WEIGHT = 2.0
 # Answering the core's threats (the meta Pokemon that beat the core one-on-one, src/core_report.py):
 # among the recommender's top picks, each gets THREAT_WEIGHT score points (of 100) times the
 # usage-weighted share of the core's still-unanswered threats it beats. Held-out week
-# (scripts/threat_builder_lab.py, 55 cores): built teams already answer 93-95% of the core's threats;
+# (labs/threat_builder_lab.py, 55 cores): built teams already answer 93-95% of the core's threats;
 # at 10 points, 99%, but the lean toward winning teams moved +0.066 (95% -0.003 to +0.136) in Popular
 # and +0.003 (-0.050 to +0.058) in Neutral, and team scores fell slightly. Not clear of zero: off.
 THREAT_WEIGHT = 0.0
@@ -151,7 +151,7 @@ THREAT_WEIGHT = 0.0
 # Ladder edge: how much more each Pokemon wins than its players' ratings predict, on the last 30 days of
 # rated replays (src/core_report.replay_index: won - expected over brought games, shrunk toward 0 by
 # EDGE_PRIOR games). Among the recommender's top picks, each gets EDGE_WEIGHT score points per point of
-# edge. Held-out week (scripts/offmeta_lab.py --edge, edges from the 30 days before it): slope of
+# edge. Held-out week (labs/offmeta_lab.py --edge, edges from the 30 days before it): slope of
 # wins-above-ratings on Pokemon shared with the builder's teams, Popular -0.39 / +0.10 at weight 2 / +0.19 at
 # 5; Neutral -0.42 / -0.11 / +0.16; Hidden gems +1.65 / +2.19 / +1.65. Every change inside the noise, and
 # the bonus pulls teams away from what players pair with the core. Off.
@@ -242,7 +242,7 @@ def _carry(pset: PokemonSet, row, dex: Dex, usage: UsageData) -> tuple[PokemonSe
 
 # In Neutral, the last of the teams is built the Hidden gems way (unlabelled; all three are ranked together).
 # Hidden gems picks were the ones that beat their players' ratings on held-out ladder games
-# (scripts/offmeta_lab.py). The mix (--gems there): Neutral slope -0.45 with or without it, so no harm.
+# (labs/offmeta_lab.py). The mix (--gems there): Neutral slope -0.45 with or without it, so no harm.
 NEUTRAL_GEMS = 1
 
 

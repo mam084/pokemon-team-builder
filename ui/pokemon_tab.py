@@ -6,7 +6,7 @@ from __future__ import annotations
 import pandas as pd
 import streamlit as st
 
-from src.dex import Dex, to_id
+from src.dex import Dex
 from src.paste import export_paste
 from src.presets import presets_for
 from src.roles import meta_roles, role_text
@@ -15,7 +15,7 @@ from src.usage import UsageData
 from ui import core_report as R
 from ui.common import SLOTS, anchor_id, jump_row, sprite, type_badges
 from ui.meta_tab import bar_section, replay_line, species_effect, what_wins_section
-from ui.state import add_set_to_team, add_to_team
+from ui.state import add_set_to_team
 
 
 def _mini_cards(entries: list[tuple[str, str]], dex: Dex) -> str:
