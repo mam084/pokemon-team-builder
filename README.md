@@ -51,6 +51,8 @@ tested and rejected, is in [docs/experiments.md](docs/experiments.md).
   model with leak-free Elo ratings, and a learned bring/lead model, each retrained on schedule.
 - **Guard rails**: a weekly health check re-reads every held-out evaluation and opens an issue when a shipped
   model stops beating its baseline; result tables in this README are regenerated from those evaluations.
+- **Errors**: a tab that breaks shows the visitor a short message instead of a traceback; with a
+  `github_token` in the app's secrets it also opens an `app-error` issue (src/error_report.py).
 
 ## Run it
 

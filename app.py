@@ -74,13 +74,14 @@ def reload_if_data_changed() -> None:
                          for p in (root / d).glob("*.json")))
     seen = _data_seen()
     if seen["stamp"] is not None and stamp != seen["stamp"]:
-        from src import matchup, recommend
+        from src import analysis, matchup, recommend
         from src.dex import load_dex
         from src.usage import load_usage
         load_usage.cache_clear()
         load_dex.cache_clear()
         matchup._CALC_CACHE.clear()
         recommend._PROFILE_CACHE.clear()
+        analysis._MEMBERS.clear()
         from ui.common import _sprites_available
         _sprites_available.cache_clear()
         st.cache_data.clear()
@@ -94,21 +95,24 @@ TAB_NAMES = ["Team", "Analysis", "Matchups", "Battle plan", "Playbook", "Damage 
 
 def guarded(page, name: str, team, fmt_id: str) -> None:
     """One tab breaking shouldn't show a visitor a traceback or take the other tabs down: say what happened,
-    log the details (Community Cloud's "Manage app" logs) and offer the feedback form. Tests set
-    PTB_RAISE so a broken tab still fails them."""
+    log the details (Community Cloud's "Manage app" logs), open a GitHub issue when a token is set
+    (src/error_report.py) and offer the feedback form. Tests set PTB_RAISE so a broken tab still fails them."""
     try:
         page()
     except Exception as e:
         if type(e).__name__ in ("RerunException", "StopException") or os.environ.get("PTB_RAISE"):
             raise   # Streamlit's own st.rerun / st.stop
-        import logging
-        import traceback
+        from src.error_report import report
         from ui.start_here import feedback_url
         from ui.url_state import share_link
-        logging.getLogger("pokemon-team-builder").error(
-            "%s tab failed for team %s\n%s", name, share_link(team, fmt_id), traceback.format_exc())
+        try:
+            token = st.secrets.get("github_token")
+        except Exception:   # no secrets file
+            token = None
+        report(name, e, share_link(team, fmt_id), token)
         st.error(f"Sorry, the {name} tab hit a problem with this team. The other tabs still work. "
-                 f"[Send feedback]({feedback_url()}) with this page's link and it'll get fixed.",
+                 + ("It's been reported automatically. " if token else "")
+                 + f"[Send feedback]({feedback_url()}) if you'd like to add anything.",
                  icon=":material/error:")
 
 

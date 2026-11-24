@@ -837,5 +837,29 @@ class TestHealthCheck(unittest.TestCase):
         self.assertFalse(later["Replays are fresh"])
         self.assertFalse(later["Usage stats are current"])
 
+class TestBuildCaches(unittest.TestCase):
+    """The member and calc-key caches change nothing but speed and memory."""
+
+    def test_cached_member_matches_a_fresh_build_and_keeps_the_callers_set(self):
+        from src import analysis
+        dex = load_dex("regmc")
+        team, _ = parse_paste(GARGANACL_TEAM, dex)
+        analysis._MEMBERS.clear()
+        fresh = build_members(team, dex)
+        again_team, _ = parse_paste(GARGANACL_TEAM, dex)
+        again = build_members(again_team, dex)
+        for a, b, p in zip(fresh, again, again_team):
+            self.assertIs(b.pset, p)
+            self.assertEqual((a.label, a.form.name, a.types, a.ability_id, a.stats, a.moves),
+                             (b.label, b.form.name, b.types, b.ability_id, b.stats, b.moves))
+
+    def test_equal_sets_share_one_calc_key(self):
+        from src.matchup import _set_key
+        dex = load_dex("regmc")
+        a = build_members(parse_paste(GARGANACL_TEAM, dex)[0], dex)[0]
+        b = build_members(parse_paste(GARGANACL_TEAM, dex)[0], dex)[0]
+        self.assertIs(_set_key(a), _set_key(b))
+
+
 if __name__ == "__main__":
     unittest.main()

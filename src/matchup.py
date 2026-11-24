@@ -176,11 +176,26 @@ _CALC_CACHE: "OrderedDict[tuple, tuple[float, str]]" = OrderedDict()
 
 def _set_key(m: Member) -> tuple:
     """Cache key for a member's calcs. The forme is part of it: with two Mega Stones the same
-    set battles as a Mega in one version of the team and in its base forme in the other."""
+    set battles as a Mega in one version of the team and in its base forme in the other.
+
+    The same key object comes back for the same set, so the 60k cached calcs share one copy of each set
+    instead of holding two each (~1.4 KB an entry before, a few hundred bytes now)."""
     p = m.pset
     if p is None:
-        return (m.label,)
-    return (m.form.name, p.species, p.item, p.ability, p.nature, tuple(sorted(p.sps.items())), tuple(p.moves))
+        key = (m.label,)
+    else:
+        key = (m.form.name, p.species, p.item, p.ability, p.nature, tuple(sorted(p.sps.items())), tuple(p.moves))
+    shared = _KEYS.get(key)
+    if shared is not None:
+        return shared
+    if len(_KEYS) >= KEYS_MAX:   # only loses the sharing for older sets; every key still compares equal
+        _KEYS.clear()
+    _KEYS[key] = key
+    return key
+
+
+KEYS_MAX = 20_000
+_KEYS: dict[tuple, tuple] = {}
 
 
 def best_attack(a: Member, b: Member, doubles: bool = True, weather: str | None = None) -> tuple[float, str]:
