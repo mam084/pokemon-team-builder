@@ -53,5 +53,16 @@ class TestRising(unittest.TestCase):
         self.assertEqual(at.selectbox(key="poke_name").value, name)
 
 
+class TestUsageWindow(unittest.TestCase):
+    def test_labels_say_what_the_numbers_cover(self):
+        from src.usage import load_usage
+        u = load_usage("gen9championsvgc2026regmc")
+        if u.recent:
+            self.assertRegex(u.window(), r"^last \d+ days$")
+        u.recent = None
+        u.info = {"month": "2026-10"}
+        self.assertEqual(u.window(), "Smogon, 2026-10")
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -137,6 +137,16 @@ class UsageData:
         e = self.entry(species)
         return e["usage"] if e else 0.0
 
+    def window(self) -> str:
+        """What the usage numbers cover, for labels: "last 14 days" from recent replays, else the month
+        of Smogon stats."""
+        if self.recent and self.recent.get("first_day") and self.recent.get("last_day"):
+            from datetime import date
+            a, b = (date.fromisoformat(self.recent[k]) for k in ("first_day", "last_day"))
+            return f"last {(b - a).days} days"
+        month = (self.info or {}).get("month")
+        return f"Smogon, {month}" if month else "Smogon stats"
+
     def ranked(self, n: int | None = None) -> list[tuple[str, float]]:
         rows = [(name, e["usage"]) for name, e in self.pokemon.items()]
         return rows[:n] if n else rows
