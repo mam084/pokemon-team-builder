@@ -618,16 +618,21 @@ Matchups, Battle plan, Recommendations and Pokémon.
 
 ## Rising this week (`labs/rising_lab.py`)
 
-Is "rising this week" worth showing, or just noise? For every day with two weeks of replays behind it and
-one ahead (37 days, Oct–Nov 2026), the top 10 risers in share of rated players' teams (this week vs last,
-at least 40 teams this week), and where they were the week after:
+Is "rising this week" worth showing, or just noise? The lab runs the rule the app ships
+(`src/replays.rising`) as of the end of every day in the replays, and checks its top 10 risers (share of
+rated players' teams, at least 40 teams this week) in the next full week.
 
-| | |
-|---|---|
-| rise, last week → this week | +2.06 points of team share (mean) |
-| next week vs last week | +2.38 points (116% of the rise kept) |
-| still above last week's share a week later | 92% of risers |
-| 95% interval of the kept gain (by day) | +1.70 to +3.07 points |
+Weeks start on Sunday (UTC): this week is Sunday so far, last week the full Sunday–Saturday before it;
+early on a Sunday, before this week has 500 teams, it compares the last two full weeks. Over 38 days
+(Oct–Nov 2026):
 
-Risers kept their gains, so the list points at where the ladder is heading. It's shown in the Pokémon tab
-above the usage board, rebuilt twice a day with the replays (`scripts/summarize_replays.py`).
+| | Sunday weeks (shipped) | rolling 7 days (first version) |
+|---|---|---|
+| rise, last week → this week | +2.06 points of team share | +2.06 |
+| next week vs last week | +1.93 points (94% of the rise kept) | +2.38 (116%) |
+| still above last week's share the week after | 84% of risers | 92% |
+| 95% interval of the kept gain (by day) | +1.67 to +2.19 points | +1.70 to +3.07 |
+
+Risers kept most of their gains either way, so the list points at where the ladder is heading. Calendar
+weeks are a little noisier early in the week (fewer teams so far) but easier to read. It's shown in the
+Pokémon tab above the usage board, rebuilt twice a day with the replays (`scripts/summarize_replays.py`).

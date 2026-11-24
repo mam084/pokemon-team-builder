@@ -17,8 +17,8 @@ tested on newer matches it never saw, and the app says how much each number can 
 - **Analyze it**: defensive heatmap, role checklist, speed tiers and offensive coverage.
 - **Matchups vs the meta**: about 10 meta teams rebuilt from teammate data, every pairing decided by damage
   calcs in both directions, a learned win chance, the biggest threats, and swaps that fix them.
-- **Rising this week**: the Pokémon gaining ground on the ladder (risers kept their gains the next week in
-  92% of past cases).
+- **Rising this week**: the Pokémon gaining ground on the ladder, Sunday to Sunday (risers stayed up the next
+  week in 84% of past cases).
 - **Recommendations** in three styles: Popular picks, Neutral, and **Hidden gems** (unusual picks that win
   more than their players' ratings predict).
 - **Battle plan and Playbook**: what to bring and lead against a team, and what wins against Trick Room,

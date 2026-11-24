@@ -229,6 +229,13 @@ def _open_from_board(names: list[str]) -> None:
         st.session_state["poke_name"] = names[rows[0]]
 
 
+def _change(a: float, b: float) -> str:
+    """'5% → 7%', with a decimal when whole percents would read as no change ('4.6% → 5.2%')."""
+    if f"{a:.0%}" == f"{b:.0%}":
+        return f"{a:.1%} → {b:.1%}"
+    return f"{a:.0%} → {b:.0%}"
+
+
 def _open_rising() -> None:
     """Tapped a riser: open it at the top of this tab (the pill doesn't stay selected)."""
     pick = st.session_state.get("rising_pick")
@@ -254,18 +261,22 @@ def rising_section(dex: Dex, usage: UsageData, fmt) -> None:
     shown = {n: r for n, r in rows if n in set(names)}
     if not shown:
         return
-    from datetime import date, timedelta
-    before = (date.fromisoformat(up["first_day"]) - timedelta(days=7)).isoformat()
-    st.pills(f"**Rising this week**: share of teams {day_range(before, up['first_day'])} → "
+    before = (up.get("before_first_day"), up.get("before_last_day"))
+    if not all(before):   # a summary from before weeks started on Sunday
+        from datetime import date, timedelta
+        start = date.fromisoformat(up["first_day"])
+        before = ((start - timedelta(days=7)).isoformat(), (start - timedelta(days=1)).isoformat())
+    st.pills(f"**Rising this week**: share of teams {day_range(*before)} → "
              f"{day_range(up['first_day'], up['last_day'])} (tap to open)", list(shown),
              key="rising_pick", on_change=_open_rising,
-             format_func=lambda n: f"{n}  {shown[n]['before']:.0%} → {shown[n]['share']:.0%}")
-    st.caption(f"Biggest gains in share of teams, {day_range(up['first_day'], up['last_day'])} vs the week "
-               f"before ({up['teams']:,} vs {up['teams_before']:,} teams, players rated {up['min_rating']}+). "
-               "In past weeks, 9 in 10 risers were still above their old share a week later, so these point "
-               "at where the ladder is heading, not just noise (labs/rising_lab.py)."
-               + (f" The usage board below covers both weeks together ({usage.window()}), so its number sits "
-                  "between the two." if usage.recent else ""))
+             format_func=lambda n: f"{n}  {_change(shown[n]['before'], shown[n]['share'])}")
+    st.caption(f"Biggest gains in share of teams this week vs last ({up['teams']:,} vs {up['teams_before']:,} "
+               f"teams, players rated {up['min_rating']}+). Weeks start on Sunday (UTC); early on a Sunday it "
+               "compares the last two full weeks. In past weeks, 84% of risers were still above their old share "
+               "the week after, so these point at where the ladder is heading, not just noise "
+               "(labs/rising_lab.py)."
+               + (f" The usage board below covers the {usage.window()}, so it won't match either week exactly."
+                  if usage.recent else ""))
 
 
 def meta_section(dex: Dex, usage: UsageData, fmt) -> None:
