@@ -27,16 +27,16 @@ Full tour: [docs/features.md](docs/features.md).
 ## Results at a glance
 
 <!-- generated:summary -->
-Newest held-out data (2026-11-16 to 2026-11-22); the model never saw it.
+Newest held-out data (2026-11-17 to 2026-11-23); the model never saw it.
 
 | held-out test | model | baseline | tested on |
 |---|---|---|---|
-| Recommender: find the missing member of a real tournament team (MRR) | 0.674 | 0.214 (popularity only) | 1,718 teams |
-| Win model: pick the winner of a real match | 58.8% | 57.9% (ratings only) | 3,956 matches |
-| Teams alone (no ratings): pick the winner | 52.5% | 50.0% (coin flip) | 3,956 matches |
-| Bring model: predict the 4 a player brings | 72.2% | 70.9% (usual picks) | 19,851 team previews |
+| Recommender: find the missing member of a real tournament team (MRR) | 0.647 | 0.210 (popularity only) | 1,682 teams |
+| Win model: pick the winner of a real match | 58.0% | 57.6% (ratings only) | 3,877 matches |
+| Teams alone (no ratings): pick the winner | 52.6% | 50.0% (coin flip) | 3,877 matches |
+| Bring model: predict the 4 a player brings | 72.0% | 70.7% (usual picks) | 19,876 team previews |
 
-On the newest matches, the team's extra signal on top of the players' ratings is too small to tell apart from zero (log-loss gain -0.0017 to +0.0046 over ratings alone, 95% paired bootstrap). Treat team-vs-team win chances as a rough guide.
+On the newest matches, the team's extra signal on top of the players' ratings is too small to tell apart from zero (log-loss gain -0.0000 to +0.0061 over ratings alone, 95% paired bootstrap). Treat team-vs-team win chances as a rough guide.
 <!-- /generated:summary -->
 
 The honest headline: **the player decides most games.** Team composition adds only a few points of edge, so
