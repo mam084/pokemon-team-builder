@@ -12,7 +12,7 @@ rated games with both teams' previews, plenty of uncommon Pokemon among them.
 
 Picks don't use results at all (only who is run with whom), so the edges are an independent check.
 
-    python scripts/hidden_gems_lab.py
+    python labs/hidden_gems_lab.py
 """
 import random
 import sys

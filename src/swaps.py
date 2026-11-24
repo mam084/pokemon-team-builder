@@ -473,7 +473,7 @@ def suggest_swaps(team: list[PokemonSet], dex: Dex, usage: UsageData, engine: Sw
                 "score": round(rating[1]) if rating is not None else None,
                 "score change": round(rating[1] - base_rating[1]) if rating is not None else None,
                 "vs threat": round(focus_gain, 1) if threat is not None else None,
-                # which half of the team score backs it (scripts/swap_quality_lab.py): in real games,
+                # which half of the team score backs it (labs/swap_quality_lab.py): in real games,
                 # swaps where fit and win chance both rose won more; win-chance-only ones showed no edge
                 "backing": backing((parts[2] - base_parts[2]) / ref["fit_sd"],
                                    (win - base_win) / ref["chance_sd"]) if parts else None,
@@ -501,7 +501,7 @@ def suggest_swaps(team: list[PokemonSet], dex: Dex, usage: UsageData, engine: Sw
             row = (fresh if not fresh.empty else g).iloc[[0]]
             used.add(row["swap in"].iloc[0])
             best_rows[slot] = row.assign(pick="Best upgrade")
-        # Players' pick: what players with the other five most often run here (scripts/swap_choice_lab.py:
+        # Players' pick: what players with the other five most often run here (labs/swap_choice_lab.py:
         # it finds the replacement real players chose 3.5x as often as ranking by shared roles and types).
         # Like Best upgrade, each Pokemon is offered for one member at most (where players run it most),
         # so a team-wide favourite doesn't fill every slot.

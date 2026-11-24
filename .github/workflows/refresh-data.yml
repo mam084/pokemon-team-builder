@@ -115,7 +115,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/ README.md
+          git add data/ README.md docs/experiments.md
           if git diff --cached --quiet; then
             echo "Data already up to date."; exit 0
           fi

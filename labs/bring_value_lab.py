@@ -12,7 +12,7 @@ bring / lead overlaps more with a model's picks win more than their ratings pred
 Slope: points of win chance above the ratings' prediction per Pokemon of overlap (bring: 0-4, lead: 0-2),
 90% interval from a bootstrap over sides. Rated games only (both players 1100+), no forfeits.
 
-    python scripts/bring_value_lab.py
+    python labs/bring_value_lab.py
 """
 import sys
 from pathlib import Path

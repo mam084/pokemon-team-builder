@@ -16,7 +16,7 @@ after each window, not on the tournaments.
 On the real switch the head start would be the previous regulation's fitted model, which knows more than
 Smogon's stats, so this likely understates it.
 
-    python scripts/regulation_start_lab.py
+    python labs/regulation_start_lab.py
 """
 
 from __future__ import annotations

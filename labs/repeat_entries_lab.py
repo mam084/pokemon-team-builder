@@ -6,7 +6,7 @@ repeat_entries_lab.py - should a player's repeat tournament entries count once i
 off-meta team at several events can create a strong "players pair it" pull on their own (Mega
 Feraligatr + Empoleon 3.4x came from one player's team entered twice).
 
-Same task and split as src/evaluate.py / scripts/synergy_lab.py: the model is fitted on the oldest
+Same task and split as src/evaluate.py / labs/synergy_lab.py: the model is fitted on the oldest
 tournaments plus replays uploaded before the tuning tournaments, and ranks the hidden member of every
 held-out team (newest tournaments) among the recommender's candidate pool. Variants:
 
@@ -18,7 +18,7 @@ Reported on all held-out teams, on the held-out teams counted once per (player, 
 whose five shown members include a Pokemon on few fit-period tournament teams. Paired bootstrap over
 held-out teams.
 
-    python scripts/repeat_entries_lab.py
+    python labs/repeat_entries_lab.py
 """
 
 from __future__ import annotations

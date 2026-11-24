@@ -22,3 +22,5 @@ jobs:
           at = AppTest.from_file('app.py', default_timeout=60).run()
           assert not at.exception, [e.message for e in at.exception]
           "
+      - name: README and docs/experiments.md match data/evaluation
+        run: python scripts/update_readme.py --check

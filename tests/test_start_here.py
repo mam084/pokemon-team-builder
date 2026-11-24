@@ -41,9 +41,10 @@ class TestStartHere(unittest.TestCase):
         self.assertEqual(json.loads(writes[STORAGE_KEY]), {})        # My teams untouched
         self.assertNotIn("Start here.", text(visitor({HIDDEN: True})))
 
-    def test_waits_for_browser_storage(self):
+    def test_shows_before_browser_storage_but_cant_hide_yet(self):
         at = AppTest.from_file(APP, default_timeout=120).run()
-        self.assertNotIn("Start here.", text(at))                   # not before we know it wasn't hidden
+        self.assertIn("Start here.", text(at))                      # no pop-in a moment after the page loads
+        self.assertTrue(at.button(key="start_hide").disabled)       # a write now would empty My teams
 
     def test_feedback_link_on_every_page(self):
         at = visitor()

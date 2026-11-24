@@ -46,11 +46,15 @@ def inject_css() -> None:
   font-size: 2rem; letter-spacing: -.01em; line-height: 1.1; color: {ink}; }}
 .app-title .app-sub {{ color: {muted}; font-size: .98rem; }}
 
-/* tabs: heavier, more spacious */
-.stTabs [data-baseweb="tab-list"] {{ gap: 1.4rem; border-bottom: 1px solid {border}; }}
-.stTabs [data-baseweb="tab"] {{ font-family: "Barlow Semi Condensed", Barlow, sans-serif;
-  font-weight: 600; font-size: 1.05rem; padding: .55rem 0; }}
-.stTabs [data-baseweb="tab"] p {{ font-size: 1.05rem; }}
+/* tabs: heavier, more spacious (Streamlit 1.67 tabs are react-aria: role=tablist / data-testid=stTab) */
+.stTabs [role="tablist"] {{ gap: 1.4rem; border-bottom: 1px solid {border}; }}
+.stTabs [data-testid="stTab"] {{ font-family: "Barlow Semi Condensed", Barlow, sans-serif;
+  font-weight: 600; font-size: 1.05rem; }}
+.stTabs [data-testid="stTab"] p {{ font-size: 1.05rem; }}
+/* phones: tabs wrap onto a second row instead of scrolling off the edge ("Damag…") */
+@media (max-width: 640px) {{
+  .stTabs [role="tablist"] {{ flex-wrap: wrap; overflow-x: visible; column-gap: 1rem; row-gap: .1rem; }}
+}}
 
 /* bordered containers read as raised cards, not outlines */
 [data-testid="stVerticalBlockBorderWrapper"]:has(> div > [data-testid="stVerticalBlock"]) {{ }}

@@ -6,7 +6,7 @@ Smogon's ladder stats count each move on its own; a sheet is a whole set someone
 Pokemon as written on a team sheet and whether it holds its Mega Stone, since a Mega and a non-Mega
 Feraligatr play differently. Each player's set counts once (a ladder player's 40 games are one set).
 
-scripts/sheet_set_lab.py tests these against the ladder sets on held-out tournament sheets.
+labs/sheet_set_lab.py tests these against the ladder sets on held-out tournament sheets.
 """
 
 from __future__ import annotations
@@ -94,13 +94,13 @@ def sheet_sets_from(tournament_teams: list[dict], bo3_records: list[dict], dex: 
 
 
 MIN_SHEETS = 10                      # fewer sheets than this: keep the ladder set
-MODE_SHARE = 0.4   # whole set only when this share of sheets run it (scripts/sheet_set_lab.py)
+MODE_SHARE = 0.4   # whole set only when this share of sheets run it (labs/sheet_set_lab.py)
 MIN_NATURES = 5                      # tournament sheets with a nature before it replaces the ladder's
 
 
 def apply(pset, dex: Dex, sets: dict | None):
     """The set with the moves (and nature) real sheets run most, when there are enough of them.
-    Held-out tournament sheets (scripts/sheet_set_lab.py, 12,027 sets): +0.063 matching moves per set
+    Held-out tournament sheets (labs/sheet_set_lab.py, 12,027 sets): +0.063 matching moves per set
     (95% +0.054 to +0.072) with the whole-set-at-40% rule, against +0.025 for always the most common
     whole set, and natures right 67.7% vs 62.5% of the time, against the ladder's popular set.
     The item stays (it was picked for Item Clause); the moves must fit it (usage.item_fits_moves)."""

@@ -1,5 +1,5 @@
 """Swap quality changes (Nov 21): Players' pick by teammate fit, backing labels, Same role off by default.
-Evidence: scripts/swap_quality_lab.py (outcomes) and scripts/swap_choice_lab.py (what players choose)."""
+Evidence: labs/swap_quality_lab.py (outcomes) and labs/swap_choice_lab.py (what players choose)."""
 
 import unittest
 

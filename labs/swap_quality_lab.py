@@ -18,7 +18,7 @@ gets its most common set, as in the app). Reported: the weighted correlation of 
 (weights = 1 / (1/n_old + 1/n_new), the inverse variance), and mean observed effect by predicted quintile,
 with 95% intervals from resampling players.
 
-    python scripts/swap_quality_lab.py [--min-games 5]
+    python labs/swap_quality_lab.py [--min-games 5]
 """
 
 from __future__ import annotations

@@ -12,7 +12,7 @@ other five. Queries are grouped by the evidence behind the least-seen of the fiv
 say how well the builder finds real teammates around a Pokemon with that much data. The app's
 thin-data note (src/core_report.THIN_EVIDENCE) uses the count where accuracy falls away.
 
-    python scripts/thin_core_lab.py     (reuses scripts/repeat_entries_lab.py's query cache)
+    python labs/thin_core_lab.py     (reuses labs/repeat_entries_lab.py's query cache)
 """
 
 from __future__ import annotations

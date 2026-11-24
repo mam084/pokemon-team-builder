@@ -12,7 +12,7 @@ Same procedure as src/match_model.train_and_report: L2 logistic on skill + team 
 orientations, C chosen by forward-chaining CV inside the training period (oldest 70% of tournaments),
 judged once on the newest 30%. Paired bootstrap over test matches against the shipped setup.
 
-    python scripts/win_model_lab.py
+    python labs/win_model_lab.py
 """
 
 from __future__ import annotations
@@ -142,13 +142,13 @@ if __name__ == "__main__" and "--swaps" not in sys.argv:
 # --------------------------------------------------------------------------
 def swaps_check():
     """Each version, fitted on all tournaments (replay outcomes are out of sample for every one), scores
-    the same-five / different-sixth pairs from rated replays (scripts/swap_quality_lab.py). Trust bounds
+    the same-five / different-sixth pairs from rated replays (labs/swap_quality_lab.py). Trust bounds
     off for all, so they're compared as fitted."""
     import pickle
     from collections import defaultdict
     from src import team_rating as R
     from src.matchup import build_archetypes
-    from scripts.swap_quality_lab import wcorr
+    from labs.swap_quality_lab import wcorr
     reg = CURRENT.regulation
     df = M.add_skill(M.build_dataset(reg, CURRENT.id, verbose=False), reg)
     counts = side_counts(reg)

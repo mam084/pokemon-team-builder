@@ -16,7 +16,7 @@ production weights.
   replays N    usage built from the last N days of replays (src/replay_usage.py, M-B sets for
                Pokémon that carry over), teammate model fitted on those N days
 
-    python scripts/new_regulation_lab.py [--teams 500] [--days 2 4 7 14]
+    python labs/new_regulation_lab.py [--teams 500] [--days 2 4 7 14]
 """
 
 from __future__ import annotations

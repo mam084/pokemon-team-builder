@@ -10,7 +10,6 @@ import streamlit as st
 from src.dex import Dex, to_id
 from src.match_model import load_model
 from src.replays import load_summary
-from src.usage import UsageData
 from ui.common import palette
 
 def bar_section(title: str, data: dict, dex: Dex, kind: str, n: int = 8) -> None:

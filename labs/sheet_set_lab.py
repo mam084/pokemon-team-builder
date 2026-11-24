@@ -13,7 +13,7 @@ team: how many of its four moves, and whether its nature, match what that player
 Sheet sets are used only with at least MIN sheets, else the ladder set. Natures: tournament sheets only
 (Bo3 sheets don't show them).
 
-    python scripts/sheet_set_lab.py
+    python labs/sheet_set_lab.py
 """
 import random
 import sys

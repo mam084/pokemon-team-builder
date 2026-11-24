@@ -4,7 +4,8 @@ The refresh workflow re-runs every held-out evaluation (monthly and when data sc
 data/evaluation/; nothing read those back. This does, read-only:
 
 - recommender: tuned weights beat popularity alone on held-out tournament teams (MRR)
-- learned win model: beats the damage-calc score (95% interval of the gain above 0), and stays calibrated
+- learned win model: beats the damage-calc score (95% interval of the gain above 0), stays calibrated, and
+  the team doesn't make it worse than the players' ratings alone (whether it helps is shown, not failed)
 - team check: its ranking of held-out teams still lines up with their records (Spearman > 0, top quarter
   won more than the bottom quarter)
 - bring / lead model: matches real picks at least as well as players' usual picks
@@ -66,6 +67,14 @@ def checks(reg: str | None = None, now: datetime | None = None) -> list[tuple[st
         lo, hi = mm["gain_ci95"]["learned vs damage-calc score"]
         out.append(("Win model beats damage calcs", lo > 0,
                     f"log-loss gain 95% [{lo:+.4f}, {hi:+.4f}] on {mm['test_matches']} held-out matches"))
+        # The app's wording follows this interval (src/evidence.py), so "unclear" is reported, not failed;
+        # a team that makes predictions worse than ratings alone means the team features should go.
+        from src.evidence import HURTS, team_signal
+        verdict = team_signal(mm)
+        if verdict:
+            tlo, thi = mm["gain_ci95"]["team beyond skill"]
+            out.append(("Team adds to ratings (not worse)", verdict != HURTS,
+                        f"{verdict}: log-loss gain 95% [{tlo:+.4f}, {thi:+.4f}] over ratings alone"))
         worst = max(abs(c["predicted"] - c["actual"]) for c in mm["calibration"])
         out.append(("Win model calibrated", worst <= 0.05, f"largest gap between predicted and actual {worst:.3f}"))
     else:

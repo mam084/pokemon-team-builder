@@ -7,7 +7,7 @@ tuning tournaments (older tournaments + replays uploaded before then), the blend
 recommender's other signals is tuned on the next tournaments, and everything is reported
 on the newest ones.
 
-    python scripts/synergy_lab.py [--fast]
+    python labs/synergy_lab.py [--fast]
 """
 
 from __future__ import annotations
