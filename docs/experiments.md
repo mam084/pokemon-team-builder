@@ -591,4 +591,18 @@ Matchups, Battle plan, Recommendations and Pokémon.
   | 10 visitors pressing it at the same moment (median / worst wait) | 50 s / 52 s | 20 s / 21 s |
   | server CPU per visitor, full browser load test | ~8 s | ~5.5 s |
 
+- **Lighter caches (Nov 24).** Each of the 60k cached damage calcs held its own copy of both sets (~1.6 KB
+  an entry); equal sets now share one key, so an entry is ~430 bytes (81 → 22 MB for the same 54k calcs).
+  The swap search also builds each Pokémon once instead of rebuilding all six for every candidate (~12%
+  less work per *Find swaps*). Swap results are identical (6 real teams × 3 styles). Load test, 24 visitors
+  in three waves of 8, each pressing *Find swaps*, same machine:
+
+  | server memory | before | after |
+  |---|---|---|
+  | peak per wave | 535 / 536 / 521 MB | 353 / 387 / 428 MB |
+  | after 24 visitors | 498 MB | 385 MB |
+
+  Limiting glibc's memory arenas and trimming after each page was also tried; it made no measurable
+  difference, so it wasn't kept.
+
   What's left is mostly the damage calcs for newcomers no visitor has tried yet (cached after that).

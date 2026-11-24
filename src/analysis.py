@@ -16,7 +16,8 @@ Team-vs-meta matchups and threats (with damage calcs) live in matchup.py.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from collections import OrderedDict
+from dataclasses import dataclass, replace
 
 import pandas as pd
 
@@ -74,6 +75,12 @@ def build_members(team: list[PokemonSet], dex: Dex, evolve: int | None | str = "
     members = []
     for i, pset in enumerate(team):
         mega = evolve == "all" or evolve == i
+        key = _member_key(pset, dex, mega)
+        hit = _MEMBERS.get(key)
+        if hit is not None:
+            _MEMBERS.move_to_end(key)
+            members.append(hit if hit.pset is pset else replace(hit, pset=pset))
+            continue
         form = pset.battle_form(dex, mega)
         if form is None:
             continue
@@ -88,7 +95,22 @@ def build_members(team: list[PokemonSet], dex: Dex, evolve: int | None | str = "
             pset=pset,
             battler=Battler.from_set(pset, dex, mega=mega),
         ))
+        _MEMBERS[key] = members[-1]
+        while len(_MEMBERS) > MEMBERS_MAX:
+            _MEMBERS.popitem(last=False)
     return members
+
+
+# Built members by set: the swap search rebuilds whole teams that differ by one Pokémon (~28k members per
+# Find swaps), so each set is built once. Members are never changed after they're built; a hit is
+# handed back with the caller's own PokemonSet. ~2,000 recent sets (a few MB).
+MEMBERS_MAX = 2000
+_MEMBERS: "OrderedDict[tuple, Member]" = OrderedDict()
+
+
+def _member_key(pset: PokemonSet, dex: Dex, mega: bool) -> tuple:
+    return (id(dex), mega, pset.species, pset.item, pset.ability, pset.nature, pset.nickname,
+            tuple(sorted(pset.sps.items())), tuple(pset.moves))
 
 
 def mega_variants(team: list[PokemonSet], dex: Dex) -> list[tuple[str | None, list[Member]]]:
