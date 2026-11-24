@@ -59,9 +59,10 @@ class TestUsageWindow(unittest.TestCase):
         u = load_usage("gen9championsvgc2026regmc")
         if u.recent:
             self.assertRegex(u.window(), r"^last \d+ days$")
-        u.recent = None
-        u.info = {"month": "2026-10"}
-        self.assertEqual(u.window(), "Smogon, 2026-10")
+        import copy
+        monthly = copy.copy(u)   # load_usage is cached: don't change the shared one
+        monthly.recent, monthly.info = None, {"month": "2026-10"}
+        self.assertEqual(monthly.window(), "Smogon, 2026-10")
 
 
 if __name__ == "__main__":
