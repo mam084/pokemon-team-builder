@@ -94,6 +94,7 @@ SUPPORTED_ABILITIES = {
     "transistor", "dragonsmaw", "gorillatactics", "thickfat", "heatproof", "waterbubble",
     "purifyingsalt", "furcoat", "multiscale", "shadowshield", "filter", "solidrock", "prismarmor",
     "fluffy", "icescales", "punkrock", "auraguard", "tintedlens", "sniper", "megasol", "grasspelt",
+    "libero", "protean",
     *ATE_ABILITIES, *IMMUNITY_ABILITIES,
 }
 
@@ -399,6 +400,10 @@ def calculate(att: Battler, dfn: Battler, move: dict, f: Field | None = None) ->
         base = tr(base * 1.5)
 
     stab = 6144 if mtype in att.types else 4096
+    # Libero / Protean turn the user into the move's type just before it hits (once per switch-in since
+    # Gen 9): the calc assumes the attack is that first one, as Showdown's calculator does.
+    if att.ability in {"libero", "protean"}:
+        stab = 6144
     if stab == 6144 and att.ability == "adaptability":
         stab = 8192
 

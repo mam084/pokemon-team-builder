@@ -13,7 +13,7 @@ from src.roles import meta_roles, role_text
 from src.stats import format_sps
 from src.usage import UsageData
 from ui import core_report as R
-from ui.common import SLOTS, anchor_id, jump_row, sprite, type_badges
+from ui.common import SLOTS, anchor_id, jump_row, sprite, type_badges, no_usage
 from ui.meta_tab import bar_section, replay_line, species_effect, what_wins_section
 from ui.state import add_set_to_team
 
@@ -41,7 +41,7 @@ def _section(title: str, sub: str = "") -> None:
 
 def pokemon_tab(dex: Dex, usage: UsageData | None, team_size: int, fmt) -> None:
     if usage is None:
-        st.info("No usage stats for this format yet.")
+        no_usage(fmt, "No usage stats for this format yet.")
         return
     from src.builder import core_set as builder_set
     from ui.analysis_tab import _tournament_teams

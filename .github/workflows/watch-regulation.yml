@@ -1,50 +1,159 @@
 name: Watch for a new regulation
 
-# Daily: does Pokémon Showdown have a Champions regulation src/formats.py doesn't? Showdown adds
-# a regulation's formats shortly before it starts, so this is the earliest public signal.
-# Finding one opens an issue labelled new-regulation (once) with the command that switches the
-# app (scripts/new_regulation.py add ...; README "When a new regulation starts").
+# Daily, two checks against Pokémon Showdown, the earliest public signal for both:
+#
+# 1. Has the game changed a regulation we already have? Showdown edits its Champions data in place
+#    when the game does (the Dec 2, 2026 balance patch: accuracy, learnsets, abilities). The full
+#    data refresh only runs monthly, so when a fresh export of the dex differs from the committed
+#    one, this starts it now (scripts/dex_diff.py drift).
+#
+# 2. Is there a Champions regulation src/formats.py doesn't have? Showdown adds a regulation's formats
+#    shortly before it starts. This prepares the whole switch on a branch, new-regulation-<reg>:
+#    scripts/new_regulation.py add, the new dex, the test suite run on it, and a list of what the
+#    regulation adds (scripts/dex_diff.py new). It opens a pull request to merge on the start day;
+#    if this repository doesn't let Actions open pull requests (Settings > Actions > General), it
+#    opens an issue with a link to the branch instead. Merging switches the app: that push starts
+#    the dex refresh and the first replay fetch on the new ladder.
 on:
   schedule:
     - cron: "41 15 * * *"
   workflow_dispatch:
+    inputs:
+      start:
+        description: "first day of a new regulation (YYYY-MM-DD); default: the day it's found"
+        default: ""
 
 permissions:
-  contents: read
+  contents: write        # push the new-regulation branch
   issues: write
+  pull-requests: write
+  actions: write         # start Refresh data
 
 jobs:
   watch:
     runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Fetch Showdown's format list (no build needed)
+          cache: "pip"
+      - run: pip install -r requirements.txt
+
+      - name: Build Pokémon Showdown
         run: |
-          git clone --depth 1 --filter=blob:none --sparse https://github.com/smogon/pokemon-showdown.git ../pokemon-showdown
-          git -C ../pokemon-showdown sparse-checkout set config
-      - name: Check
+          git clone --depth 1 https://github.com/smogon/pokemon-showdown.git ../pokemon-showdown
+          cd ../pokemon-showdown
+          npm ci
+          node build
+
+      - name: Has Showdown changed a regulation we have?
+        id: drift
+        run: |
+          mkdir -p /tmp/fresh-dex
+          node scripts/export_dex.js --ps ../pokemon-showdown --out /tmp/fresh-dex
+          python scripts/dex_diff.py drift --committed data/dex --fresh /tmp/fresh-dex \
+            --github-output "$GITHUB_OUTPUT" | tee drift.md
+          { echo "## Dex vs Showdown"; cat drift.md; } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Start Refresh data
+        if: steps.drift.outputs.changed == 'true'
+        run: |
+          # one at a time: a refresh still running will pick the change up
+          if gh run list --workflow refresh-data.yml --json status --jq '.[].status' | grep -qE 'queued|in_progress'; then
+            echo "Refresh data is already running."
+          else
+            gh workflow run refresh-data.yml --ref "${GITHUB_REF_NAME}"
+          fi
+
+      - name: Is there a new regulation?
         id: check
         run: |
           python scripts/new_regulation.py check --ps ../pokemon-showdown --github-output "$GITHUB_OUTPUT" | tee watch.md
           cat watch.md >> "$GITHUB_STEP_SUMMARY"
-      - name: Open the issue
+
+      - name: Prepare the switch
         if: steps.check.outputs.new != ''
+        id: prepare
         env:
-          GH_TOKEN: ${{ github.token }}
-          NEW: ${{ steps.check.outputs.new }}
+          START: ${{ github.event.inputs.start }}
         run: |
-          gh label create new-regulation --color 0E8A16 --description "A new Champions regulation is on Showdown" 2>/dev/null || true
-          title="New regulation on Showdown: $NEW"
-          if gh issue list --label new-regulation --state all --search "$title in:title" --json number --jq '.[0].number' | grep -q .; then
-            echo "Already reported."; exit 0
+          set -euo pipefail
+          reg=$(echo "${{ steps.check.outputs.new }}" | awk '{print $1}')   # the first, if several
+          branch="new-regulation-$reg"
+          echo "reg=$reg" >> "$GITHUB_OUTPUT"; echo "branch=$branch" >> "$GITHUB_OUTPUT"
+          if git ls-remote --exit-code --heads origin "$branch" >/dev/null; then
+            echo "Branch $branch already exists: the switch is prepared."; echo "done=1" >> "$GITHUB_OUTPUT"; exit 0
           fi
-          body="$(printf 'Showdown now has a Champions regulation the app does not know yet.\n\n```\n'; cat watch.md; printf '```\n\n')"
-          body="$body
-          On its start day: run the command above with the real start date, push, and the app switches over:
-          the Refresh data workflow exports the new dex, replays start arriving with the next fetch, and until
-          Smogon publishes the regulation's first monthly stats the app's usage comes from its replays.
-          Checklist: README, *When a new regulation starts*."
-          gh issue create --title "$title" --label new-regulation --body "$body"
+          prev=$(python -c "from src.formats import CURRENT; print(CURRENT.regulation)")
+          args=$(python - "$reg" <<'EOF'
+          import sys
+          sys.path.insert(0, "scripts")
+          from pathlib import Path
+          from new_regulation import new_regulations, showdown_formats
+          reg = sys.argv[1]
+          fmts = new_regulations(showdown_formats(Path("../pokemon-showdown/config/formats.ts").read_text()), set())[reg]
+          vgc = next((f["id"] for f in fmts if f["style"] == "vgc"), "")
+          bss = next((f["id"] for f in fmts if f["style"] == "bss"), "")
+          if not vgc:
+              sys.exit(f"{reg}: no VGC format on Showdown yet")
+          print(f"--vgc {vgc}" + (f" --bss {bss}" if bss else "") + f" --limitless {fmts[0]['label']}")
+          EOF
+          )
+          start="${START:-$(date -u +%F)}"
+          code=$(echo "$args" | sed -E 's/.*--limitless ([^ ]+).*/\1/')   # M-D
+          echo "code=$code" >> "$GITHUB_OUTPUT"
+          git checkout -b "$branch"
+          python scripts/new_regulation.py add $args --start "$start"
+          node scripts/export_dex.js --ps ../pokemon-showdown --out data/dex
+          {
+            echo "## What Reg $code changes from the last regulation ($prev)"
+            python scripts/dex_diff.py new --old "data/dex/$prev.json" --new "data/dex/$reg.json"
+          } > whatsnew.md
+          if python -m unittest discover -s tests -t . > tests.log 2>&1; then tests="pass"; else tests="FAIL"; fi
+          echo "tests=$tests" >> "$GITHUB_OUTPUT"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # only the new regulation's dex: the daily drift check refreshes the others on main, and a
+          # second copy here would conflict with it
+          git add src/formats.py "data/dex/$reg.json"
+          git commit -m "Switch to Reg $code: add its formats, make it the default, export its dex"
+          git push origin "$branch"
+          {
+            echo "Showdown now has **$(grep -m1 'New regulation' watch.md | sed 's/^New regulation on Showdown: //')**."
+            echo
+            echo "This branch switches the app to it (\`scripts/new_regulation.py add $args --start $start\`) and"
+            echo "adds its dex. **Merge on its first day in the game**, not before: merging makes it the default"
+            echo "format, and the merge starts the dex refresh and the first replay fetch on the new ladder."
+            echo "Until replays arrive (hours), tabs that need usage say the regulation has just started."
+            echo
+            echo "Test suite on this branch: **$tests** (the tests run against Reg M-C's data, so a failure is"
+            echo "about the code, not the new regulation's thin data). Last lines:"
+            echo '```'; grep -v ScriptRunContext tests.log | tail -n 12; echo '```'
+            echo
+            cat whatsnew.md
+            echo
+            echo "Before trusting calcs: check any ability listed as not in the damage calc against"
+            echo "src/damage.py, and any changed move. Checklist: docs/data.md, *When a new regulation starts*."
+          } > body.md
+          cat body.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Open the pull request (or an issue)
+        if: steps.check.outputs.new != '' && steps.prepare.outputs.done != '1'
+        run: |
+          branch="${{ steps.prepare.outputs.branch }}"
+          title="Switch to the new regulation: Reg ${{ steps.prepare.outputs.code }}"
+          if gh pr create --base "${GITHUB_REF_NAME}" --head "$branch" --title "$title" --body-file body.md; then
+            exit 0
+          fi
+          echo "::warning::Could not open a pull request (Settings > Actions > General > allow GitHub Actions to create pull requests); opening an issue."
+          gh label create new-regulation --color 0E8A16 --description "A new Champions regulation is on Showdown" 2>/dev/null || true
+          url="https://github.com/${GITHUB_REPOSITORY}/compare/${GITHUB_REF_NAME}...$branch?expand=1"
+          { echo "The switch is ready on the branch \`$branch\`: [open a pull request]($url)."; echo; cat body.md; } > issue.md
+          gh issue create --title "$title" --label new-regulation --body-file issue.md

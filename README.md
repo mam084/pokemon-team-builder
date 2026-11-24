@@ -87,7 +87,7 @@ python scripts/fetch_usage.py
 ## Tests
 
 ```bash
-python -m unittest discover -s tests -v
+python -m unittest discover -s tests -t . -v
 ```
 
 The tests check:
@@ -152,6 +152,7 @@ The tests check:
 │   ├── update_readme.py      rewrites the result tables in README.md and docs/experiments.md
 │   ├── health_check.py       weekly: shipped models still beat their baselines; data is fresh
 │   ├── new_regulation.py     notice a new regulation on Showdown; switch src/formats.py to it
+│   ├── dex_diff.py           what Showdown changed in a regulation, or what a new one adds
 │   ├── load_test.py          several visitors at once against a running app
 │   ├── keep_awake.py         visits the live app every 6 hours so Community Cloud doesn't put it to sleep
 │   └── ...

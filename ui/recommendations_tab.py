@@ -13,7 +13,7 @@ from src.dex import to_id
 from src.matchup import verdict
 from src.recommend import HIDDEN_MAX, DEFAULT_WEIGHTS, EXPLORE_WEIGHTS, MODES, recommend
 from src.roles import meta_roles, role_text, set_roles
-from ui.common import SLOTS, sprite, type_badges
+from ui.common import SLOTS, sprite, type_badges, no_usage
 from ui.core_report import core_threats, thin_line, threats_line
 from ui.matchups_tab import archetypes_for
 from ui.state import add_to_team, load_team
@@ -92,7 +92,7 @@ def core_set_options(name: str, dex, usage) -> list[tuple[str, object]]:
 def team_builder_section(team, dex, usage, fmt, mode, weights) -> None:
     with st.expander("Build a whole team around one Pokémon", expanded=not team):
         if usage is None:
-            st.info("Needs usage stats for this format.")
+            no_usage(fmt, "Needs usage stats for this format.")
             return
         sheet = usage.team_sheet_usage(dex)
         names = list(sheet)

@@ -18,7 +18,7 @@ from src.match_model import explain, predict_match, team_side
 from src.matchup import best_attack, best_variant, opponent_members, team_score, verdict
 from src.replays import load_summary, usual_picks
 from src.roles import meta_roles, role_text
-from ui.common import sprite, type_badges
+from ui.common import sprite, type_badges, no_usage
 from ui.matchups_tab import (archetypes_for, chance_verdict, learned_meta_sides, match_check, pair_heatmap,
                              swap_engine_for, win_text)
 
@@ -41,7 +41,7 @@ def replay_summary(fmt_id: str) -> dict | None:
 def battle_plan_tab(fmt_id, team, members, dex, usage, fmt) -> None:
     """One opponent, in detail: win chance, what to bring and lead, turn 1, who answers what."""
     if usage is None:
-        st.info("The battle plan needs usage stats for this format.")
+        no_usage(fmt, "The battle plan needs usage stats for this format.")
         return
     archetypes = archetypes_for(fmt_id)
     doubles = fmt.is_doubles

@@ -30,16 +30,31 @@ A few things to know about the data:
 
 ## When a new regulation starts
 
-Reg M-C ends Dec 2, 2026. Most of the switch-over is automatic:
+Reg M-C ends Dec 2, 2026 (02:00 UTC). The switch-over is prepared for you; merging it is the one step:
 
-1. **Noticing it.** The *Watch for a new regulation* workflow reads Showdown's format list daily
-   (`scripts/new_regulation.py check`; Showdown adds a regulation shortly before it starts) and opens
-   an issue labelled `new-regulation` with the command to run.
-2. **Switching** (one command on the start day, then push):
-   `python scripts/new_regulation.py add --vgc gen9championsvgc2026regmd --bss gen9championsbssregmd --limitless M-D --start 2026-12-03`.
-   It adds the new formats to `src/formats.py`, marks the old ones past and makes the new one the default.
-   Everything else reads `src/formats.py`: the push starts *Refresh data*, whose dex export picks up any
-   Champions regulation Showdown has, and the next replay fetch starts on the new ladder and Bo3 formats.
+1. **Noticing it.** The *Watch for a new regulation* workflow builds Showdown daily and checks its format
+   list (`scripts/new_regulation.py check`; Showdown adds a regulation shortly before it starts).
+2. **Preparing the switch.** When it finds one, the same run does the switch on a branch,
+   `new-regulation-<reg>`: `scripts/new_regulation.py add` (the new formats in `src/formats.py`, the old
+   ones marked past, the new one the default), the new regulation's dex, the test suite, and a list of
+   what the regulation adds or changes (`scripts/dex_diff.py new`), including abilities the damage calc
+   doesn't model yet. It opens a pull request with all of that, or, if the repository doesn't let
+   Actions open pull requests (Settings > Actions > General), an issue linking the branch.
+3. **Merging, on the regulation's first day in the game.** The merge is the push that switches the app:
+   it starts *Refresh data* (the dex) and *Fetch replays* (the new ladder and Bo3 formats) right away.
+   Until the first replays land (hours), tabs that need usage say the regulation has just started.
+   To do it by hand instead: `python scripts/new_regulation.py add --vgc gen9championsvgc2026regmd
+   --bss gen9championsbssregmd --limitless M-D --start 2026-12-02`, then push.
+
+**Balance changes inside a regulation.** Showdown edits a regulation's data in place when the game
+changes it (Reg M-D starts with the game's first balance patch: accuracy, learnsets, Flash Fire, Stalwart).
+The same daily workflow exports Showdown's current dex and compares it with the committed one
+(`scripts/dex_diff.py drift`); any difference starts *Refresh data* then, rather than at the monthly run.
+
+**Tests across a switch.** The tests are pinned to Reg M-C (`PTB_FORMAT` in `tests/__init__.py`), whose
+full season of tournaments and replays their expectations were written against, so switching the app's
+default doesn't fail them; day one of a new regulation has its own tests (`TestDayOne`).
+
 3. **The first weeks.** Smogon publishes a month's stats after it ends, so the new regulation has none
    until early the next month. Until then the app's usage comes from the regulation's own replays
    (`src/replay_usage.py`, rebuilt twice a day): who's on teams, teammates, Mega rates, and sets from open
