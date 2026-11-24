@@ -1,0 +1,24 @@
+name: Keep the app awake
+
+# Streamlit Community Cloud puts an app to sleep after 12 hours without a visitor, and the next visitor
+# has to wake it. This visits it every 6 hours (scripts/keep_awake.py). Set the app's address once as a
+# repository variable: Settings > Secrets and variables > Actions > Variables > New, name APP_URL.
+on:
+  schedule:
+    - cron: "41 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  visit:
+    runs-on: ubuntu-latest
+    if: ${{ vars.APP_URL != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install playwright && python -m playwright install --with-deps chromium
+      - run: python scripts/keep_awake.py "${{ vars.APP_URL }}"

@@ -65,7 +65,9 @@ def feedback_url() -> str:
 def footer() -> None:
     st.divider()
     st.caption(f"Something confusing, wrong or missing? [Send feedback]({feedback_url()}). "
-               "Usage data: Smogon and Pokémon Showdown replays; tournament teams: Limitless.")
+               "Usage data: Smogon and Pokémon Showdown replays; tournament teams: Limitless. "
+               "An unofficial fan tool, not affiliated with Nintendo, Game Freak, Creatures or The Pokémon "
+               "Company; Pokémon and its names are their trademarks.")
 
 
 __all__ = ["start_here", "footer", "feedback_url", "HIDDEN", "PITCH"]

@@ -50,6 +50,22 @@ class TestShareTokens(unittest.TestCase):
         self.assertEqual(decoded[0].moves, ["Spore"])  # kept, and flagged by the legality checks in the app
 
 
+    def test_bad_stat_points_dont_break_the_import(self):
+        team, _ = parse_paste("Garchomp\nEVs: abc HP / 3.5 Def / 99999 Atk / -4 SpD / 32 Spe\n- Earthquake", self.dex)
+        self.assertEqual({k: v for k, v in team[0].sps.items() if v}, {"atk": 255, "spe": 32})
+
+    def test_markup_is_stripped_from_pastes_and_links(self):
+        evil = "<img id=x src=y>"
+        team, _ = parse_paste(f"{evil} (Garchomp) @ {evil}\n- {evil}", self.dex)
+        decoded, _ = decode_team(encode_team(team), self.dex)
+        for p in (team[0], decoded[0]):
+            self.assertNotIn("<", p.nickname + p.item + "".join(p.moves))
+
+    def test_compare_label_from_a_link_is_plain_text(self):
+        from ui.url_state import clean_label
+        self.assertEqual(clean_label("[Click](https://evil.com) v2 <b>"), "v2 b")
+        self.assertEqual(clean_label(None), "saved version")
+
 class TestAppUrl(unittest.TestCase):
     def test_link_loads_team_and_edits_update_url(self):
         dex = load_dex("regmc")
@@ -75,6 +91,26 @@ class TestAppUrl(unittest.TestCase):
         self.assertFalse(at.exception)
         self.assertTrue(any("link" in w.value for w in at.warning))  # in the page: the sidebar is hidden on a phone
 
+
+    def test_pokemon_from_another_format_is_taken_off_not_a_crash(self):
+        team, _ = parse_paste("Shedinja @ Focus Sash\n- Shadow Sneak\n\n" + GARGANACL_TEAM, load_dex("regmc"))
+        at = AppTest.from_file(APP, default_timeout=120)
+        at.query_params["f"] = "gen9championsvgc2026regmc"
+        at.query_params["team"] = encode_team(team)
+        at.run()
+        self.assertFalse(at.exception, [e.value for e in at.exception])
+        self.assertTrue(any("Took Shedinja off" in w.value for w in at.warning))
+        self.assertNotIn("Shedinja", at.query_params["team"][0] if at.query_params.get("team") else "")
+
+    def test_switching_to_an_older_regulation_takes_off_newer_pokemon(self):
+        team, _ = parse_paste("Salamence @ Salamencite\n- Hyper Voice\n\n" + GARGANACL_TEAM, load_dex("regmc"))
+        at = AppTest.from_file(APP, default_timeout=120)
+        at.query_params["f"] = "gen9championsvgc2026regmc"
+        at.query_params["team"] = encode_team(team)
+        at.run()
+        at.selectbox(key="format").set_value("gen9championsvgc2026regmb").run()
+        self.assertFalse(at.exception, [e.value for e in at.exception])
+        self.assertTrue(any("Took Salamence off" in w.value for w in at.warning))
 
 if __name__ == "__main__":
     unittest.main()

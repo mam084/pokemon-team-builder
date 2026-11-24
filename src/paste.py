@@ -26,6 +26,7 @@ from src.stats import format_sps
 from src.team import PokemonSet, empty_sps
 
 _LABEL_TO_STAT = {label.lower(): stat for stat, label in STAT_LABELS.items()}
+_SP_CEILING = 255   # covers old-style EV pastes (252) so the legality check can flag them
 _GENDER = re.compile(r"\s*\((M|F)\)\s*$")
 
 
@@ -45,8 +46,10 @@ def _parse_sps(text: str) -> dict:
     sps = empty_sps()
     for chunk in text.split("/"):
         parts = chunk.strip().split()
-        if len(parts) == 2 and parts[1].lower() in _LABEL_TO_STAT:
-            sps[_LABEL_TO_STAT[parts[1].lower()]] = int(parts[0])
+        if len(parts) == 2 and parts[1].lower() in _LABEL_TO_STAT and parts[0].lstrip("+-").isdigit():
+            # Out-of-range values stay visible to the legality check, but nothing absurd reaches the calcs;
+            # text that isn't a whole number ("abc HP", "3.5 HP") is skipped instead of breaking the import.
+            sps[_LABEL_TO_STAT[parts[1].lower()]] = max(0, min(int(parts[0]), _SP_CEILING))
     return sps
 
 
@@ -58,6 +61,9 @@ def parse_paste(text: str, dex: Dex | None = None) -> tuple[list[PokemonSet], li
     """
     sets: list[PokemonSet] = []
     warnings: list[str] = []
+    # No Pokemon, item, move or nickname needs < or >; dropping them keeps pasted or linked text from
+    # becoming markup in the app's HTML cards.
+    text = text.replace("<", "").replace(">", "")
     blocks = [b for b in re.split(r"\n\s*\n", text.strip().replace("\r\n", "\n")) if b.strip()]
 
     for block in blocks:

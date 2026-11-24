@@ -15,6 +15,7 @@ Run with:
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 import streamlit as st
@@ -32,7 +33,7 @@ from ui.playbook_tab import playbook_tab  # noqa: E402
 from ui.pokemon_tab import pokemon_tab  # noqa: E402
 from ui.recommendations_tab import recommendations_tab  # noqa: E402
 from ui.sidebar import notices, sidebar  # noqa: E402
-from ui.state import current_team, keep_state  # noqa: E402
+from ui.state import current_team, drop_unknown_species, keep_state  # noqa: E402
 from ui.team_tab import team_tab  # noqa: E402
 from ui.theme import inject_css, status_html, team_stage, title_row  # noqa: E402
 from ui.start_here import footer, start_here  # noqa: E402
@@ -88,11 +89,35 @@ def reload_if_data_changed() -> None:
     seen["stamp"] = stamp
 
 
+TAB_NAMES = ["Team", "Analysis", "Matchups", "Battle plan", "Playbook", "Damage calc", "Recommendations", "Pokémon"]
+
+
+def guarded(page, name: str, team, fmt_id: str) -> None:
+    """One tab breaking shouldn't show a visitor a traceback or take the other tabs down: say what happened,
+    log the details (Community Cloud's "Manage app" logs) and offer the feedback form. Tests set
+    PTB_RAISE so a broken tab still fails them."""
+    try:
+        page()
+    except Exception as e:
+        if type(e).__name__ in ("RerunException", "StopException") or os.environ.get("PTB_RAISE"):
+            raise   # Streamlit's own st.rerun / st.stop
+        import logging
+        import traceback
+        from ui.start_here import feedback_url
+        from ui.url_state import share_link
+        logging.getLogger("pokemon-team-builder").error(
+            "%s tab failed for team %s\n%s", name, share_link(team, fmt_id), traceback.format_exc())
+        st.error(f"Sorry, the {name} tab hit a problem with this team. The other tabs still work. "
+                 f"[Send feedback]({feedback_url()}) with this page's link and it'll get fixed.",
+                 icon=":material/error:")
+
+
 def main() -> None:
     reload_if_data_changed()
     keep_state()        # only the open tab is built: keep the team when another tab is open
     restore_from_url()  # a team in the link loads before any widget renders
     fmt_id, dex, usage = sidebar()
+    drop_unknown_species(dex, FORMATS[fmt_id].label)   # a Pokémon from another format can't be shown; say so instead of breaking
     store().sync()      # "My teams": reads/writes this browser's saved list (ui/team_store.py)
     fmt = FORMATS[fmt_id]
     st.session_state["doubles"] = fmt.is_doubles
@@ -111,7 +136,7 @@ def main() -> None:
     start_here(team, dex)   # new visitors: what it does and three steps (ui/start_here.py)
     legality(team, dex, fmt)
 
-    tabs = st.tabs(["Team", "Analysis", "Matchups", "Battle plan", "Playbook", "Damage calc", "Recommendations", "Pokémon"], key="main_tabs", on_change="rerun")
+    tabs = st.tabs(TAB_NAMES, key="main_tabs", on_change="rerun")
     # Only the open tab is built: each edit used to recompute every tab, swaps included (~4 s).
     pages = [lambda: team_tab(dex, usage),
              lambda: analysis_tab(team, members, dex, usage, fmt),
@@ -121,10 +146,10 @@ def main() -> None:
              lambda: damage_tab(team, dex, usage, fmt),
              lambda: recommendations_tab(team, members, dex, usage, fmt),
              lambda: pokemon_tab(dex, usage, len(team), fmt)]
-    for tab, page in zip(tabs, pages):
+    for tab, page, name in zip(tabs, pages, TAB_NAMES):
         if tab.open:
             with tab:
-                page()
+                guarded(page, name, team, fmt_id)
 
     footer()
     # Keep the address bar in step with the team (read again: tab buttons may have changed it).

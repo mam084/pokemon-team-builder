@@ -87,10 +87,14 @@ def import_paste(dex: Dex, key: str) -> None:
 
 def notices() -> None:
     """Import / link messages, shown in the page (the sidebar is hidden on a phone)."""
-    notice = st.session_state.pop("url_notice", None)
+    # On the first visit the page reruns once more when the browser's saved teams arrive; a message popped
+    # on the run before that was never seen ("Loaded a team from the link"), so keep it until then.
+    from ui.team_store import store
+    take = st.session_state.pop if store().ready else st.session_state.get
+    notice = take("url_notice", None)
     if notice:
         st.success(notice)
-    for w in st.session_state.pop("import_warnings", []):
+    for w in take("import_warnings", None) or []:
         st.warning(w)
 
 
