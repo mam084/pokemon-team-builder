@@ -22,7 +22,7 @@ from __future__ import annotations
 
 import gzip
 import json
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 import random
 from collections import Counter, defaultdict
 from pathlib import Path
@@ -288,27 +288,43 @@ def team_shares(records: list[dict], start: float, end: float, dex,
 
 RISING_TOP = 10
 RISING_MIN_TEAMS = 40   # on at least this many teams this week, so a jump isn't a handful of players
+MIN_WEEK_TEAMS = 500    # teams in a week before its shares are trusted
 
 
-def rising(records: list[dict], dex, top: int = RISING_TOP, min_teams: int = RISING_MIN_TEAMS) -> dict | None:
-    """The Pokemon whose share of rated players' teams rose most from last week to this week (the 7 days
-    up to the newest replay, and the 7 before). In past weeks, risers kept their gain the week after
-    (labs/rising_lab.py), so this points at where the ladder is going, not just noise."""
+def week_start(t: float) -> int:
+    """Midnight UTC on the Sunday that starts t's week."""
+    d = datetime.fromtimestamp(t, timezone.utc)
+    sunday = d - timedelta(days=(d.weekday() + 1) % 7)   # Monday is 0, Sunday is 6
+    return int(sunday.replace(hour=0, minute=0, second=0, microsecond=0).timestamp())
+
+
+def rising(records: list[dict], dex, top: int = RISING_TOP, min_teams: int = RISING_MIN_TEAMS,
+           now: float | None = None) -> dict | None:
+    """The Pokemon whose share of rated players' teams rose most from last week to this week. Weeks
+    start on Sunday (UTC): this week is Sunday so far, last week the full Sunday-Saturday before it.
+    Early in a week, before this week has MIN_WEEK_TEAMS teams, it compares the last two full weeks
+    instead. `now` (default: the newest replay) is for testing it on past weeks. In past weeks, risers
+    kept their gain the week after (labs/rising_lab.py), so this points at where the ladder is going."""
     stamped = [r for r in records if r.get("uploadtime")]
     if not stamped:
         return None
-    end = max(r["uploadtime"] for r in stamped) + 1
+    end = (now if now is not None else max(r["uploadtime"] for r in stamped)) + 1
     week = 7 * 86400
-    now, counts, n_now = team_shares(stamped, end - week, end, dex)
-    before, _, n_before = team_shares(stamped, end - 2 * week, end - week, dex)
-    if min(n_now, n_before) < 500:
+    start = week_start(end - 1)
+    shares_now, counts, n_now = team_shares(stamped, start, end, dex)
+    if n_now < MIN_WEEK_TEAMS:   # e.g. Sunday morning: use the last full week as "this week"
+        end, start = start, start - week
+        shares_now, counts, n_now = team_shares(stamped, start, end, dex)
+    before, _, n_before = team_shares(stamped, start - week, start, dex)
+    if min(n_now, n_before) < MIN_WEEK_TEAMS:
         return None
-    rise = {k: now[k] - before.get(k, 0.0) for k in now if counts[k] >= min_teams}
+    rise = {k: shares_now[k] - before.get(k, 0.0) for k in shares_now if counts[k] >= min_teams}
     best = [k for k in sorted(rise, key=lambda k: -rise[k]) if rise[k] > 0][:top]
     day = lambda t: datetime.fromtimestamp(t, timezone.utc).strftime("%Y-%m-%d")  # noqa: E731
-    return {"teams": n_now, "teams_before": n_before, "first_day": day(end - week), "last_day": day(end - 1),
-            "min_rating": RECENT_MIN_RATING,
-            "pokemon": [{"id": k, "share": round(now[k], 5), "before": round(before.get(k, 0.0), 5),
+    return {"teams": n_now, "teams_before": n_before, "first_day": day(start), "last_day": day(end - 1),
+            "before_first_day": day(start - week), "before_last_day": day(start - 1),
+            "week_starts": "Sunday (UTC)", "min_rating": RECENT_MIN_RATING,
+            "pokemon": [{"id": k, "share": round(shares_now[k], 5), "before": round(before.get(k, 0.0), 5),
                          "teams": counts[k]} for k in best]}
 
 
