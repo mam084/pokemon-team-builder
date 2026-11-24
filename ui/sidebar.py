@@ -7,6 +7,7 @@ import streamlit as st
 from src.dex import Dex, load_dex
 from src.formats import DEFAULT_FORMAT, FORMATS
 from src.paste import export_paste, parse_paste
+from src.usage_counts import count
 from src.usage import UsageData, load_usage
 from ui.state import current_team, load_team
 from ui.url_state import share_link
@@ -74,6 +75,7 @@ EXAMPLE_NOTE = ("Loaded the example: the team that won a 121-player tournament o
 
 
 def load_example(dex: Dex) -> None:
+    count("example team")
     load_team(parse_paste(SAMPLE_TEAM, dex)[0])
     st.session_state["url_notice"] = EXAMPLE_NOTE
 
@@ -81,6 +83,8 @@ def load_example(dex: Dex) -> None:
 def import_paste(dex: Dex, key: str) -> None:
     """Callback: load the team pasted into the text area `key`, keeping any warnings to show."""
     team, warnings = parse_paste(st.session_state.get(key, ""), dex)
+    if team:
+        count("pasted a team")
     load_team(team)
     st.session_state["import_warnings"] = warnings
 

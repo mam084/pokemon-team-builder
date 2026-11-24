@@ -208,6 +208,90 @@ class SwapEngine:
         return total / weights if weights else 0.0
 
 
+    def score_many(self, teams: list[list[PokemonSet]], with_win: bool = True
+                   ) -> list[tuple[float, float | None]]:
+        """(overall, win_chance) for many teams at once: the same numbers as calling overall() and
+        win_chance() on each, with every (team version, meta team) pair stacked into one set of numpy
+        arrays per group of meta teams instead of one small set per team. A swap search scores ~75
+        candidates per slot; this is what keeps Find swaps quick when several people press it at once."""
+        if not teams:
+            return []
+        if not self.fields:
+            return [(0.0, None)] * len(teams)
+        versions = [self.versions(t) if t else [] for t in teams]
+        lists = [(ti, members) for ti, vs in enumerate(versions) for members in vs]
+        stacks = [self._stacks(members) for _, members in lists]
+        # rows of every stacked array: (member list, meta team) pairs; lists stack only with lists of
+        # the same length (their arrays have that many rows of ours)
+        by_len: dict[int, list[int]] = {}
+        for li, (_, members) in enumerate(lists):
+            by_len.setdefault(len(members), []).append(li)
+        # at most CHUNK member lists per stack: the speed comes from the first few dozen; bigger stacks
+        # only raise each visitor's peak memory
+        chunks = [idxs[c:c + CHUNK] for idxs in by_len.values() for c in range(0, len(idxs), CHUNK)]
+
+        def stacked(gi: int, idxs: list[int]) -> dict[str, np.ndarray]:
+            return {k: np.concatenate([stacks[li][gi][k] for li in idxs], axis=0) for k in stacks[idxs[0]][gi]}
+
+        # overall: best version per meta team, then the usage-weighted mean
+        best: list[dict[int, np.float64]] = [{} for _ in teams]
+        for idxs in chunks:
+            supports = [side_support(lists[li][1]) for li in idxs]
+            for gi, g in enumerate(self.groups):
+                t = len(g.idx)
+                rows = _OursStack(supports, t)
+                tile = lambda a: np.tile(a, (len(idxs), 1, 1))
+                matrix = _scores_batch(stacked(gi, idxs), rows, tile(g.reflect), tile(g.light_screen),
+                                       tile(g.intimidate), tile(g.tailwind), tile(g.trick_room_tool),
+                                       tile(g.trick_room))
+                scores = (matrix.max(axis=1).mean(axis=1) - (-matrix).max(axis=2).mean(axis=1)).reshape(len(idxs), t)
+                for row, li in zip(scores, idxs):
+                    b = best[lists[li][0]]
+                    for i, score in zip(g.idx, row):
+                        b[i] = score if i not in b else max(b[i], score)
+        overalls = []
+        for ti, team in enumerate(teams):
+            total = weights = 0.0
+            if team:
+                for i, f in enumerate(self.fields):
+                    if not f.theirs:
+                        continue
+                    total += best[ti][i] * f.weight
+                    weights += f.weight
+            overalls.append(total / weights if weights else 0.0)
+        if not with_win or getattr(self, "model", None) is None:
+            return [(o, None) for o in overalls]
+
+        from src.match_model import cap_chance, team_side
+        mine = [_side_vector(self.model, team_side(members, teams[ti], self.dex, self.usage, self,
+                                                   meta=overalls[ti]))
+                for ti, members in lists]
+        wbest: list[dict[int, float]] = [{} for _ in teams]
+        for idxs in chunks:
+            for gi, g in enumerate(self.groups):
+                t = len(g.idx)
+                mine_rows = np.repeat(np.array([mine[li] for li in idxs]), t, axis=0)
+                theirs_rows = np.tile(self._theirs_x[gi], (len(idxs), 1))
+                preds = _predict_batch(self.model, mine_rows, theirs_rows, stacked(gi, idxs))
+                for k, li in enumerate(idxs):
+                    b = wbest[lists[li][0]]
+                    for i, p in zip(g.idx, preds[k * t:(k + 1) * t]):
+                        b[i] = p if i not in b else max(b[i], p)
+        out = []
+        for ti, team in enumerate(teams):
+            if not team:
+                out.append((overalls[ti], None))
+                continue
+            total = weights = 0.0
+            for i, f in enumerate(self.fields):
+                if not f.theirs:
+                    continue
+                total += wbest[ti][i] * f.weight
+                weights += f.weight
+            out.append((overalls[ti], cap_chance(self.model, total / weights) if weights else None))
+        return out
+
+
 # --------------------------------------------------------------------------
 # All meta teams at once
 # --------------------------------------------------------------------------
@@ -229,6 +313,22 @@ class _Group:
         self.trick_room = col([f.trick_room for f in fields])
 
 
+CHUNK = 24   # member lists scored per numpy stack in SwapEngine.score_many
+
+
+class _OursStack:
+    """Our side's support per row of a candidate batch: arrays shaped (rows, 1, 1), where the rows are
+    (candidate team, meta team) pairs. Used by _scores_batch in place of one team's Support."""
+
+    def __init__(self, supports: list[Support], repeat: int):
+        col = lambda xs: np.repeat(np.array(xs, dtype=bool), repeat).reshape(-1, 1, 1)
+        self.reflect = col([s.reflect for s in supports])
+        self.light_screen = col([s.light_screen for s in supports])
+        self.intimidate = col([s.intimidate for s in supports])
+        self.tailwind = col([s.tailwind for s in supports])
+        self.trick_room = col([s.trick_room for s in supports])
+
+
 def _scores_batch(parts: dict[str, np.ndarray], ours: Support, reflect, light_screen, intimidate, tailwind,
                   trick_room_tool, trick_room, strength: float | None = None) -> np.ndarray:
     """scores_from_parts for a stack of meta teams: parts are (teams, ours, theirs); the meta teams'
@@ -241,14 +341,21 @@ def _scores_batch(parts: dict[str, np.ndarray], ours: Support, reflect, light_sc
     a_factor = a_factor * np.where(intimidate & a_phys, cut, 1.0)  # x 1.0 where they have no Intimidate
     b_factor = np.where(b_phys, ours.reflect, ours.light_screen)
     b_factor = np.where(b_factor, cut, 1.0)
-    if ours.intimidate:
-        b_factor = b_factor * np.where(b_phys, cut, 1.0)
+    if isinstance(ours, _OursStack):
+        # one row per (candidate, meta team): x 1.0 where that candidate has no Intimidate
+        b_factor = b_factor * np.where(ours.intimidate & b_phys, cut, 1.0)
+        p_tw_a = np.where(ours.tailwind, SPEED_SUPPORT, 0.0)
+        p_tr_ours = np.where(ours.trick_room, SPEED_SUPPORT, 0.0)
+    else:
+        if ours.intimidate:
+            b_factor = b_factor * np.where(b_phys, cut, 1.0)
+        p_tw_a = SPEED_SUPPORT if ours.tailwind else 0.0
+        p_tr_ours = SPEED_SUPPORT if ours.trick_room else 0.0
     a_pct = parts["a_pct"] * a_factor
     b_pct = parts["b_pct"] * b_factor
     score = np.clip(np.log2(_hits(b_pct) / _hits(a_pct)), -3.0, 3.0)
-    p_tw_a = SPEED_SUPPORT if ours.tailwind else 0.0
     p_tw_b = np.where(tailwind, SPEED_SUPPORT, 0.0)
-    p_tr = np.where(trick_room, 1.0, 1 - (1 - (SPEED_SUPPORT if ours.trick_room else 0.0)) *
+    p_tr = np.where(trick_room, 1.0, 1 - (1 - p_tr_ours) *
                     (1 - np.where(trick_room_tool, SPEED_SUPPORT, 0.0)))
     speed = np.zeros_like(score)
     for tw_a, pa in ((2, p_tw_a), (1, 1 - p_tw_a)):
@@ -316,8 +423,9 @@ def _predict_batch(model: dict, mine: np.ndarray, theirs: np.ndarray, parts: dic
         "outspeeds (share)": ((parts["a_spe"] > parts["b_spe"]).mean(axis=(1, 2))
                               - (parts["a_spe"] < parts["b_spe"]).mean(axis=(1, 2))),
     }
-    x = mine[None, :k] - theirs[:, :k]              # profile, meta score and species: mine minus theirs
-    pop = (mine[k] - theirs[:, k]) / 10
+    mine = mine if mine.ndim == 2 else mine[None, :]  # one side vector, or one per row (candidate batches)
+    x = mine[:, :k] - theirs[:, :k]                 # profile, meta score and species: mine minus theirs
+    pop = (mine[:, k] - theirs[:, k]) / 10
     if "popularity" in feats:
         x[:, feats.index("popularity")] = pop
     for name, values in matchup.items():
@@ -332,8 +440,8 @@ def _predict_batch(model: dict, mine: np.ndarray, theirs: np.ndarray, parts: dic
         c = np.minimum(np.maximum(c, lo), hi)
     t = model.get("trust")
     out = []
-    for row in c.tolist():
-        total = sum(row)   # Python's sum, like predict_match (compensated since 3.12; the zeros add nothing)
+    for row in c:          # a row at a time: a batch's whole matrix as Python floats ran to ~30 MB
+        total = sum(row.tolist())   # Python's sum, like predict_match (compensated since 3.12; zeros add nothing)
         if t:
             total = min(max(total, t["total"][0]), t["total"][1])
         out.append(1 / (1 + math.exp(-total)))
@@ -406,6 +514,7 @@ def suggest_swaps(team: list[PokemonSet], dex: Dex, usage: UsageData, engine: Sw
         must_keep = (plan_roles(out_tags) & live_plans) - set().union(*[plan_roles(set_roles(p, dex, engine.doubles))
                                                           for p in rest])
         seen_roots = set()
+        pending = []
         for name in candidates:
             root = _root(dex.get_species(name))
             if root in seen_roots:
@@ -421,11 +530,11 @@ def suggest_swaps(team: list[PokemonSet], dex: Dex, usage: UsageData, engine: Sw
             new_member = build_members([pset], dex)
             if not new_member:
                 continue
+            pending.append((pset, in_tags, in_job, new_member, rest[:i] + [pset] + rest[i:]))
+        # every candidate for this slot scored against the meta in one batch (same numbers as one by one)
+        scored = engine.score_many([c[4] for c in pending], with_win=base_win is not None)
+        for (pset, in_tags, in_job, new_member, new_team), (overall, win) in zip(pending, scored):
             new_members = rest_members[:i] + new_member + rest_members[i:]
-            new_team = rest[:i] + [pset] + rest[i:]
-            versions = engine.versions(new_team)
-            overall = engine.overall(new_team, versions=versions)
-            win = engine.win_chance(new_team, meta=overall, versions=versions) if base_win is not None else None
             parts = engine.rating_parts(new_team, win) if base_rating is not None else None
             rating = parts[:2] if parts else None
             # judged on the team rating when there is one, else the learned win chance, else the calc score

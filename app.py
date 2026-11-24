@@ -93,6 +93,29 @@ def reload_if_data_changed() -> None:
 TAB_NAMES = ["Team", "Analysis", "Matchups", "Battle plan", "Playbook", "Damage calc", "Recommendations", "Pokémon"]
 
 
+def github_token() -> str | None:
+    """The optional token for error reports and usage counts (the app's secrets), else None."""
+    try:
+        return st.secrets.get("github_token")
+    except Exception:   # no secrets file
+        return None
+
+
+def count_visit_and_tab(tab: str) -> None:
+    """Anonymous counts (src/usage_counts.py): one visit per browser session, and each tab when it's
+    opened (not on every rerun inside it)."""
+    from src.usage_counts import count
+    ss = st.session_state
+    if st.query_params.get("keepawake"):   # scripts/keep_awake.py, not a player
+        return
+    if not ss.get("_counted_visit"):
+        ss["_counted_visit"] = True
+        count("visits")
+    if tab != "Team" and ss.get("_counted_tab") != tab:
+        count(f"tab: {tab}")
+    ss["_counted_tab"] = tab
+
+
 def guarded(page, name: str, team, fmt_id: str) -> None:
     """One tab breaking shouldn't show a visitor a traceback or take the other tabs down: say what happened,
     log the details (Community Cloud's "Manage app" logs), open a GitHub issue when a token is set
@@ -105,10 +128,7 @@ def guarded(page, name: str, team, fmt_id: str) -> None:
         from src.error_report import report
         from ui.start_here import feedback_url
         from ui.url_state import share_link
-        try:
-            token = st.secrets.get("github_token")
-        except Exception:   # no secrets file
-            token = None
+        token = github_token()
         report(name, e, share_link(team, fmt_id), token)
         st.error(f"Sorry, the {name} tab hit a problem with this team. The other tabs still work. "
                  + ("It's been reported automatically. " if token else "")
@@ -152,12 +172,15 @@ def main() -> None:
              lambda: pokemon_tab(dex, usage, len(team), fmt)]
     for tab, page, name in zip(tabs, pages, TAB_NAMES):
         if tab.open:
+            count_visit_and_tab(name)
             with tab:
                 guarded(page, name, team, fmt_id)
 
     footer()
     # Keep the address bar in step with the team (read again: tab buttons may have changed it).
     sync_url(current_team(), fmt_id)
+    from src.usage_counts import maybe_flush
+    maybe_flush(github_token())   # at most hourly, in the background
 
 
 main()

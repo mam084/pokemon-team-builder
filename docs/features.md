@@ -199,4 +199,4 @@ Everything the app does, tab by tab. Back to the [README](../README.md).
 - **Fit check** (Analysis tab): for each member, how usual it is next to the rest
   and what players most often run in that spot instead. Swaps use the same model:
   each member's second suggestion is the *usual pick* for that spot.
-- **The meta** (bottom of the Pokémon tab): the usage leaderboard (tap a row to open that Pokémon) and what the learned model says wins games.
+- **The meta** (bottom of the Pokémon tab): **Rising this week** (the biggest gains in share of teams over last week; tap one to open it), the usage leaderboard (tap a row to open that Pokémon) and what the learned model says wins games.

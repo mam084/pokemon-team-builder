@@ -45,6 +45,8 @@ def restore_from_url() -> None:
         return
     team, warnings = decode_team(token, dex)
     if team:
+        from src.usage_counts import count
+        count("team from a link")
         load_team(team)
         ss["url_notice"] = f"Loaded a team of {len(team)} from the link."
     ss["import_warnings"] = ss.get("import_warnings", []) + warnings

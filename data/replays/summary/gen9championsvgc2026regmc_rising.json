@@ -1,0 +1,70 @@
+{
+"format": "gen9championsvgc2026regmc",
+"teams": 3955,
+"teams_before": 3564,
+"first_day": "2026-11-17",
+"last_day": "2026-11-24",
+"min_rating": 1300,
+"pokemon": [
+{
+"id": "incineroar",
+"share": 0.34943,
+"before": 0.29405,
+"teams": 1382
+},
+{
+"id": "rillaboom",
+"share": 0.39014,
+"before": 0.35494,
+"teams": 1543
+},
+{
+"id": "gengar",
+"share": 0.08597,
+"before": 0.05948,
+"teams": 340
+},
+{
+"id": "milotic",
+"share": 0.11757,
+"before": 0.09512,
+"teams": 465
+},
+{
+"id": "farigiraf",
+"share": 0.16334,
+"before": 0.14955,
+"teams": 646
+},
+{
+"id": "politoed",
+"share": 0.0531,
+"before": 0.03984,
+"teams": 210
+},
+{
+"id": "raichu",
+"share": 0.21694,
+"before": 0.20398,
+"teams": 858
+},
+{
+"id": "volcarona",
+"share": 0.08774,
+"before": 0.07492,
+"teams": 347
+},
+{
+"id": "baxcalibur",
+"share": 0.02857,
+"before": 0.01768,
+"teams": 113
+},
+{
+"id": "floetteeternal",
+"share": 0.13856,
+"before": 0.12823,
+"teams": 548
+}
+]
+}

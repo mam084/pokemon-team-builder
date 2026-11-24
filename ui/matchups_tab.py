@@ -302,6 +302,12 @@ def pair_heatmap(matrix: pd.DataFrame) -> go.Figure:
     return fig
 
 
+def _swaps_on() -> None:
+    from src.usage_counts import count
+    count("find swaps")
+    st.session_state[SWAPS_ON] = True
+
+
 def matchups_tab(fmt_id, team, members, dex, usage, fmt) -> None:
     if usage is None:
         st.info("Matchups need usage stats for this format.")
@@ -505,7 +511,7 @@ def swaps_section(team, dex, usage, fmt, threats: pd.DataFrame) -> None:
     # once a visitor has asked, it runs for each new version of their team for the rest of the visit.
     if not st.session_state.get(SWAPS_ON):
         st.button("Find swaps", key="find_swaps", type="primary", width="stretch",
-                  on_click=lambda: st.session_state.update({SWAPS_ON: True}),
+                  on_click=_swaps_on,
                   help="Tries every member against every candidate. Takes a few seconds.")
         return
     with st.spinner("Trying swaps…"):

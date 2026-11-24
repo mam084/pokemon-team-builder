@@ -276,6 +276,14 @@ class TestPlanBuilderSwaps(unittest.TestCase):
                 weights += f.weight
             from src.match_model import cap_chance
             self.assertEqual(engine.win_chance(t), cap_chance(model, total / weights))
+        # the batched scorer the swap search uses gives the same numbers to the last bit, across chunks,
+        # two-Mega teams and short teams
+        import src.swaps as swaps_mod
+        teams += [t[:3] for t in teams[:4]] + [[]]
+        for chunk in (2, swaps_mod.CHUNK):
+            with mock.patch.object(swaps_mod, "CHUNK", chunk):
+                self.assertEqual(engine.score_many(teams),
+                                 [(engine.overall(t), engine.win_chance(t) if t else None) for t in teams])
 
     def test_swaps_same_role(self):
         team, _ = parse_paste(GARGANACL_TEAM, self.dex)
