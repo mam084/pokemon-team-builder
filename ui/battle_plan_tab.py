@@ -236,6 +236,10 @@ def facing_archetype(dex, usage):
         mega = st.selectbox("Which one Mega Evolves?", stones, key="opp_mega",
                             help="Only one Mega per battle; the others play in their base forme.")
     sets = mega_first(sets, dex, mega)
+    if len(sets) >= 4 and not st.session_state.get("_counted_bp"):
+        from src.usage_counts import count
+        count("battle plan vs a team")   # once a visit, when there's a real team to plan against
+        st.session_state["_counted_bp"] = True
     # usage-entry names (a Mega by its Mega name) for roles and popularity
     names = [(p.battle_form(dex).name if i == 0 and p.is_mega(dex) else p.species) for i, p in enumerate(sets)]
     if how == PASTE:

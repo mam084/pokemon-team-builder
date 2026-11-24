@@ -591,6 +591,8 @@ Matchups, Battle plan, Recommendations and Pokémon.
   | 10 visitors pressing it at the same moment (median / worst wait) | 50 s / 52 s | 20 s / 21 s |
   | server CPU per visitor, full browser load test | ~8 s | ~5.5 s |
 
+  What's left is mostly the damage calcs for newcomers no visitor has tried yet (cached after that).
+
 - **Lighter caches (Nov 24).** Each of the 60k cached damage calcs held its own copy of both sets (~1.6 KB
   an entry); equal sets now share one key, so an entry is ~430 bytes (81 → 22 MB for the same 54k calcs).
   The swap search also builds each Pokémon once instead of rebuilding all six for every candidate (~12%
@@ -605,4 +607,27 @@ Matchups, Battle plan, Recommendations and Pokémon.
   Limiting glibc's memory arenas and trimming after each page was also tried; it made no measurable
   difference, so it wasn't kept.
 
-  What's left is mostly the damage calcs for newcomers no visitor has tried yet (cached after that).
+- **Scoring candidates in batches (Nov 24).** The swap search now stacks every candidate for a slot (up to
+  24 at a time) together with the meta teams in one set of numpy arrays, instead of one small set per
+  candidate. Same numbers to the last bit (tests check batched against one-at-a-time, two-Mega and short
+  teams included). Per team: 4.2 → 2.6 s of work (2.0 s once its calcs are cached). Load test, 8 visitors
+  at once, each pressing *Find swaps*: slowest wait 42–45 s → 25–27 s. An unchunked first version used far
+  more memory under load (727 MB peak), so stacks are capped at 24 candidates: in-process with 4 at once,
+  8 → 9.3 s / 256 MB, 24 → 7.7 s / 259 MB, 48 → 7.6 s / 276 MB.
+
+
+## Rising this week (`labs/rising_lab.py`)
+
+Is "rising this week" worth showing, or just noise? For every day with two weeks of replays behind it and
+one ahead (37 days, Oct–Nov 2026), the top 10 risers in share of rated players' teams (this week vs last,
+at least 40 teams this week), and where they were the week after:
+
+| | |
+|---|---|
+| rise, last week → this week | +2.06 points of team share (mean) |
+| next week vs last week | +2.38 points (116% of the rise kept) |
+| still above last week's share a week later | 92% of risers |
+| 95% interval of the kept gain (by day) | +1.70 to +3.07 points |
+
+Risers kept their gains, so the list points at where the ladder is heading. It's shown in the Pokémon tab
+above the usage board, rebuilt twice a day with the replays (`scripts/summarize_replays.py`).

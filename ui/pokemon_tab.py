@@ -229,6 +229,40 @@ def _open_from_board(names: list[str]) -> None:
         st.session_state["poke_name"] = names[rows[0]]
 
 
+def _open_rising() -> None:
+    """Tapped a riser: open it at the top of this tab (the pill doesn't stay selected)."""
+    pick = st.session_state.get("rising_pick")
+    if pick:
+        st.session_state["poke_name"] = pick
+    st.session_state["rising_pick"] = None
+
+
+def rising_section(dex: Dex, usage: UsageData, fmt) -> None:
+    """Rising this week (src/replays.rising): the biggest gains in team share over last week."""
+    from src.replays import day_range, load_rising
+    up = load_rising(fmt.id)
+    if not up or not up.get("pokemon"):
+        return
+    names = usage.team_sheet_usage(dex)
+    by_root = {}
+    for n in names:   # the usage entry to open for each team-sheet id (the base, not a Mega entry)
+        sp = dex.get_species(n)
+        if sp is not None:
+            by_root.setdefault(dex.sheet_id(sp), n)
+    rows = [(by_root.get(r["id"]) or (dex.get_species(r["id"]).name if dex.get_species(r["id"]) else r["id"]), r)
+            for r in up["pokemon"]]
+    shown = {n: r for n, r in rows if n in set(names)}
+    if not shown:
+        return
+    st.pills("**Rising this week** (share of teams, last week → this week; tap to open)", list(shown),
+             key="rising_pick", on_change=_open_rising,
+             format_func=lambda n: f"{n}  {shown[n]['before']:.0%} → {shown[n]['share']:.0%}")
+    st.caption(f"Biggest gains in share of teams, {day_range(up['first_day'], up['last_day'])} vs the week "
+               f"before ({up['teams']:,} vs {up['teams_before']:,} teams, players rated {up['min_rating']}+). "
+               "In past weeks, 9 in 10 risers were still above their old share a week later, so these point "
+               "at where the ladder is heading, not just noise (labs/rising_lab.py).")
+
+
 def meta_section(dex: Dex, usage: UsageData, fmt) -> None:
     """The usage leaderboard (tap a row to open that Pokémon above) and what wins games."""
     _section("The meta")
@@ -245,6 +279,7 @@ def meta_section(dex: Dex, usage: UsageData, fmt) -> None:
         st.caption(f"Usage: {r['teams']:,} teams from ladder and Bo3 replays, {day_range(r['first_day'], r['last_day'])}, "
                    f"players rated {r['min_rating']}+ (updated twice a day). Sets, items and spreads: Smogon ladder "
                    f"stats for {usage.info['month']}.")
+    rising_section(dex, usage, fmt)
     board = pd.DataFrame(usage.ranked(60), columns=["Pokémon", "usage %"])
     names = list(board["Pokémon"])
     board.index += 1

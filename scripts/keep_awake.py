@@ -32,7 +32,9 @@ def app_frame(page):
 def main(url: str) -> int:
     with sync_playwright() as pw:
         page = pw.chromium.launch().new_page()
-        page.goto(url, wait_until="domcontentloaded", timeout=120_000)
+        # ?keepawake=1 so the visit isn't counted as a player's (src/usage_counts.py)
+        page.goto(url + ("&" if "?" in url else "?") + "keepawake=1", wait_until="domcontentloaded",
+                  timeout=120_000)
         for _ in range(60):                      # up to ~5 minutes: a woken app reinstalls and restarts
             if app_frame(page):
                 print(f"up: {url}")

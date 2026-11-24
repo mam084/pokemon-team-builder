@@ -17,7 +17,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
-from src.replays import REPLAY_DIR, load_records, recent_usage, species_stats  # noqa: E402
+from src.replays import REPLAY_DIR, load_records, recent_usage, rising, species_stats  # noqa: E402
 
 from src.formats import replay_sources  # noqa: E402
 
@@ -48,6 +48,10 @@ def main() -> None:
         fmt = APP_FORMATS[app_id]
         records = [r for f in fmt.replays for r in load_records(f)]
         dex = load_dex(fmt.regulation)
+        up = rising(records, dex)
+        if up:
+            (out_dir / f"{app_id}_rising.json").write_text(json.dumps({"format": app_id, **up}, indent=0))
+            print(f"{app_id}: rising this week from {up['teams']} teams vs {up['teams_before']}")
         recent = recent_usage(records, dex)
         path = out_dir / f"{app_id}_recent_usage.json"
         if recent:

@@ -17,6 +17,8 @@ tested on newer matches it never saw, and the app says how much each number can 
 - **Analyze it**: defensive heatmap, role checklist, speed tiers and offensive coverage.
 - **Matchups vs the meta**: about 10 meta teams rebuilt from teammate data, every pairing decided by damage
   calcs in both directions, a learned win chance, the biggest threats, and swaps that fix them.
+- **Rising this week**: the Pokémon gaining ground on the ladder (risers kept their gains the next week in
+  92% of past cases).
 - **Recommendations** in three styles: Popular picks, Neutral, and **Hidden gems** (unusual picks that win
   more than their players' ratings predict).
 - **Battle plan and Playbook**: what to bring and lead against a team, and what wins against Trick Room,
@@ -53,6 +55,8 @@ tested and rejected, is in [docs/experiments.md](docs/experiments.md).
   model stops beating its baseline; result tables in this README are regenerated from those evaluations.
 - **Errors**: a tab that breaks shows the visitor a short message instead of a traceback; with a
   `github_token` in the app's secrets it also opens an `app-error` issue (src/error_report.py).
+- **Usage counts**: visits, tab opens and a few features, counts only, kept in one `App usage` issue
+  when the same token is set (src/usage_counts.py).
 
 ## Run it
 

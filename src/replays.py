@@ -261,6 +261,65 @@ def recent_usage(records: list[dict], dex, days: int = RECENT_DAYS,
             "share": {k: round(v / len(seen), 5) for k, v in sorted(counts.items(), key=lambda x: -x[1])}}
 
 
+def team_shares(records: list[dict], start: float, end: float, dex,
+                min_rating: int = RECENT_MIN_RATING) -> tuple[dict[str, float], dict[str, int], int]:
+    """(share of teams, team count, teams) per team-sheet id for replays uploaded in [start, end), each
+    rated player's team counted once (like recent_usage)."""
+    from src.synergy import root_of
+    counts: dict[str, int] = {}
+    seen = set()
+    for r in records:
+        t = r.get("uploadtime") or 0
+        if not start <= t < end:
+            continue
+        for p in ("p1", "p2"):
+            if (r["players"][p]["rating"] or 0) < min_rating:
+                continue
+            roots = frozenset(x for sp in r["preview"][p] if (x := root_of(sp, dex)))
+            key = (r["players"][p]["name"].lower(), roots)
+            if len(roots) < 4 or key in seen:
+                continue
+            seen.add(key)
+            for x in roots:
+                counts[x] = counts.get(x, 0) + 1
+    n = len(seen)
+    return ({k: v / n for k, v in counts.items()} if n else {}), counts, n
+
+
+RISING_TOP = 10
+RISING_MIN_TEAMS = 40   # on at least this many teams this week, so a jump isn't a handful of players
+
+
+def rising(records: list[dict], dex, top: int = RISING_TOP, min_teams: int = RISING_MIN_TEAMS) -> dict | None:
+    """The Pokemon whose share of rated players' teams rose most from last week to this week (the 7 days
+    up to the newest replay, and the 7 before). In past weeks, risers kept their gain the week after
+    (labs/rising_lab.py), so this points at where the ladder is going, not just noise."""
+    stamped = [r for r in records if r.get("uploadtime")]
+    if not stamped:
+        return None
+    end = max(r["uploadtime"] for r in stamped) + 1
+    week = 7 * 86400
+    now, counts, n_now = team_shares(stamped, end - week, end, dex)
+    before, _, n_before = team_shares(stamped, end - 2 * week, end - week, dex)
+    if min(n_now, n_before) < 500:
+        return None
+    rise = {k: now[k] - before.get(k, 0.0) for k in now if counts[k] >= min_teams}
+    best = [k for k in sorted(rise, key=lambda k: -rise[k]) if rise[k] > 0][:top]
+    day = lambda t: datetime.fromtimestamp(t, timezone.utc).strftime("%Y-%m-%d")  # noqa: E731
+    return {"teams": n_now, "teams_before": n_before, "first_day": day(end - week), "last_day": day(end - 1),
+            "min_rating": RECENT_MIN_RATING,
+            "pokemon": [{"id": k, "share": round(now[k], 5), "before": round(before.get(k, 0.0), 5),
+                         "teams": counts[k]} for k in best]}
+
+
+def load_rising(format_id: str) -> dict | None:
+    path = REPLAY_DIR / "summary" / f"{format_id}_rising.json"
+    try:
+        return json.loads(path.read_text())
+    except (OSError, ValueError):
+        return None
+
+
 def day_range(first: str, last: str) -> str:
     """'2026-11-01', '2026-11-15' -> 'Nov 1–15' (or 'Oct 25 – Nov 8')."""
     a, b = (datetime.strptime(d, "%Y-%m-%d") for d in (first, last))
