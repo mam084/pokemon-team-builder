@@ -6,13 +6,14 @@ name: Refresh data
 #
 # - monthly, a few days after Smogon publishes the previous month's stats
 # - on demand (Actions tab -> Refresh data -> Run workflow)
-# - whenever the data scripts themselves change, so the data always matches them
+# - whenever the data scripts themselves change on main, so the data always matches them
 
 on:
   schedule:
     - cron: "17 9 3 * *"
   workflow_dispatch:
   push:
+    branches: [main]                   # a refresh on a pull-request branch commits data there and conflicts
     paths:
       - "scripts/**"
       - "!scripts/*_lab*.py"           # experiments: they don't change the data
@@ -20,6 +21,8 @@ on:
       - "!scripts/replay_matches.py"
       - "!scripts/load_test.py"        # load testing: doesn't change the data
       - "!scripts/make_load_teams.py"
+      - "!scripts/keep_awake.py"       # visits the live app: doesn't change the data
+      - "!scripts/health_check.py"     # reads the evaluations: doesn't change the data
       - "src/formats.py"
       - "src/usage.py"
       - ".github/workflows/refresh-data.yml"

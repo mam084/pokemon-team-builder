@@ -10,6 +10,7 @@ match the current team (without reloading the page).
 
 from __future__ import annotations
 
+import re
 from urllib.parse import urlencode
 
 import streamlit as st
@@ -38,7 +39,7 @@ def restore_from_url() -> None:
         from ui.matchups_tab import team_key
         old, _ = decode_team(saved, dex)
         if old:
-            ss[SAVED] = {"key": team_key(old), "label": (params.get("vl") or "saved version")[:LABEL_MAX]}
+            ss[SAVED] = {"key": team_key(old), "label": clean_label(params.get("vl"))}
     token = params.get("team")
     if not token:
         return
@@ -50,6 +51,13 @@ def restore_from_url() -> None:
 
 
 LABEL_MAX = 60
+
+
+def clean_label(label: str | None) -> str:
+    """A label from someone else's link is shown in markdown: keep it plain text (no links, markup)."""
+    label = re.sub(r"\S*(://|www\.)\S*", "", label or "")          # markdown would autolink these
+    label = re.sub(r"[\[\]()<>*_`#~|\\]", "", label).strip()[:LABEL_MAX]
+    return label or "saved version"
 
 
 def team_params(team: list[PokemonSet], fmt_id: str) -> dict:

@@ -147,6 +147,7 @@ The tests check:
 │   ├── health_check.py       weekly: shipped models still beat their baselines; data is fresh
 │   ├── new_regulation.py     notice a new regulation on Showdown; switch src/formats.py to it
 │   ├── load_test.py          several visitors at once against a running app
+│   ├── keep_awake.py         visits the live app every 6 hours so Community Cloud doesn't put it to sleep
 │   └── ...
 ├── labs/                     one-off experiments behind each design decision (see docs/experiments.md)
 ├── docs/                     features, experiments and the data pipeline in full

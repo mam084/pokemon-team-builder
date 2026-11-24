@@ -72,6 +72,20 @@ def current_team() -> list[PokemonSet]:
     return [p for p in (read_slot(i) for i in range(SLOTS)) if p is not None]
 
 
+def drop_unknown_species(dex: Dex, fmt_label: str) -> None:
+    """Take off any Pokémon this format's dex doesn't have (a pasted or linked team from another format, or
+    a switch to a smaller regulation): nothing can be shown or calculated for them, and they used to break
+    the page. Says so on the next notice, once per Pokémon."""
+    ss = st.session_state
+    for i in range(SLOTS):
+        species = ss.get(k(i, "species"), NONE)
+        if species != NONE and dex.get_species(species) is None:
+            write_slot(i, None)
+            note = f"Took {species} off the team: it isn't in {fmt_label}."
+            warnings = ss.setdefault("import_warnings", [])
+            warnings[:] = [w for w in warnings if not w.startswith(f"{species} isn't legal")] + [note]
+
+
 def load_team(team: list[PokemonSet]) -> None:
     for i in range(SLOTS):
         write_slot(i, team[i] if i < len(team) else None)
