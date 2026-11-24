@@ -8,6 +8,7 @@ import os
 import unittest
 
 os.environ.setdefault("PTB_WARMUP", "0")   # no background warm-up competing with the tests
+os.environ.setdefault("PTB_FORMAT", "gen9championsvgc2026regmc")  # as tests/__init__.py, for `discover -s tests`
 from pathlib import Path
 
 from streamlit.testing.v1 import AppTest

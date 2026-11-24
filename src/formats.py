@@ -9,6 +9,7 @@ Battle Stadium Singles: bring 6, pick 3). Both formats of one regulation share
 a single dex file in data/dex/.
 """
 
+import os
 from dataclasses import dataclass
 
 
@@ -69,6 +70,10 @@ FORMATS: dict[str, Format] = {
 }
 
 DEFAULT_FORMAT = "gen9championsvgc2026regmc"
+# The tests pin a regulation with a full season of data (tests/__init__.py), so a switch to a brand-new
+# one doesn't fail checks that need tournament sheets or a month of replays; the app never sets this.
+if os.environ.get("PTB_FORMAT") in FORMATS:
+    DEFAULT_FORMAT = os.environ["PTB_FORMAT"]
 CURRENT = FORMATS[DEFAULT_FORMAT]  # the regulation the learned models and evaluation are built for
 
 # A new regulation: run scripts/new_regulation.py (it adds the entries above, marks the old ones

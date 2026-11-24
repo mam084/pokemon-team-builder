@@ -101,15 +101,17 @@ def normalize_species(name: str, dex: Dex) -> str:
 
 
 def load_tournament_teams(regulation: str, dex: Dex, path: Path | None = None,
-                          usage: UsageData | None = None) -> list[dict]:
+                          usage: UsageData | None = None, keep=None) -> list[dict]:
     """Tournament teams as {date, tournament, placing, player, wins, losses, sets: [PokemonSet x6]};
     unknown species are skipped. Team lists don't publish stat points, so with usage given
-    each set gets its Pokemon's most common ladder spread (an estimate)."""
+    each set gets its Pokemon's most common ladder spread (an estimate). `keep(row)` picks rows first."""
     path = path or TOURNAMENT_DIR / f"{regulation}.json"
     if not path.exists():
         return []
     teams = []
     for row in json.loads(path.read_text())["teams"]:
+        if keep is not None and not keep(row):
+            continue
         sets = []
         for mon in row["team"]:
             species = dex.get_species(normalize_species(mon["species"], dex))

@@ -7,7 +7,7 @@ import streamlit as st
 
 from src.analysis import build_members
 from src.playbook import BLURB, STYLES, setter_hits, style_setters, team_tools
-from ui.common import sprite
+from ui.common import sprite, no_usage
 from ui.theme import how_it_works
 
 # what each choice needs from your team (a tool from src.playbook.team_tools); None: any team can
@@ -67,7 +67,7 @@ def _verdict(c: dict) -> str:
 
 def playbook_tab(team, dex, usage, fmt) -> None:
     if usage is None:
-        st.info("The playbook needs usage stats for this format.")
+        no_usage(fmt, "The playbook needs usage stats for this format.")
         return
     book = _book(fmt.id)
     if not book or not book.get("styles"):

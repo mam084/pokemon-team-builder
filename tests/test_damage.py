@@ -51,6 +51,19 @@ class TestDamageAgainstShowdown(unittest.TestCase):
                            Field(doubles=v["doubles"]))
         self.assertIn("OHKO", result.verdict)
 
+    def test_libero_gives_stab_to_every_attack(self):
+        """Cinderace's Libero (and Greninja's Protean) make any attack STAB: the same Cinderace with Blaze
+        hits 1.5x harder with Libero for a non-Fire move, and the same for a Fire move (already STAB)."""
+        dex = load_dex("regmc")
+        target = battler(["Incineroar", "Sitrus Berry", "Intimidate", "Careful", {"hp": 32, "spd": 32}], dex, {})
+        set_ = ["Cinderace", "Life Orb", "Blaze", "Jolly", {"atk": 32, "spe": 32}]
+        blaze = battler(set_, dex, {})
+        libero = battler([*set_[:2], "Libero", *set_[3:]], dex, {})
+        for move, ratio in (("High Jump Kick", 1.5), ("Pyro Ball", 1.0)):
+            a = calculate(blaze, target, dex.get_move(move), Field(doubles=True)).rolls
+            b = calculate(libero, target, dex.get_move(move), Field(doubles=True)).rolls
+            self.assertAlmostEqual(b[-1] / a[-1], ratio, delta=0.03, msg=move)
+
 
 if __name__ == "__main__":
     unittest.main()

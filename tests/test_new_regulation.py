@@ -16,7 +16,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "scripts"))
 
 from src.dex import load_dex  # noqa: E402
-from src.formats import FORMATS  # noqa: E402
+from src.formats import DEFAULT_FORMAT, FORMATS  # noqa: E402
 from src.replay_usage import usage_from_replays  # noqa: E402
 from src.usage import UsageData  # noqa: E402
 
@@ -27,6 +27,8 @@ FORMATS_TS = '''
 		name: "[Gen 9 Champions] VGC 2026 Reg M-C (Bo3)",
 		name: "[Gen 9 Champions] VGC 2026 Reg M-D",
 		name: "[Gen 9 Champions] VGC 2026 Reg M-D (Bo3)",
+		name: "[Gen 9 Champions] BSS Reg M-Z",
+		name: "[Gen 9 Champions] VGC 2026 Reg M-Z",
 		name: "[Gen 9 Champions] Doubles Custom Game",
 '''
 
@@ -50,27 +52,37 @@ class TestDetectAndSwitch(unittest.TestCase):
         from new_regulation import new_regulations, showdown_formats
         found = showdown_formats(FORMATS_TS)
         self.assertEqual({f["id"] for f in found}, {"gen9championsbssregmc", "gen9championsbssregmd",
-                                                     "gen9championsvgc2026regmc", "gen9championsvgc2026regmd"})
+                                                     "gen9championsvgc2026regmc", "gen9championsvgc2026regmd",
+                                                     "gen9championsbssregmz", "gen9championsvgc2026regmz"})
+        # M-Z stands for a regulation the app doesn't have (M-D too, until the app switches to it)
         new = new_regulations(found, set())
-        self.assertEqual(list(new), ["regmd"])
+        self.assertIn("regmz", new)
+        self.assertNotIn("regmc", new)
+        self.assertEqual({f["id"] for f in new["regmz"]}, {"gen9championsbssregmz", "gen9championsvgc2026regmz"})
 
     def test_add_switches_the_default_and_keeps_the_rest(self):
         from new_regulation import add_formats
-        text = add_formats((ROOT / "src" / "formats.py").read_text(), "gen9championsvgc2026regmd", "2026-12-03",
-                           bss="gen9championsbssregmd", limitless="M-D")
+        text = add_formats((ROOT / "src" / "formats.py").read_text(), "gen9championsvgc2026regmz", "2026-12-03",
+                           bss="gen9championsbssregmz", limitless="M-Z")
         ns: dict = {}
-        exec(compile(text, "formats_new", "exec"), ns)
+        pin = os.environ.pop("PTB_FORMAT", None)   # the tests' pinned regulation would override the new default
+        try:
+            exec(compile(text, "formats_new", "exec"), ns)
+        finally:
+            if pin is not None:
+                os.environ["PTB_FORMAT"] = pin
         f = ns["FORMATS"]
-        self.assertEqual(ns["DEFAULT_FORMAT"], "gen9championsvgc2026regmd")
-        new = f["gen9championsvgc2026regmd"]
+        self.assertEqual(ns["DEFAULT_FORMAT"], "gen9championsvgc2026regmz")
+        new = f["gen9championsvgc2026regmz"]
         self.assertTrue(new.current)
         self.assertEqual((new.regulation, new.start, new.limitless, new.previous),
-                         ("regmd", "2026-12-03", "M-D", "gen9championsvgc2026regmc"))
-        self.assertEqual(new.replays, ("gen9championsvgc2026regmd", "gen9championsvgc2026regmdbo3"))
-        self.assertTrue(f["gen9championsbssregmd"].current)
-        self.assertFalse(f["gen9championsvgc2026regmc"].current)
-        self.assertIn("past", f["gen9championsvgc2026regmc"].label)
-        self.assertEqual(set(ns["replay_sources"]()), {"gen9championsvgc2026regmd", "gen9championsvgc2026regmdbo3"})
+                         ("regmz", "2026-12-03", "M-Z", DEFAULT_FORMAT))
+        self.assertEqual(new.replays, ("gen9championsvgc2026regmz", "gen9championsvgc2026regmzbo3"))
+        self.assertTrue(f["gen9championsbssregmz"].current)
+        for old in (x for x in FORMATS.values() if x.current):
+            self.assertFalse(f[old.id].current)
+            self.assertIn("past", f[old.id].label)
+        self.assertEqual(set(ns["replay_sources"]()), {"gen9championsvgc2026regmz", "gen9championsvgc2026regmzbo3"})
         self.assertEqual(len(f), len(FORMATS) + 2)
 
 
@@ -179,6 +191,9 @@ class TestDayOne(unittest.TestCase):
         b = next(b for b in at.sidebar.button if b.label == "Example team")
         at = b.click().run()
         self.assertEqual(at.session_state["format"], self.FAKE)
+        # no tournaments yet: the last regulation's example, said to be from there
+        self.assertEqual(at.session_state["s0_species"], "Aerodactyl")
+        self.assertTrue(any("last regulation" in s.value for s in at.success), [s.value for s in at.success])
         for tab in ["Analysis", "Matchups", "Playbook", "Damage calc", "Recommendations", "Pokémon"]:
             at.session_state["main_tabs"] = tab
             at = at.run()

@@ -23,6 +23,7 @@ on:
       - "!scripts/make_load_teams.py"
       - "!scripts/keep_awake.py"       # visits the live app: doesn't change the data
       - "!scripts/health_check.py"     # reads the evaluations: doesn't change the data
+      - "!scripts/dex_diff.py"         # compares dex files: doesn't change the data
       - "src/formats.py"
       - "src/usage.py"
       - ".github/workflows/refresh-data.yml"

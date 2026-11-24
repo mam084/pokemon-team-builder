@@ -70,14 +70,74 @@ Jolly Nature
 """
 
 
-EXAMPLE_NOTE = ("Loaded the example: the team that won a 121-player tournament on Nov 14 (10-1). "
-                "Next: the **Matchups** tab shows how it does against the meta.")
+NEXT = "Next: the **Matchups** tab shows how it does against the meta."
+# A regulation's hand-picked example (checked to grade well); one without gets its newest big tournament
+# winner, and before its first tournaments the last regulation's pick if it's still legal.
+PINNED = {"regmc": (SAMPLE_TEAM, "the team that won a 121-player Reg M-C tournament on Nov 14 (10-1)")}
+MIN_PLAYERS = 32     # a winner of a smaller event says little
+RECENT_DAYS = 14     # among the last two weeks' winners, the biggest event
+
+
+@st.cache_data(show_spinner=False)
+def _newest_winner(regulation: str, format_id: str) -> tuple[str, str] | None:
+    """(paste, description) of the winner of the biggest recent tournament in the regulation, legal in it."""
+    from datetime import date, timedelta
+    from src.evaluate import TOURNAMENT_DIR, load_tournament_teams
+    from src.legality import check_team
+    path = TOURNAMENT_DIR / f"{regulation}.json"
+    if not path.exists():
+        return None
+    import json
+    rows = [r for r in json.loads(path.read_text()).get("teams", [])
+            if r.get("placing") == 1 and (r.get("players") or 0) >= MIN_PLAYERS and r.get("date")]
+    if not rows:
+        return None
+    since = (date.fromisoformat(max(r["date"] for r in rows)) - timedelta(days=RECENT_DAYS)).isoformat()
+    wanted = {(r.get("tournament"), r.get("player")) for r in rows if r["date"] >= since}
+    dex = load_dex(regulation)
+    teams = load_tournament_teams(regulation, dex, usage=load_usage(format_id),
+                                  keep=lambda r: (r.get("tournament"), r.get("player")) in wanted)
+    teams = [t for t in teams if not any(i.level == "error" for i in check_team(t["sets"], dex))]
+    if not teams:
+        return None
+    best = max(teams, key=lambda t: (t.get("players") or 0, t.get("date") or ""))
+    day = date.fromisoformat(best["date"])
+    record = f" ({best['wins']}-{best['losses']})" if best.get("wins") is not None else ""
+    return (export_paste(best["sets"]),
+            f"the team that won a {best['players']}-player tournament on {day:%b} {day.day}{record}; "
+            "team lists don't show Stat Points, so its spreads are the most common ones")
+
+
+def example_for(fmt_id: str, dex: Dex) -> tuple[str, str] | None:
+    """(paste, description) of the example team for a format, or None when there's nothing legal to show."""
+    fmt = FORMATS[fmt_id]
+    if fmt.regulation in PINNED:
+        return PINNED[fmt.regulation]
+    if fmt.is_doubles:
+        found = _newest_winner(fmt.regulation, fmt_id)
+        if found:
+            return found
+    from src.legality import check_team
+    prev = FORMATS.get(fmt.previous) or next((f for f in FORMATS.values() if f.regulation != fmt.regulation
+                                              and f.regulation in PINNED), None)
+    if prev and prev.regulation in PINNED:
+        paste, text = PINNED[prev.regulation]
+        team, warnings = parse_paste(paste, dex)
+        if len(team) == 6 and not warnings and not any(i.level == "error" for i in check_team(team, dex)):
+            return paste, f"{text}, from the last regulation until this one has tournaments of its own"
+    return None
 
 
 def load_example(dex: Dex) -> None:
     count("example team")
-    load_team(parse_paste(SAMPLE_TEAM, dex)[0])
-    st.session_state["url_notice"] = EXAMPLE_NOTE
+    fmt_id = st.session_state.get("format", DEFAULT_FORMAT)
+    found = example_for(fmt_id if fmt_id in FORMATS else DEFAULT_FORMAT, dex)
+    if not found:
+        st.session_state["url_notice"] = "No example team for this format yet: its first tournaments are still to come."
+        return
+    paste, text = found
+    load_team(parse_paste(paste, dex)[0])
+    st.session_state["url_notice"] = f"Loaded the example: {text}. {NEXT}"
 
 
 def import_paste(dex: Dex, key: str) -> None:
@@ -137,7 +197,9 @@ def sidebar() -> tuple[str, Dex, UsageData | None]:
         c1, c2 = st.columns(2)
         c1.button("Import", width="stretch", disabled=not paste.strip(),
                   on_click=import_paste, args=(dex, "paste_side"))
-        c2.button("Example team", width="stretch", help="The team that won a 121-player Reg M-C tournament on Nov 14",
+        example = example_for(fmt_id, dex)
+        c2.button("Example team", width="stretch", disabled=example is None,
+                  help=(example[1][0].upper() + example[1][1:]) if example else "None yet for this format",
                   on_click=load_example, args=(dex,))
 
         team = current_team()

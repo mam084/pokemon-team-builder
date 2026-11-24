@@ -114,3 +114,22 @@ def jump_row(titles: list[str]) -> None:
     """A row of links to sections further down the page: long tabs on a phone."""
     links = "".join(f"<a href='#{anchor_id(t)}'>{t}</a>" for t in titles)
     st.markdown(f"<div class='jump-row'>Jump to: {links}</div>", unsafe_allow_html=True)
+
+
+NEW_REGULATION_DAYS = 14
+
+
+def no_usage(fmt, message: str) -> None:
+    """The "needs usage stats" note. In a regulation's first days it says when the data comes: usage is
+    built from the ladder's replays (src/replay_usage.py), fetched twice a day, so it's at most hours away."""
+    from datetime import date
+    note = ""
+    try:
+        young = fmt.current and fmt.start and (date.today() - date.fromisoformat(fmt.start)).days <= NEW_REGULATION_DAYS
+    except ValueError:
+        young = False
+    if young:
+        m = re.search(r"Reg [A-Z]-[A-Z]+", fmt.label)
+        note = (f" {m.group(0) if m else 'This regulation'} has just started: its usage comes from the ladder's "
+                "replays, which are fetched twice a day, so this fills in within hours.")
+    st.info(message + note)

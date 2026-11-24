@@ -22,7 +22,7 @@ from src.swaps import HIDDEN_MAX, SwapEngine, mode_pool, suggest_swaps
 from src.team import PokemonSet
 from src.usage import load_usage
 from src.validate import win_chance
-from ui.common import jump_row, matchup_scale, section, sprite
+from ui.common import jump_row, matchup_scale, section, sprite, no_usage
 from ui.compare import apply_swap, compare_section
 from ui.theme import how_it_works
 
@@ -310,7 +310,7 @@ def _swaps_on() -> None:
 
 def matchups_tab(fmt_id, team, members, dex, usage, fmt) -> None:
     if usage is None:
-        st.info("Matchups need usage stats for this format.")
+        no_usage(fmt, "Matchups need usage stats for this format.")
         return
     archetypes = archetypes_for(fmt_id)
     doubles = fmt.is_doubles
