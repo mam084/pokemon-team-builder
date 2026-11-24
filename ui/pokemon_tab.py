@@ -60,7 +60,7 @@ def pokemon_tab(dex: Dex, usage: UsageData | None, team_size: int, fmt) -> None:
     st.markdown(  # sprite beside the name, so the header stays one block on a phone
         f"<div class='card-head'><img class='card-sprite' src='{sprite(species, dex)}' alt=''><div>"
         f"<div class='box-title' style='margin:0'>{name}</div>{type_badges(species.types)} · "
-        f"{usage.usage(name):.1f}% of ladder teams</div></div>", unsafe_allow_html=True)
+        f"{usage.usage(name):.1f}% of ladder teams ({usage.window()})</div></div>", unsafe_allow_html=True)
     st.markdown("**Usually plays:** " + role_text(meta_roles(name, usage, dex, doubles), 6, True))
     sheet_names = usage.team_sheet_usage(dex)
     base = next((n for n in sheet_names if dex.get_species(n) and dex.sheet_id(dex.get_species(n)) == root), None)
@@ -254,13 +254,18 @@ def rising_section(dex: Dex, usage: UsageData, fmt) -> None:
     shown = {n: r for n, r in rows if n in set(names)}
     if not shown:
         return
-    st.pills("**Rising this week** (share of teams, last week → this week; tap to open)", list(shown),
+    from datetime import date, timedelta
+    before = (date.fromisoformat(up["first_day"]) - timedelta(days=7)).isoformat()
+    st.pills(f"**Rising this week**: share of teams {day_range(before, up['first_day'])} → "
+             f"{day_range(up['first_day'], up['last_day'])} (tap to open)", list(shown),
              key="rising_pick", on_change=_open_rising,
              format_func=lambda n: f"{n}  {shown[n]['before']:.0%} → {shown[n]['share']:.0%}")
     st.caption(f"Biggest gains in share of teams, {day_range(up['first_day'], up['last_day'])} vs the week "
                f"before ({up['teams']:,} vs {up['teams_before']:,} teams, players rated {up['min_rating']}+). "
                "In past weeks, 9 in 10 risers were still above their old share a week later, so these point "
-               "at where the ladder is heading, not just noise (labs/rising_lab.py).")
+               "at where the ladder is heading, not just noise (labs/rising_lab.py)."
+               + (f" The usage board below covers both weeks together ({usage.window()}), so its number sits "
+                  "between the two." if usage.recent else ""))
 
 
 def meta_section(dex: Dex, usage: UsageData, fmt) -> None:
@@ -280,13 +285,14 @@ def meta_section(dex: Dex, usage: UsageData, fmt) -> None:
                    f"players rated {r['min_rating']}+ (updated twice a day). Sets, items and spreads: Smogon ladder "
                    f"stats for {usage.info['month']}.")
     rising_section(dex, usage, fmt)
-    board = pd.DataFrame(usage.ranked(60), columns=["Pokémon", "usage %"])
+    col = f"usage %, {usage.window()}"
+    board = pd.DataFrame(usage.ranked(60), columns=["Pokémon", col])
     names = list(board["Pokémon"])
     board.index += 1
     st.dataframe(board, width="stretch", height=360, key="poke_board", on_select=lambda: _open_from_board(names),
                  selection_mode="single-row",
-                 column_config={"usage %": st.column_config.ProgressColumn(
-                     "usage %", min_value=0, max_value=float(board["usage %"].max()), format="%.1f%%")})
+                 column_config={col: st.column_config.ProgressColumn(
+                     col, min_value=0, max_value=float(board[col].max()), format="%.1f%%")})
     st.caption("Tap a row to open that Pokémon at the top of this tab.")
     what_wins_section(fmt.regulation, dex)
 
