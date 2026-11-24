@@ -6,142 +6,142 @@
   "2026-11-24"
  ],
  "reference_teams": 1200,
- "best_real_team": 0.5619,
+ "best_real_team": 0.562,
  "held_out_teams": 1596,
  "changed_share": 0.0056,
  "ranking": {
   "without bounds": {
-   "spearman": 0.0676,
+   "spearman": 0.0671,
    "quarters": [
     {
-     "predicted": 0.4516,
-     "actual": 0.4644,
+     "predicted": 0.4517,
+     "actual": 0.4649,
      "teams": 399,
      "games": 1854
     },
     {
-     "predicted": 0.4863,
-     "actual": 0.5084,
+     "predicted": 0.4864,
+     "actual": 0.5081,
      "teams": 399,
-     "games": 1967
+     "games": 1968
     },
     {
-     "predicted": 0.5054,
-     "actual": 0.5036,
+     "predicted": 0.5055,
+     "actual": 0.5042,
      "teams": 399,
-     "games": 1924
+     "games": 1920
     },
     {
      "predicted": 0.5279,
-     "actual": 0.5222,
+     "actual": 0.5214,
      "teams": 399,
-     "games": 1963
+     "games": 1966
     }
    ],
-   "max": 0.5629
+   "max": 0.5624
   },
   "with bounds": {
-   "spearman": 0.0676,
+   "spearman": 0.0671,
    "quarters": [
     {
-     "predicted": 0.452,
-     "actual": 0.4644,
+     "predicted": 0.4521,
+     "actual": 0.4649,
      "teams": 399,
      "games": 1854
     },
     {
-     "predicted": 0.4863,
-     "actual": 0.5084,
+     "predicted": 0.4864,
+     "actual": 0.5081,
      "teams": 399,
-     "games": 1967
+     "games": 1968
     },
     {
-     "predicted": 0.5054,
-     "actual": 0.5036,
+     "predicted": 0.5055,
+     "actual": 0.5042,
      "teams": 399,
-     "games": 1924
+     "games": 1920
     },
     {
      "predicted": 0.5279,
-     "actual": 0.5222,
+     "actual": 0.5214,
      "teams": 399,
-     "games": 1963
+     "games": 1966
     }
    ],
-   "max": 0.5619
+   "max": 0.562
   }
  },
  "objective": {
   "teams": 1596,
   "win chance": {
-   "spearman": 0.0676,
+   "spearman": 0.0671,
    "quarters": [
     {
-     "predicted": 0.452,
-     "actual": 0.4644,
+     "predicted": 0.4521,
+     "actual": 0.4649,
      "teams": 399,
      "games": 1854
     },
     {
-     "predicted": 0.4863,
-     "actual": 0.5084,
+     "predicted": 0.4864,
+     "actual": 0.5081,
      "teams": 399,
-     "games": 1967
+     "games": 1968
     },
     {
-     "predicted": 0.5054,
-     "actual": 0.5036,
+     "predicted": 0.5055,
+     "actual": 0.5042,
      "teams": 399,
-     "games": 1924
+     "games": 1920
     },
     {
      "predicted": 0.5279,
-     "actual": 0.5222,
+     "actual": 0.5214,
      "teams": 399,
-     "games": 1963
+     "games": 1966
     }
    ]
   },
   "team score": {
-   "spearman": 0.1022,
+   "spearman": 0.1016,
    "quarters": [
     {
-     "predicted": -3.0723,
-     "actual": 0.441,
+     "predicted": -3.0695,
+     "actual": 0.4392,
      "teams": 399,
-     "games": 1855
+     "games": 1842
     },
     {
-     "predicted": -0.594,
-     "actual": 0.4921,
+     "predicted": -0.5953,
+     "actual": 0.4969,
      "teams": 399,
-     "games": 1908
+     "games": 1932
     },
     {
-     "predicted": 0.5999,
-     "actual": 0.5552,
+     "predicted": 0.5991,
+     "actual": 0.5525,
      "teams": 399,
-     "games": 2091
+     "games": 2078
     },
     {
-     "predicted": 1.6719,
+     "predicted": 1.6735,
      "actual": 0.5054,
      "teams": 399,
-     "games": 1854
+     "games": 1856
     }
    ]
   },
   "gain_ci": [
-   0.0013,
-   0.068
+   0.0011,
+   0.0681
   ]
  },
  "search": [
   {
    "start": "Goodstuffs (Sneasler + Kingambit)",
    "without bounds": {
-    "from": 0.5021,
-    "to": 0.623,
+    "from": 0.5024,
+    "to": 0.6226,
     "swaps": 6,
     "team": [
      "Bastiodon",
@@ -153,8 +153,8 @@
     ]
    },
    "with bounds": {
-    "from": 0.5021,
-    "to": 0.5619,
+    "from": 0.5024,
+    "to": 0.562,
     "swaps": 2,
     "team": [
      "Bastiodon",
@@ -168,7 +168,7 @@
    "team score": {
     "from": 49,
     "to": 94,
-    "win": 0.5428,
+    "win": 0.5427,
     "swaps": 4,
     "team": [
      "Volcarona",
@@ -185,7 +185,7 @@
    "start": "Sun (Charizard-Mega-Y + Garchomp)",
    "without bounds": {
     "from": 0.4963,
-    "to": 0.6217,
+    "to": 0.6213,
     "swaps": 6,
     "team": [
      "Gholdengo",
@@ -198,7 +198,7 @@
    },
    "with bounds": {
     "from": 0.4963,
-    "to": 0.5619,
+    "to": 0.562,
     "swaps": 3,
     "team": [
      "Archaludon",
@@ -211,8 +211,8 @@
    },
    "team score": {
     "from": 36,
-    "to": 89,
-    "win": 0.5534,
+    "to": 87,
+    "win": 0.5532,
     "swaps": 4,
     "team": [
      "Delphox",
@@ -228,8 +228,8 @@
   {
    "start": "Rain + Tailwind (Archaludon + Pelipper)",
    "without bounds": {
-    "from": 0.4951,
-    "to": 0.6227,
+    "from": 0.4954,
+    "to": 0.622,
     "swaps": 6,
     "team": [
      "Araquanid",
@@ -241,11 +241,11 @@
     ]
    },
    "with bounds": {
-    "from": 0.4951,
-    "to": 0.5619,
+    "from": 0.4954,
+    "to": 0.562,
     "swaps": 3,
     "team": [
-     "Gholdengo",
+     "Volcarona",
      "Bastiodon",
      "Golisopod",
      "Sneasler",
@@ -256,7 +256,7 @@
    "team score": {
     "from": 68,
     "to": 68,
-    "win": 0.4951,
+    "win": 0.4954,
     "swaps": 0,
     "team": [
      "Archaludon",

@@ -102,8 +102,8 @@ scored against each other, a win-chance curve is fitted on the older
 
 | model | picks the winner | log loss |
 |---|---|---|
-| team vs team (bring 4) | 52.8% | 0.6903 |
-| team vs team (all 6) | 53.0% | 0.6901 |
+| team vs team (bring 4) | 52.7% | 0.6904 |
+| team vs team (all 6) | 53.1% | 0.6902 |
 | score vs the meta | 52.9% | 0.6900 |
 | popularity | 51.2% | 0.6920 |
 | coin flip | 50.0% | 0.6931 |
@@ -160,8 +160,8 @@ matches, and it's tested once on the newest 3,602
 |---|---|---|---|
 | learned model (skill + team) | 59.2% | 0.6691 | 0.624 |
 | player skill only | 58.0% | 0.6721 | 0.615 |
-| team only | 52.6% | 0.6898 | 0.544 |
-| damage-calc matchup score | 52.7% | 0.6904 | 0.541 |
+| team only | 52.5% | 0.6899 | 0.543 |
+| damage-calc matchup score | 52.7% | 0.6905 | 0.541 |
 | popularity only | 51.2% | 0.6921 | 0.526 |
 | coin flip | 50.0% | 0.6931 | 0.500 |
 
@@ -238,12 +238,12 @@ by win chance vs the meta, then checking how they actually did:
 
 | teams, by win chance | without bounds: said | won | with bounds: said | won |
 |---|---|---|---|---|
-| lowest quarter | 45.2% | 46.4% | 45.2% | 46.4% |
+| lowest quarter | 45.2% | 46.5% | 45.2% | 46.5% |
 | 2nd quarter | 48.6% | 50.8% | 48.6% | 50.8% |
 | 3rd quarter | 50.5% | 50.4% | 50.5% | 50.4% |
-| highest quarter | 52.8% | 52.2% | 52.8% | 52.2% |
+| highest quarter | 52.8% | 52.1% | 52.8% | 52.1% |
 
-Rank correlation with real records: 0.068 without bounds, 0.068 with. The
+Rank correlation with real records: 0.067 without bounds, 0.067 with. The
 bounds moved 0.6% of real teams by more than 0.1 points.
 
 **Keep applying the best swap** (Neutral, any role) from the most popular meta teams:
@@ -251,8 +251,8 @@ bounds moved 0.6% of real teams by more than 0.1 points.
 | start | ends at, without bounds | with bounds |
 |---|---|---|
 | Goodstuffs (Sneasler + Kingambit) | 62.3% | 56.2% |
-| Sun (Charizard-Mega-Y + Garchomp) | 62.2% | 56.2% |
-| Rain + Tailwind (Archaludon + Pelipper) | 62.3% | 56.2% |
+| Sun (Charizard-Mega-Y + Garchomp) | 62.1% | 56.2% |
+| Rain + Tailwind (Archaludon + Pelipper) | 62.2% | 56.2% |
 
 Without bounds the search walks to 62%-62%, past every real team; with them it stops at the best
 real team's score.
@@ -263,19 +263,19 @@ plus win chance, `src/team_rating.py`) vs **win chance alone**, with the teammat
 
 | teams, by | win chance alone: won | team score: won |
 |---|---|---|
-| lowest quarter | 46.4% | 44.1% |
-| 2nd quarter | 50.8% | 49.2% |
-| 3rd quarter | 50.4% | 55.5% |
-| highest quarter | 52.2% | 50.5% |
+| lowest quarter | 46.5% | 43.9% |
+| 2nd quarter | 50.8% | 49.7% |
+| 3rd quarter | 50.4% | 55.2% |
+| highest quarter | 52.1% | 50.5% |
 
-Rank correlation with real records: 0.068 by win chance, 0.102
+Rank correlation with real records: 0.067 by win chance, 0.102
 by team score (paired 95% interval for the gain: +0.001 to +0.068). So swaps are judged by
 team score. Keep applying the best swap that way (any role, bounds on):
 
 | start | team score | win chance at the end | real teams sharing 5+ of its six |
 |---|---|---|---|
 | Goodstuffs (Sneasler + Kingambit) | 49 → 94 | 54.3% | 56 |
-| Sun (Charizard-Mega-Y + Garchomp) | 36 → 89 | 55.3% | 0 |
+| Sun (Charizard-Mega-Y + Garchomp) | 36 → 87 | 55.3% | 0 |
 | Rain + Tailwind (Archaludon + Pelipper) | 68 → 68 | 49.5% | 215 |
 <!-- /generated:teamcheck -->
 
@@ -543,14 +543,14 @@ replays are saved publicly each day.
 choices on the newest replays (rates and model fitted on older ones):
 
 <!-- generated:bring -->
-196,723 replays; tested on 19,876 team previews.
+196,775 replays; tested on 19,922 team previews.
 
 | | bring-4 | lead pair |
 |---|---|---|
-| learned bring / lead model | 72.0% | 44.1% |
-| players' usual picks (bring / lead rates) | 70.7% | 42.8% |
+| learned bring / lead model | 72.1% | 43.8% |
+| players' usual picks (bring / lead rates) | 70.7% | 42.7% |
 | damage-calc game plan | 68.0% | 34.2% |
-| random | 66.8% | 33.4% |
+| random | 66.5% | 33.7% |
 <!-- /generated:bring -->
 
 The damage-calc plan barely beats random: real choices depend on more than

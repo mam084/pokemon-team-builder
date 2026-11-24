@@ -35,8 +35,8 @@ Newest held-out data (2026-11-18 to 2026-11-24); the model never saw it.
 |---|---|---|---|
 | Recommender: find the missing member of a real tournament team (MRR) | 0.646 | 0.211 (popularity only) | 1,596 teams |
 | Win model: pick the winner of a real match | 59.2% | 58.0% (ratings only) | 3,602 matches |
-| Teams alone (no ratings): pick the winner | 52.6% | 50.0% (coin flip) | 3,602 matches |
-| Bring model: predict the 4 a player brings | 72.0% | 70.7% (usual picks) | 19,876 team previews |
+| Teams alone (no ratings): pick the winner | 52.5% | 50.0% (coin flip) | 3,602 matches |
+| Bring model: predict the 4 a player brings | 72.1% | 70.7% (usual picks) | 19,922 team previews |
 
 The team adds a small but real signal on top of the players' ratings (log-loss gain +0.0001 to +0.0058 over ratings alone, 95% paired bootstrap).
 <!-- /generated:summary -->
