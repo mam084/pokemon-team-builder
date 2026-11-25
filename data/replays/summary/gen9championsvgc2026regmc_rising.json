@@ -1,6 +1,6 @@
 {
 "format": "gen9championsvgc2026regmc",
-"teams": 1647,
+"teams": 1984,
 "teams_before": 3825,
 "first_day": "2026-11-22",
 "last_day": "2026-11-25",
@@ -11,63 +11,63 @@
 "pokemon": [
 {
 "id": "politoed",
-"share": 0.06618,
+"share": 0.06452,
 "before": 0.04209,
-"teams": 109
+"teams": 128
 },
 {
 "id": "archaludon",
-"share": 0.16515,
+"share": 0.16179,
 "before": 0.14301,
-"teams": 272
-},
-{
-"id": "venusaur",
-"share": 0.0765,
-"before": 0.05987,
-"teams": 126
-},
-{
-"id": "gengar",
-"share": 0.09229,
-"before": 0.07634,
-"teams": 152
-},
-{
-"id": "delphox",
-"share": 0.06618,
-"before": 0.05229,
-"teams": 109
+"teams": 321
 },
 {
 "id": "arcaninehisui",
-"share": 0.06132,
+"share": 0.06552,
 "before": 0.04758,
-"teams": 101
+"teams": 130
 },
 {
 "id": "swampert",
-"share": 0.051,
+"share": 0.05242,
 "before": 0.03817,
-"teams": 84
-},
-{
-"id": "torkoal",
-"share": 0.05889,
-"before": 0.04706,
-"teams": 97
-},
-{
-"id": "annihilape",
-"share": 0.03825,
-"before": 0.02797,
-"teams": 63
+"teams": 104
 },
 {
 "id": "farigiraf",
-"share": 0.16818,
+"share": 0.17188,
 "before": 0.15791,
-"teams": 277
+"teams": 341
+},
+{
+"id": "venusaur",
+"share": 0.07208,
+"before": 0.05987,
+"teams": 143
+},
+{
+"id": "gengar",
+"share": 0.0877,
+"before": 0.07634,
+"teams": 174
+},
+{
+"id": "delphox",
+"share": 0.06351,
+"before": 0.05229,
+"teams": 126
+},
+{
+"id": "torkoal",
+"share": 0.05645,
+"before": 0.04706,
+"teams": 112
+},
+{
+"id": "annihilape",
+"share": 0.03528,
+"before": 0.02797,
+"teams": 70
 }
 ]
 }
