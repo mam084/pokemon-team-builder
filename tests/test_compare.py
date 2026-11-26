@@ -6,7 +6,7 @@ import pandas as pd
 
 from src.team import PokemonSet
 from tests.test_app import click, fresh, open_tab
-from ui.compare import SAVED, team_diff, threat_changes
+from ui.compare import SAVED, STEPS, _pts, team_diff, threat_changes
 
 
 class TestHelpers(unittest.TestCase):
@@ -21,6 +21,12 @@ class TestHelpers(unittest.TestCase):
         new = pd.DataFrame({"pokemon": ["B", "A", "C"], "answers": ["none", "Z (hit 60%)", "Y"]})
         self.assertEqual(threat_changes(old, new), (["A"], ["B"]))
         self.assertEqual(threat_changes(old, pd.DataFrame()), ([], []))
+
+    def test_pts(self):
+        self.assertEqual(_pts(0.031, True), "+3 pts")
+        self.assertEqual(_pts(-0.01, True), "-1 pt")
+        self.assertEqual(_pts(-0.004, True), "no change")      # not "-0 pts"
+        self.assertEqual(_pts(0.001, False), "no change")
 
 
 class TestCompareApp(unittest.TestCase):
@@ -52,6 +58,38 @@ class TestCompareApp(unittest.TestCase):
         self.assertFalse(at.exception)
         self.assertIn("before swapping out", at.session_state[SAVED]["label"])
         self.assertIn("Now vs before swapping out", " ".join(m.value for m in at.markdown))
+
+
+    def test_several_changes_in_a_row(self):
+        def swap(at, last=False):
+            if not any(b.key and b.key.startswith(("swap_", "alt_")) for b in at.button):
+                click(at, key="find_swaps")
+            found = [b for b in at.button if b.key and b.key.startswith(("swap_", "alt_"))]
+            (found[-1] if last else found[0]).click().run()
+            self.assertFalse(at.exception, [e.value for e in at.exception])
+            return [at.session_state[f"s{i}_species"] for i in range(6)]
+
+        at = open_tab(click(fresh(), label="Example team"), "Matchups")
+        start = [at.session_state[f"s{i}_species"] for i in range(6)]
+        first = swap(at)
+        self.assertEqual(len(at.session_state[STEPS]), 2)
+        self.assertNotIn("undo_step", [b.key for b in at.button])            # one change: total == last
+        swap(at)
+        swap(at, last=True)
+        self.assertEqual(len(at.session_state[STEPS]), 4)                     # saved + 3 changes
+        md = " ".join(m.value for m in at.markdown)
+        self.assertIn("(3 changes)", md)
+        self.assertIn("**Last change**", md)                                 # what the latest one did alone
+        self.assertTrue(any("step" in d.value.columns and len(d.value) == 4 for d in at.dataframe))
+        click(at, key="undo_step")                                           # one step back, not to the start
+        self.assertEqual(len(at.session_state[STEPS]), 3)
+        at.selectbox(key="step_pick").set_value(1).run()
+        click(at, key="go_step")
+        self.assertEqual([at.session_state[f"s{i}_species"] for i in range(6)], first)
+        self.assertEqual(len(at.session_state[STEPS]), 2)
+        click(at, key="restore_version")
+        self.assertEqual([at.session_state[f"s{i}_species"] for i in range(6)], start)
+        self.assertEqual(at.session_state[STEPS], [at.session_state[SAVED]["key"]])
 
 
 if __name__ == "__main__":
