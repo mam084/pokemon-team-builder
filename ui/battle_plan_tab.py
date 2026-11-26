@@ -52,8 +52,9 @@ def battle_plan_tab(fmt_id, team, members, dex, usage, fmt) -> None:
     if not names:
         st.info("Not enough usage data to build meta teams.")
         return
-    pick = st.selectbox("Opponent", [FACING] + names, key="detail_pick",
-                        help="The six you see at team preview, or one of the common meta teams.")
+    pick = st.selectbox("Who are you facing?", [FACING] + names, key="detail_pick",
+                        format_func=lambda x: x if x == FACING else f"Common meta team: {x}",
+                        help="Enter the six you see at team preview, or practice against a common meta team.")
     their_side = None
     if pick == FACING:
         facing = facing_archetype(dex, usage)
@@ -218,7 +219,7 @@ def facing_archetype(dex, usage):
         # tap each. The multiselect below stays the record (opp_team); the pills just add and remove.
         common = list(sheet)[:QUICK_PICKS]
         st.session_state["opp_quick"] = [n for n in st.session_state.get("opp_team", []) if n in common]
-        st.pills("Tap the common ones", common, selection_mode="multi", key="opp_quick",
+        st.pills("Quick add (most common first)", common, selection_mode="multi", key="opp_quick",
                  on_change=_quick_to_team, args=(common,), label_visibility="visible",
                  help="The most-used Pokémon on ladder teams. Anyone else: type below.")
         picked = st.multiselect("Their six (from team preview)", list(sheet), key="opp_team", max_selections=6,

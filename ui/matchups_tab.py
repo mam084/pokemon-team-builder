@@ -356,7 +356,8 @@ def matchups_tab(fmt_id, team, members, dex, usage, fmt) -> None:
                                                          "teams below, from the learned model (equal players). "
                                                          "Capped at the best real tournament team's.")
             c[1].metric("Favorable", sum(p >= FAVORED for p in chances), help=f"{FAVORED:.0%}+ to win")
-            c[2].metric("Even", sum(1 - FAVORED < p < FAVORED for p in chances))
+            c[2].metric("Even", sum(1 - FAVORED < p < FAVORED for p in chances),
+                        help=f"Between {1 - FAVORED:.0%} and {FAVORED:.0%}: a coin flip decided by play")
             c[3].metric("Unfavorable", sum(p <= 1 - FAVORED for p in chances), help=f"{1 - FAVORED:.0%} or less")
             table.insert(2, "win chance", [round(100 * p) for p in chances])
             untested = untested_parts(fmt_id, team_key(team))
@@ -384,12 +385,18 @@ def matchups_tab(fmt_id, team, members, dex, usage, fmt) -> None:
         st.dataframe(
             table, hide_index=True, width="stretch",
             column_config={
-                "archetype": st.column_config.TextColumn("meta team", width="medium", pinned=True),
-                "popularity": st.column_config.NumberColumn("avg usage %", format="%.1f"),
+                "archetype": st.column_config.TextColumn("Meta team", width="large", pinned=True,
+                                                         help="A common team style and its core Pokémon"),
+                "popularity": st.column_config.NumberColumn("How common", format="%.1f%%",
+                                                            help="Average ladder usage of its six Pokémon"),
+                "mega evolve": st.column_config.TextColumn("Mega Evolve", help="Which of yours to Mega Evolve here"),
+                f"bring {fmt.pick}": st.column_config.TextColumn(f"Bring these {fmt.pick}"),
+                "hardest to answer": st.column_config.TextColumn("Their biggest problem for you"),
+                "verdict": st.column_config.TextColumn("Verdict"),
                 "score": st.column_config.NumberColumn("score", format="%+.2f"),
                 "calc score": st.column_config.NumberColumn("calc score", format="%+.2f",
                                                             help="Damage calcs and Speed only (0 = even)"),
-                "win chance": st.column_config.NumberColumn("win chance", format="%d%%",
+                "win chance": st.column_config.NumberColumn("Win chance", format="%d%%",
                                                             help="From a model learned on real tournament "
                                                                  "matches (see How reliable...)"),
                 "with bring": st.column_config.NumberColumn(f"score with bring {fmt.pick}", format="%+.2f"),
@@ -417,7 +424,7 @@ def threats_section(fmt_id: str, team, members, dex, usage, doubles: bool) -> pd
     if not members:
         st.info("Add Pokémon on the **Team** tab to see which popular Pokémon threaten you.")
         return pd.DataFrame()
-    how_it_works("The 30 most-used Pokémon (popular sets), ranked by **usage × (your Pokémon it 2HKOs + 1) ÷ "
+    how_it_works("The 30 most-used Pokémon (popular sets), ranked by **usage × (your Pokémon it KOs in two hits + 1) ÷ "
                  "(answers + 1)**. An *answer* beats it 1-on-1: it needs fewer hits to KO it than it needs back, or "
                  "the same number and it's faster (Choice Scarf counted).", "How threats are ranked")
     threats = cached_threats(fmt_id, team_key(team))
@@ -431,9 +438,14 @@ def threats_section(fmt_id: str, team, members, dex, usage, doubles: bool) -> pd
                 img = f"<img class='card-sprite' src='{sprite(form, dex)}' alt=''>" if form else ""
                 st.markdown(f"<div class='card-head'>{img}<div><b>{row['pokemon']}</b><br>"
                             f"{row['usage %']:.1f}% usage</div></div>", unsafe_allow_html=True)
-                answers = (f"Your answers (win 1-on-1): {row['answers']}." if row["answers"] != "none" else
-                           f"Nothing on your team wins 1-on-1. Your hardest hits on it: {row['your best hits']}.")
-                st.caption(f"2HKOs {row['2HKOs']} of your team. Hardest hits: {row['hardest hits']}.  \n{answers}")
+                n = int(row["2HKOs"])
+                answers = (f"**Your answers** (win 1-on-1): {row['answers']}" if row["answers"] != "none" else
+                           f"**No answer yet**: nothing on your team wins 1-on-1. "
+                           f"Your best hits on it: {row['your best hits']}")
+                st.markdown(f"**Can KO {n} of your {len(team)}** in two hits  \n"
+                            f"<span class='threat-detail'>Its best hits: {row['hardest hits']}</span>",
+                            unsafe_allow_html=True)
+                st.caption(answers)
     with st.expander(f"All {len(threats)} threats"):
         st.dataframe(threats, hide_index=True, width="stretch",
                      column_config={"threat score": st.column_config.ProgressColumn(

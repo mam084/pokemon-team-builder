@@ -26,7 +26,7 @@ HELP = {
     "defense": "Resists the types your team is weak to (and doesn't share its weaknesses).",
     "offense": "Hits popular Pokémon your team can't hit super effectively.",
     "roles": "Commonly brings a role you're missing (Fake Out, speed control…).",
-    "meta": "Overall ladder usage - proven Pokémon tend to be good. (In Popular picks, Fits already counts how "
+    "meta": "Overall ladder usage - proven Pokémon tend to be good. (In Popular picks, Pairs with already counts how "
             "often players pick it.)",
     "plan": "Plays into your team's weather, Trick Room, Tailwind or terrain (with diminishing returns), "
             "or sets one up that your team already benefits from.",
@@ -162,7 +162,7 @@ def team_builder_section(team, dex, usage, fmt, mode, weights) -> None:
                 st.button("Load this team", key=f"load_built_{n}", width="stretch",
                           on_click=load_team, args=(t.sets,))
 
-LINES = [("fit", "Fits"), ("clash", "Watch"), ("plan", "Plan"), ("cover", "Covers"), ("hits", "Hits"),
+LINES = [("fit", "Pairs with"), ("clash", "Caution"), ("plan", "Plan"), ("cover", "Covers"), ("hits", "Hits"),
          ("adds", "Adds")]
 
 
@@ -192,7 +192,7 @@ def card_split(row, weights: dict | None) -> tuple[str, str]:
 
 
 def card_lines(parts: dict, weights: dict | None = None, as_list: bool = False):
-    """The reasons as short labelled lines (Fits / Covers / Hits...) instead of one long sentence.
+    """The reasons as short labelled lines (Pairs with / Covers / Hits...) instead of one long sentence.
     A line whose signal is weighted to zero (Fine-tune the ranking) is left off."""
     out = []
     for key, label in LINES:
@@ -237,11 +237,11 @@ def recommendations_tab(team, members, dex, usage, fmt) -> None:
                 "**Suggested swaps** on the Matchups tab.")
     learned = usage is not None and usage.teammates is not None
     how_it_works(
-        ("**Fits** comes from a model learned on real teams (tournament team lists and ladder replays): given "
+        ("**Pairs with** comes from a model learned on real teams (tournament team lists and ladder replays): given "
          "your whole team, how much likelier players are to pick each candidate. It looks at every member at "
          "once, so it isn't fooled by two Pokémon that only show up together because both pair with a third. "
          if learned else
-         "**Fits** is how much more often it appears next to each of your Pokémon than chance (ladder stats). ")
+         "**Pairs with** is how much more often it appears next to each of your Pokémon than chance (ladder stats). ")
         + "**Covers** is the types your team is weak to that it resists, **Hits** the popular Pokémon your team "
         "can't hit super effectively that it can, **Adds** jobs your team lacks, and **Plan** how it plays into "
         "your weather, terrain, Trick Room or Tailwind. The ranking blends these with weights you can change "
@@ -279,7 +279,7 @@ def recommendations_tab(team, members, dex, usage, fmt) -> None:
                 sub = f"Usually plays: {row['usually plays']}" if usage else ""
                 st.markdown(  # sprite beside the name (not on its own row) so cards stay short on a phone
                     f"<div class='card-head'>{img}<div><b>{i + 1}. {row['pokemon']}</b> "
-                    f"<span class='rec-score' title='Blended score, 0-100'>{row['score']:.0f}</span>"
+                    f"<span class='rec-score' title='Overall score for your team, out of 100'>{row['score']:.0f}/100</span>"
                     + (" <span class='rec-score'>2nd Mega</span>" if row["note"] == mega_note else "") + "<br>"
                     f"{type_badges(row['types'].split('/'))}<br>"
                     f"<span class='rec-sub'>{sub}</span></div></div>",
@@ -321,7 +321,7 @@ def recommendations_tab(team, members, dex, usage, fmt) -> None:
         )
 
 
-SIGNALS = {"synergy": "Fits", "defense": "Covers", "offense": "Hits", "roles": "Adds",
+SIGNALS = {"synergy": "Pairs with", "defense": "Covers", "offense": "Hits", "roles": "Adds",
            "meta": "Popularity", "plan": "Game plan"}
 
 

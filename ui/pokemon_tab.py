@@ -92,11 +92,12 @@ def pokemon_tab(dex: Dex, usage: UsageData | None, team_size: int, fmt) -> None:
         tour = tournament_core(root, teams, dex, form.required_item if form is not None and form.is_mega else None)
         if tour["teams"]:
             w, l = tour["wins"], tour["losses"]
-            results.append(f"**Tournaments:** {tour['teams']} team{'s' if tour['teams'] != 1 else ''} went "
-                           f"{w}–{l} ({w / max(w + l, 1):.0%}, against {tour['base']:.0%} for all teams).")
+            results.append(f"**Tournaments:** {tour['teams']:,} team{'s' if tour['teams'] != 1 else ''} went "
+                           f"{w:,}–{l:,} ({w / max(w + l, 1):.0%}, against {tour['base']:.0%} for all teams).")
     if results:
         st.markdown("\n".join(f"- {x}" for x in results))
-        st.caption("The player decides most games, so wins are shown next to what the players' ratings predicted.")
+        st.caption("Skill decides most games, so each win rate sits next to what the players' ratings alone would "
+                   "predict. Better than expected means the Pokémon itself is pulling weight.")
     thin = R.thin_line(name, pset, dex, usage, fmt, counts=False)
     if thin:
         st.caption(thin)

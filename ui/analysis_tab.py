@@ -60,6 +60,7 @@ def fit_check_section(team, dex, usage) -> None:
     by_root = {dex.sheet_id(f): p.species for p, f in zip(team, forms)}
 
     section("How your team compares to what players build")
+    all_top = len(team) > 1 and all((checks.get(r) or {}).get("rank") == 1 for r in roots)
     off_meta = rare >= (len(team) + 1) // 2
     if off_meta:
         st.markdown(f"**Off-meta build:** {rare} of your {len(team)} are on fewer than {HIDDEN_MAX:.0f}% of ladder "
@@ -67,7 +68,8 @@ def fit_check_section(team, dex, usage) -> None:
     else:
         natural = sum(1 for r in checks.values() if r["rank"] and r["rank"] <= 15)
         st.markdown(f"**{natural} of {len(team)}** are natural fits: among the 15 Pokémon players most often pick "
-                    "next to the rest of your team.")
+                    "next to the rest of your team." + (" Each is the **#1** pick next to the rest: "
+                    "a well-tested shell." if all_top else ""))
     lines = []
     for p, f, r, use in zip(team, forms, roots, share):
         c, link = checks.get(r) or {}, links.get(r)
@@ -75,7 +77,9 @@ def fit_check_section(team, dex, usage) -> None:
         bits.append(f"pairs best with {by_root.get(link[0], link[0])} ({math.exp(link[1]):.1f}x)"
                     if link and link[1] >= 0.3 else "no proven partner on your team")
         rank = c.get("rank") if c else None
-        if rank and rank <= 15:
+        if all_top:
+            pass   # said once above, not six times
+        elif rank and rank <= 15:
             bits.append(f"#{rank} pick next to the rest")
         elif rank and not off_meta:
             bits.append("rare with this group")

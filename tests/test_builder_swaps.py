@@ -820,13 +820,13 @@ class TestCardSplit(unittest.TestCase):
         row = {"parts": parts, "synergy": 0.9, "defense": 0.2, "offense": 1.0, "roles": 0.1, "plan": 0.6}
         w = {"synergy": 0.4, "defense": 0.25, "offense": 0.05, "roles": 0.05, "meta": 0.0, "plan": 0.25}
         shown, rest = card_split(row, w)
-        self.assertIn("**Fits:**", shown)                 # 0.36: the strongest
+        self.assertIn("**Pairs with:**", shown)                 # 0.36: the strongest
         self.assertIn("**Plan:**", shown)                 # 0.15: second
         self.assertIn("**Covers:**", rest)
         self.assertEqual(rest.count("\n") + 1, 3)
         row["parts"] = {**parts, "clash": "next to Kingambit"}
         shown, _ = card_split(row, w)
-        self.assertIn("**Watch:**", shown)                # a warning never folds away
+        self.assertIn("**Caution:**", shown)                # a warning never folds away
 
 
 class TestHealthCheck(unittest.TestCase):

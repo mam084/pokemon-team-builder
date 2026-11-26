@@ -48,14 +48,16 @@ def pct_list(d: dict, n: int = SHOWN) -> str:
 
 
 def vs_ratings(won: int, n: int, expected: float) -> str:
-    """'won 48 of 107; ratings predicted 51 (in line with that)': the honest way to show a small sample."""
+    """'won 45% of 107 rated games, vs 48% their ratings predicted (about as expected)': the honest way to
+    show a sample - next to what the players' ratings alone would give, with a verdict that accounts for size."""
     if n < 10:
         return f"won {won} of {n} rated games (too few to judge)"
     sd = math.sqrt(n * 0.25)
     gap = won - expected
-    verdict = ("in line with that" if abs(gap) < 1.5 * sd else
-               "clearly more" if gap > 0 else "clearly fewer")
-    return f"won **{won} of {n}** rated games; the players' ratings predicted {expected:.0f} ({verdict})"
+    verdict = ("about as expected" if abs(gap) < 1.5 * sd else
+               "clearly better than expected" if gap > 0 else "clearly worse than expected")
+    return (f"won **{won / n:.1%}** of {n:,} rated games, vs {expected / n:.1%} their ratings predicted "
+            f"({verdict})")
 
 
 def load_real(species: list[str], core_name: str, core_set, dex, usage) -> None:

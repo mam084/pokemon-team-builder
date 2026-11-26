@@ -63,7 +63,10 @@ class TestAppPolish(unittest.TestCase):
         at = open_tab(click(fresh(), label="Example team"), "Matchups")
         caps = " ".join(c.value for c in at.caption)
         self.assertNotIn("Beats it 1-on-1", caps)
-        self.assertTrue("Your answers (win 1-on-1)" in caps or "Nothing on your team wins 1-on-1" in caps)
+        self.assertTrue("**Your answers** (win 1-on-1)" in caps or "nothing on your team wins 1-on-1" in caps)
+        md = " ".join(m.value for m in at.markdown)
+        self.assertIn("** in two hits", md)                            # no "2HKOs" jargon on the cards
+        self.assertNotIn("2HKOs", md + caps)
         at = open_tab(at, "Playbook")
         caps = " ".join(c.value for c in at.caption)
         self.assertIn("are on the Battle plan tab", caps)
