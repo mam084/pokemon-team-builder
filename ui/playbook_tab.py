@@ -83,7 +83,7 @@ def playbook_tab(team, dex, usage, fmt) -> None:
         "Tailwind, speed drops and Haze, players who had the move in play (on their open team sheet, used that "
         "game, or on 40%+ of that Pokémon's sets); for leading or bringing your own weather setter, players who "
         "had one in team preview. Choices any team can make (attacking the setter, double Protect) are compared "
-        "with everyone else. **Worked** / **backfired**: the 90% interval is clear of zero.\n\nThese are still "
+        "with everyone else. **Worked** / **backfired**: even the cautious end of the range (the 90% interval, shown as “likely … to …”) is above or below zero.\n\nThese are still "
         "associations, not proof: when a player uses a move says something about the game and the player too. "
         "Your team's tools come from its moves and abilities.",
         "Where these numbers come from")
@@ -99,10 +99,12 @@ def playbook_tab(team, dex, usage, fmt) -> None:
         can = [c for c in good if (w := _who(c["choice"], tools)) is None or w]
         rows.append((style, good, can))
     if members:
-        st.markdown("**Your team at a glance** (plays that worked, and how many your team can make)")
+        st.markdown("**Your team at a glance**: for each strategy, the plays that won more often, "
+                    "and how many of them your team can make")
         st.markdown("\n".join(
-            f"- **{style}**: " + (f"{len(can)} of {len(good)}" if good else "no clear winning play")
-            + (" · missing: " + ", ".join(_name(c["choice"]).lower() for c in good if c not in can) if len(can) < len(good) else "")
+            f"- **{style}**: " + (f"can make {len(can)} of {len(good)} winning plays" if good
+                                  else "no play clearly wins more")
+            + (" · can't: " + ", ".join(_name(c["choice"]).lower() for c in good if c not in can) if len(can) < len(good) else "")
             for style, good, can in rows))
     else:
         st.caption("Add your team to see which of these plays it can make.")
@@ -131,17 +133,18 @@ def playbook_tab(team, dex, usage, fmt) -> None:
         if members and v == "worked":
             yours = " · any team can" if who is None else (f" · yours: {', '.join(who)}" if who else " · your team can't")
         mark = {"worked": "Worked", "backfired": "Backfired", "unclear": "Unclear"}[v]
-        against = ("vs players who had it and didn't" if c.get("against") == "had it, didn't"
-                   else "vs everyone else")
-        return (f"- **{mark}** {_name(c['choice'])}: {c['edge']:+.1f} points {against} (90% {c['lo']:+.1f} to "
-                f"{c['hi']:+.1f}; {c['n']:,} players)" + yours)
+        against = ("than players who could have and didn't" if c.get("against") == "had it, didn't"
+                   else "than everyone else")
+        more = "more" if c["edge"] >= 0 else "less"
+        return (f"- **{mark}** {_name(c['choice'])}: won {abs(c['edge']):.1f}% {more} often {against} "
+                f"<span class='fine'>(likely {c['lo']:+.1f} to {c['hi']:+.1f}; {c['n']:,} players)</span>" + yours)
 
     clear = [c for c in data["choices"] if _verdict(c) != "unclear"]
     unclear = [c for c in data["choices"] if _verdict(c) == "unclear"]
-    st.markdown("\n".join(line(c) for c in clear) or "No choice stood out either way.")
+    st.markdown("\n".join(line(c) for c in clear) or "No choice stood out either way.", unsafe_allow_html=True)
     if unclear:
         with st.expander(f"{len(unclear)} more choice{'s' if len(unclear) != 1 else ''} with no clear effect"):
-            st.markdown("\n".join(line(c) for c in unclear))
+            st.markdown("\n".join(line(c) for c in unclear), unsafe_allow_html=True)
 
     if members:
         hits = setter_hits(members, style, setters, usage, dex, fmt.is_doubles)

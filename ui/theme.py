@@ -92,6 +92,8 @@ div[data-testid="stVerticalBlockBorderWrapper"][style*="border"] {{ background: 
 
 /* cards with the sprite beside the name */
 .card-head {{ display: flex; align-items: center; gap: .7rem; }}
+.fine {{ font-size: .88rem; color: {muted}; }}
+.threat-detail {{ font-size: .9rem; color: {muted}; }}
 .rec-score {{ font-size: .75rem; font-weight: 600; padding: 0 .4rem; border-radius: 999px;
   background: rgba(37, 99, 235, .1); color: #1d4ed8; margin-left: .2rem; }}
 .rec-sub {{ font-size: .78rem; opacity: .7; }}

@@ -364,8 +364,10 @@ def slot_editor(slot: int, dex: Dex, usage: UsageData | None, picks: list[tuple[
         with st.container(border=True, key=f"meta_box{slot}"):
             st.markdown("<div class='box-title'>Against the top 30 <span class='box-sub'>popular sets, "
                         "damage calcs</span></div>", unsafe_allow_html=True)
-            st.markdown(f"**Hit it hardest:** {', '.join(threats) or 'nothing hits it for half'}  \n"
-                        f"**It handles:** {', '.join(handles) or 'none it clearly beats'}")
+            st.markdown(f"**Watch out for:** {', '.join(threats) or 'nothing hits it for half its HP'}  \n"
+                        f"**Good into:** {', '.join(handles) or 'none it clearly beats'}")
+            st.caption("Watch out for: their best hit on it, as % of its HP. "
+                       "Good into: it hits them for half or more and takes less than half back.")
     bottom = st.columns([3, 1], vertical_alignment="bottom")
     nick = ss.get(k(slot, "nick"), "")
     with bottom[0].popover(f"Nickname: {nick}" if nick else "Add a nickname"):

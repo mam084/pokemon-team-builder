@@ -194,11 +194,11 @@ def sidebar() -> tuple[str, Dex, UsageData | None]:
         st.subheader("Import / export")
         paste = st.text_area("Showdown paste", height=150, placeholder="Paste a team here…",
                              label_visibility="collapsed", key="paste_side")
-        c1, c2 = st.columns(2)
-        c1.button("Import", width="stretch", disabled=not paste.strip(),
-                  on_click=import_paste, args=(dex, "paste_side"))
+        # stacked, not side by side: in a narrow sidebar two columns cut "Example team" to "Example te..."
+        st.button("Import", width="stretch", type="primary" if paste.strip() else "secondary",
+                  disabled=not paste.strip(), on_click=import_paste, args=(dex, "paste_side"))
         example = example_for(fmt_id, dex)
-        c2.button("Example team", width="stretch", disabled=example is None,
+        st.button("Example team", width="stretch", disabled=example is None,
                   help=(example[1][0].upper() + example[1][1:]) if example else "None yet for this format",
                   on_click=load_example, args=(dex,))
 
@@ -215,7 +215,10 @@ def sidebar() -> tuple[str, Dex, UsageData | None]:
                        "so a refresh or a bookmark keeps it. To keep several teams, use My teams on the Team tab.")
             with st.expander("Copy a link to this team"):  # the link is long: keep it out of the way
                 st.code(share_link(team, fmt_id), language=None, wrap_lines=True)
-        st.button("Clear team", width="stretch", type="secondary", on_click=load_team, args=([],))
+        if team:   # one click shouldn't wipe six sets: ask first (My teams is untouched either way)
+            with st.popover("Clear team…", width="stretch"):
+                st.caption("Removes all six Pokémon and their sets. Teams saved in My teams stay.")
+                st.button("Clear team", width="stretch", type="primary", on_click=load_team, args=([],))
         from ui.start_here import feedback_url
         st.caption(f"[Send feedback]({feedback_url()}): something confusing, wrong or missing.")
         st.caption("Light or dark: ⋮ menu (top right), then Settings.")
