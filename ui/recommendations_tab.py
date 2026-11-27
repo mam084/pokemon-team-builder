@@ -116,8 +116,9 @@ def team_builder_section(team, dex, usage, fmt, mode, weights) -> None:
             st.caption(thin)
         threats = core_threats(core_set, fmt)
         st.caption("Three different teams, each filled one Pokémon at a time with the top recommendation "
-                   f"({MODES[mode]} style). They're ranked by how well they fit together and how they'd "
-                   "do against the meta teams, the mix that best matched real tournament results. "
+                   f"({MODES[mode]} style). They're ranked by one team score: how well they fit together "
+                   "plus how they'd do against the meta teams, the mix that best matched real tournament "
+                   "results. "
                    f"Loading a team replaces your current one. How {core_name} is usually played, with real "
                    "teams to start from: the Pokémon tab.")
         if st.button(f"Build teams around {core_name}", type="primary", width="stretch"):
@@ -134,17 +135,19 @@ def team_builder_section(team, dex, usage, fmt, mode, weights) -> None:
         for n, t in enumerate(built):
             with st.container(border=True):
                 theme = f" · {t.theme} team" if t.theme else ""
-                weak = False
+                weak, details = False, ""
                 if t.percentile is not None:
-                    from src.team_rating import is_weak, lenses, load_reference
+                    from src.team_rating import details_line, is_weak, lenses, load_reference, score_line
                     seen = lenses(t.sets, dex, usage, t.chance, load_reference(fmt.regulation))
-                    rated = (f"Proven: {seen['proven'][0]} · On paper: {seen['paper'][0]}" if seen else
-                             f"team score {t.percentile:.0f}")
+                    rated = score_line(t.percentile)
+                    details = details_line(seen, t.chance)
                     weak = is_weak(seen)
                 else:
                     score = t.meta_score or 0.0
                     rated = f"vs meta {score:+.2f} ({verdict(score)})"
                 st.markdown(f"**Team {n + 1}**{theme} · {rated}")
+                if details:
+                    st.caption(f"Behind the score: {details}")
                 if weak:
                     from src.team_rating import WEAK_NOTE
                     st.caption(f"⚠️ {WEAK_NOTE}")

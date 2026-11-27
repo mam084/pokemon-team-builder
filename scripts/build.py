@@ -67,16 +67,17 @@ def summary(core, name: str, dex, usage, fmt) -> list[str]:
 def team_block(n: int, t, core_name: str, threats: list[str], dex, usage, fmt) -> list[str]:
     from src.core_report import answered
     from src.paste import export_paste
-    from src.team_rating import WEAK_NOTE, is_weak, lenses, load_reference
+    from src.team_rating import WEAK_NOTE, details_line, is_weak, lenses, load_reference, score_line
     head = f"Team {n}" + (f" · {t.theme} team" if t.theme else "")
     seen = lenses(t.sets, dex, usage, t.chance, load_reference(fmt.regulation)) if t.chance is not None else None
-    if seen:
-        head += f" · Proven: {seen['proven'][0]} · On paper: {seen['paper'][0]}"
-    if t.chance is not None:
-        head += f" · {t.chance:.1%} learned win chance vs the meta teams"
+    if t.percentile is not None:
+        head += f" · {score_line(t.percentile)}"
     elif t.meta_score is not None:
         head += f" · vs meta {t.meta_score:+.2f}"
     out = [head, "=" * len(head)]
+    details = details_line(seen, t.chance)
+    if details and t.percentile is not None:
+        out.append(f"Behind the score: {details}")
     if is_weak(seen):
         out.append(f"Warning: {WEAK_NOTE}")
     if threats:
@@ -134,7 +135,7 @@ def main(argv: list[str] | None = None) -> int:
     form = core.battle_form(dex)
     core_name = form.name if form else species.name
     threats = [n for n, _ in core_matchups(core, usage, dex, doubles=fmt.is_doubles)["threats"][:5]]
-    lines.append(f"Teams around {core_name} ({MODES[args.mode]} style), best rated first")
+    lines.append(f"Teams around {core_name} ({MODES[args.mode]} style), ranked by team score")
     lines.append("")
     for n, t in enumerate(teams, 1):
         lines += team_block(n, t, core_name, threats, dex, usage, fmt)

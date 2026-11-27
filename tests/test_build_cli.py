@@ -118,6 +118,13 @@ if __name__ == "__main__":
     unittest.main()
 
 
+class TestScoreLine(unittest.TestCase):
+    def test_one_headline_number(self):
+        from src.team_rating import details_line, score_line
+        self.assertEqual(score_line(63.4), "Team score 63 (Solid): rates above 63% of tournament teams")
+        self.assertEqual(details_line({"proven": ("Shaky", 30), "paper": ("Solid", 60)}, 0.51),
+                         "Proven: Shaky · On paper: Solid · 51.0% learned win chance vs the meta teams")
+        self.assertEqual(details_line(None, None), "")
 class TestSetReason(unittest.TestCase):
     """Built teams' reasons: no cautions, and speed claims only when the set backs them up."""
 
