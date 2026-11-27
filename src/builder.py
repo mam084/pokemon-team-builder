@@ -159,6 +159,31 @@ EDGE_WEIGHT = 0.0
 EDGE_PRIOR = 100
 
 
+# One speed plan per team: once a team has a Trick Room setter, skip picks that set Tailwind, and the
+# other way round (a core that sets both keeps both). Before, ~23% of built teams set both (10.5% of
+# real tournament teams do, winning 47.9% of games vs 48.3-50.2% for one plan). Held-out week
+# (labs/speed_mode_lab.py, 50 cores), one plan vs mixing, paired: lean toward winning teams Popular
+# +0.002 (95% -0.028 to +0.034), Neutral +0.003 (-0.034 to +0.033), Hidden gems +0.014 (+0.000 to
+# +0.031); learned win chance vs the meta +0.12 / +0.21 / +0.26 points (Hidden gems clear of zero,
+# the others just touching it). Never worse, better where it shows: on.
+NO_MIXED_SPEED = True
+SPEED_MOVES = {"trickroom": "Trick Room", "tailwind": "Tailwind"}
+
+
+def speed_modes(pset: PokemonSet) -> set[str]:
+    """The speed plans this set can start ({"Trick Room", "Tailwind"} or a part of it)."""
+    have = {to_id(m) for m in pset.moves}
+    return {label for move, label in SPEED_MOVES.items() if move in have}
+
+
+def mixes_speed(pset: PokemonSet, team: list[PokemonSet]) -> bool:
+    """True when adding pset would give a one-plan team a second, opposite speed plan."""
+    if not NO_MIXED_SPEED:
+        return False
+    have = set().union(*(speed_modes(p) for p in team)) if team else set()
+    return len(have) == 1 and bool(speed_modes(pset) - have)
+
+
 def edges_from(index: dict | None) -> dict[str, float]:
     """{sheet id: win-chance edge in points} from a core index (src/core_report.replay_index)."""
     out = {}
@@ -203,10 +228,13 @@ def _complete(team: list[PokemonSet], reasons: list[str], dex: Dex, usage: Usage
                          top_n=15, mode=mode, anchor=team[0].species, anchor_weight=ANCHOR_WEIGHT)
         open_ = [t for t in threats if not any(_beats(p, t[2], dex, doubles) for p in team)]
         total = sum(w for _, w, _ in open_) or 1.0
-        best = None
+        best, fallback = None, None
         for _, row in recs.iterrows():
             pset = _set_for(row["pokemon"], team, dex, usage)
             if pset is None or to_id(pset.species) in {to_id(p.species) for p in team}:
+                continue
+            if mixes_speed(pset, team):
+                fallback = fallback or (row["score"], pset, row, [])
                 continue
             hit = [n for n, w, t in open_ if _beats(pset, t, dex, doubles)] if open_ else []
             score = row["score"] + THREAT_WEIGHT * sum(w for n, w, _ in open_ if n in hit) / total \
@@ -215,6 +243,7 @@ def _complete(team: list[PokemonSet], reasons: list[str], dex: Dex, usage: Usage
                 best = (score, pset, row, hit)
             if not open_ and not EDGE_WEIGHT:
                 break   # no bonus to weigh: the recommender's order stands
+        best = best or fallback   # every top pick mixes plans: take the best of them over a short team
         if best is None:
             break
         _, pset, row, hit = best
@@ -283,7 +312,7 @@ def build_teams(core: PokemonSet | str, dex: Dex, usage: UsageData, doubles: boo
             break
         row = first.iloc[i]
         second = _set_for(row["pokemon"], [core], dex, usage)
-        if second is None:
+        if second is None or mixes_speed(second, [core]):
             continue
         second, why = _carry(second, row, dex, usage)
         theme = row["starts"] if row["starts"] and f"its {row['starts']} helps" in why else ""

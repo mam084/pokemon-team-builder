@@ -67,6 +67,15 @@ pip install -r requirements.txt
 streamlit run app.py          # data for every supported format is included
 ```
 
+Or build teams around one Pokémon from the command line (same builder, ratings and reasons as the app,
+plus how the Pokémon is played), printed as Showdown pastes:
+
+```bash
+python scripts/build.py Baxcalibur                  # Popular picks, 3 teams
+python scripts/build.py Baxcalibur --mode hidden    # Hidden gems
+python scripts/build.py Baxcalibur --paste-only     # import straight into Showdown's teambuilder
+```
+
 Click **Example team** in the sidebar to load a Garganacl team for Reg M-C.
 The app has light and dark themes. It follows your device setting by default,
 and you can switch in the top-right menu under Settings. Charts change colors

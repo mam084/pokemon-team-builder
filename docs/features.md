@@ -96,6 +96,11 @@ Everything the app does, tab by tab. Back to the [README](../README.md).
   complete teams. Each is filled one Pokémon at
   a time with the top recommendation, using popular sets that keep Item Clause
   and one Mega, then rated against the meta teams.
+  Each team keeps to one speed plan (no Trick Room setter next to a Tailwind setter unless
+  the core sets both), and a team that rates Weak on every lens gets a one-line warning.
+  The same builder runs from the command line: `python scripts/build.py Baxcalibur`
+  prints the teams as Showdown pastes with their reasons and ratings, plus how the
+  Pokémon is played.
 - **Pokémon tab: how any one Pokémon is played** (`ui/pokemon_tab.py`, `src/core_report.py`): its
   last 30 days of ladder and Bo3 games (wins next to what the players' ratings predicted, so a
   small sample isn't read as a verdict) and tournament record; its top partners; the team styles

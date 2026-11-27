@@ -134,6 +134,18 @@ def lenses(sets, dex: Dex, usage, chance: float | None, ref: dict | None) -> dic
     return out
 
 
+WEAK_NOTE = ("Rates below most tournament teams on every lens we have, so treat it as a rough start: "
+             "the swaps on the Matchups tab are the place to fix it.")
+
+
+def is_weak(seen: dict | None) -> bool:
+    """Both lenses say Weak, or the team is off-meta (Proven: Untested) and Weak on paper. An off-meta
+    team is never flagged on the Proven lens alone, so unusual picks aren't marked down for being unusual."""
+    if not seen:
+        return False
+    return seen["paper"][0] == "Weak" and seen["proven"][0] in ("Weak", "Untested")
+
+
 def rate(sets, dex: Dex, tm, chance: float | None, ref: dict | None) -> tuple[float, float] | None:
     """(combined rating, percentile) from teammate fit and a win chance vs the meta, or None."""
     if chance is None or ref is None:
