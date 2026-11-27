@@ -202,7 +202,10 @@ def mixes_speed(pset: PokemonSet, team: list[PokemonSet]) -> bool:
 
 # One weather and one terrain per team: once a team sets a weather (or terrain), skip picks that set a
 # different one. A rain setter next to a sun setter just overwrites it, and the Pokemon that wanted the
-# first weather lose their boost. A core that sets two keeps both. Held-out week: labs/weather_clash_lab.py.
+# first weather lose their boost. A core that sets two keeps both. Held-out week (labs/weather_clash_lab.py,
+# 48 cores), paired: lean toward winning teams Popular -0.011 (95% -0.032 to +0.006), Neutral +0.008 (-0.023 to
+# +0.055), Hidden gems -0.000; learned win chance inside the noise too. Clashing builds 11% -> 0% (Popular). No
+# measured gain or loss; on because a team that overwrites its own weather reads as a mistake.
 NO_FIELD_CLASH = True
 _WEATHER = ("snow", "sun", "rain", "sand")
 _TERRAIN = ("psychicterrain", "grassyterrain", "electricterrain")
