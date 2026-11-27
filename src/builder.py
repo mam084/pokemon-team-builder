@@ -138,6 +138,12 @@ def honest_reason(why: str, unmet: list[str]) -> str:
 # Held-out (labs/builder_lab.py): no loss; a gain toward winning teams (+0.047, 95% -0.003 to
 # +0.102) that didn't quite clear zero. On by choice, for building around the core you picked.
 ANCHOR_WEIGHT = 2.0
+# Pairings with the core alone (each pick chosen for how players pair it with the core, not with the rest
+# of the team). Held-out week (labs/anchor_lab.py, 48 cores), vs the shipped core x2: Popular lean toward
+# winning teams -0.070 (95% -0.124 to -0.015), learned win chance -0.87 points (-1.32 to -0.43); Neutral and
+# Hidden gems inside the noise. Whole team (ANCHOR_WEIGHT 1) did no better: Popular lean -0.054 (-0.124 to
+# +0.007), Neutral on paper -0.85 points (-1.53 to -0.22). The blend stays: off.
+CORE_ONLY = False
 
 
 # Answering the core's threats (the meta Pokemon that beat the core one-on-one, src/core_report.py):
@@ -235,7 +241,8 @@ def _complete(team: list[PokemonSet], reasons: list[str], dex: Dex, usage: Usage
     threats = _threats(team[0], dex, usage, doubles) if THREAT_WEIGHT > 0 else []
     while len(team) < TEAM_SIZE:
         recs = recommend(build_members(team, dex), dex, usage, doubles=doubles, weights=weights,
-                         top_n=15, mode=mode, anchor=team[0].species, anchor_weight=ANCHOR_WEIGHT)
+                         top_n=15, mode=mode, anchor=team[0].species, anchor_weight=ANCHOR_WEIGHT,
+                         anchor_only=CORE_ONLY)
         open_ = [t for t in threats if not any(_beats(p, t[2], dex, doubles) for p in team)]
         total = sum(w for _, w, _ in open_) or 1.0
         best, fallback = None, None
