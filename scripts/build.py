@@ -141,6 +141,11 @@ def main(argv: list[str] | None = None) -> int:
                            for n, t in enumerate(teams, 1)))
         return 0
     lines = [] if args.no_summary else summary(core, species.name, dex, usage, fmt) + [""]
+    from src.core_report import core_advice, load_index, thin_data
+    row = ((load_index(fmt.id) or {}).get("pokemon") or {}).get(dex.sheet_id(species)) or {}
+    advice = core_advice(species.name, row, thin_data(dex.sheet_id(species), usage.teammates), args.mode)
+    if advice:
+        lines += [f"Tip: {advice}", ""]
     form = core.battle_form(dex)
     core_name = form.name if form else species.name
     threats = [n for n, _ in core_matchups(core, usage, dex, doubles=fmt.is_doubles)["threats"][:5]]

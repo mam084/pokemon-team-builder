@@ -120,6 +120,14 @@ def team_builder_section(team, dex, usage, fmt, mode, weights) -> None:
         thin = thin_line(core_name, core_set, dex, usage, fmt)
         if thin:
             st.caption(thin)
+        from src.core_report import core_advice, thin_data
+        from ui.core_report import index as core_index
+        root = dex.sheet_id(dex.get_species(core_name))
+        advice = core_advice(core_name, ((core_index(fmt.id) or {}).get("pokemon") or {}).get(root),
+                             thin_data(root, getattr(usage, "teammates", None)), mode,
+                             other_sets=not (use_mine and mine) and len(core_set_options(core_name, dex, usage)) > 1)
+        if advice:
+            st.info(advice)
         threats = core_threats(core_set, fmt)
         st.caption("Three different teams, each filled one Pokémon at a time with the top recommendation "
                    f"({MODES[mode]} style). They're ranked by one team score: how well they fit together "
