@@ -78,6 +78,10 @@ def team_block(n: int, t, core_name: str, threats: list[str], dex, usage, fmt) -
     details = details_line(seen, t.chance)
     if details and t.percentile is not None:
         out.append(f"Behind the score: {details}")
+    from src.team_plan import plan_line
+    plan = plan_line(t.sets, dex, fmt.is_doubles)
+    if plan:
+        out.append(f"Game plan: {plan}")
     if is_weak(seen):
         out.append(f"Warning: {WEAK_NOTE}")
     if threats:

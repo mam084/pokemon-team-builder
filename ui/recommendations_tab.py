@@ -154,6 +154,10 @@ def team_builder_section(team, dex, usage, fmt, mode, weights) -> None:
                 st.markdown(f"**Team {n + 1}**{theme} · {rated}")
                 if details:
                     st.caption(f"Behind the score: {details}")
+                from src.team_plan import plan_line
+                plan = plan_line(t.sets, dex, fmt.is_doubles)
+                if plan:
+                    st.markdown(f"**Game plan:** {plan}")
                 if weak:
                     from src.team_rating import WEAK_NOTE
                     st.caption(f"⚠️ {WEAK_NOTE}")
