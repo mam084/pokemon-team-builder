@@ -156,28 +156,28 @@ class TestPlanBuilderSwaps(unittest.TestCase):
         """Predictions past every real team are capped there and flagged; real ones are untouched."""
         import math
         from src import match_model as M
-        pushes = [{"tool: Wide Guard": 0.08, "bulk (mean)": 0.1}, {"tool: Wide Guard": -0.08, "bulk (mean)": -0.2}]
+        pushes = [{"tool: Encore": 0.08, "bulk (mean)": 0.1}, {"tool: Encore": -0.08, "bulk (mean)": -0.2}]
         trust = M.trust_bounds(pushes, [0.45, 0.58])
-        self.assertLessEqual(trust["features"]["tool: Wide Guard"][0], -0.08)
-        self.assertGreaterEqual(trust["features"]["tool: Wide Guard"][1], 0.08)
+        self.assertLessEqual(trust["features"]["tool: Encore"][0], -0.08)
+        self.assertGreaterEqual(trust["features"]["tool: Encore"][1], 0.08)
         self.assertGreaterEqual(trust["total"][1], 0.18)
         self.assertEqual(M.cap_chance({"trust": trust}, 0.66), trust["chance"][1])
         self.assertEqual(M.cap_chance({"trust": trust}, 0.50), 0.50)
         self.assertEqual(M.cap_chance(None, 0.66), 0.66)
 
-        # a one-feature model: each Wide Guard user is worth 0.08 log-odds
+        # a one-feature model: each Encore user is worth 0.08 log-odds
         feats = M.SKILL + M.FEATURES
-        model = {"model": {"features": feats, "species": [], "coef": [0.08 if f == "tool: Wide Guard" else 0.0
+        model = {"model": {"features": feats, "species": [], "coef": [0.08 if f == "tool: Encore" else 0.0
                                                                        for f in feats]}}
         side = lambda n: {"members": [], "meta": 0.0, "popularity": 0.0, "species": [],
-                          "profile": {"tool: Wide Guard": float(n)}}
+                          "profile": {"tool: Encore": float(n)}}
         parts = {}  # no members, and the damage-calc features are patched out below
         with mock.patch.object(M, "matchup_features", return_value={}):
             self.assertAlmostEqual(M.predict_match(model, side(4), side(0), parts), 1 / (1 + math.exp(-0.32)))
             guarded = dict(model, trust=trust)
-            cap = trust["features"]["tool: Wide Guard"][1]
+            cap = trust["features"]["tool: Encore"][1]
             self.assertAlmostEqual(M.predict_match(guarded, side(4), side(0), parts), 1 / (1 + math.exp(-cap)))
-            self.assertEqual(M.beyond(guarded, side(4), side(0), parts), {"tool: Wide Guard"})
+            self.assertEqual(M.beyond(guarded, side(4), side(0), parts), {"tool: Encore"})
             # a real-sized difference is untouched
             self.assertAlmostEqual(M.predict_match(guarded, side(1), side(0), parts), 1 / (1 + math.exp(-0.08)))
             self.assertEqual(M.beyond(guarded, side(1), side(0), parts), set())

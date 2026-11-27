@@ -158,14 +158,14 @@ matches, and it's tested once on the newest 3,952
 
 | model | picks the winner | log loss | AUC |
 |---|---|---|---|
-| learned model (skill + team) | 58.7% | 0.6695 | 0.622 |
+| learned model (skill + team) | 59.1% | 0.6686 | 0.624 |
 | player skill only | 58.5% | 0.6733 | 0.613 |
-| team only | 53.4% | 0.6875 | 0.557 |
+| team only | 53.8% | 0.6879 | 0.558 |
 | damage-calc matchup score | 53.1% | 0.6898 | 0.548 |
 | popularity only | 51.0% | 0.6929 | 0.517 |
 | coin flip | 50.0% | 0.6931 | 0.500 |
 
-- **Who's playing matters most.** The team adds a small but real signal on top of the players' ratings (log-loss gain +0.0008 to +0.0071 over ratings alone, 95% paired bootstrap).
+- **Who's playing matters most.** The team adds a small but real signal on top of the players' ratings (log-loss gain +0.0019 to +0.0077 over ratings alone, 95% paired bootstrap).
 <!-- /generated:learned -->
 
 **Upgrades tried and rejected (Nov 2026, `labs/match_lab.py`, `labs/match_lab2.py`).** None beat
@@ -189,7 +189,8 @@ the player decides most games; a matchup as lopsided as all-Fire vs all-Grass is
 **What it learned** (win-chance points per extra Pokémon with the tool, between
 equally rated players, 90% tournament-bootstrap range):
 
-- clearly positive: Wide Guard +1.9 (+0.4 to +3.3), Encore +1.6 (+0.2 to +3.1),
+- clearly positive: Wide Guard +1.9 (+0.4 to +3.3) (dropped Nov 26: it stopped predicting the newest
+  matches, see *Wide Guard* below), Encore +1.6 (+0.2 to +3.1),
   setup moves +1.6 (+1.0 to +2.3), Trick Room +1.6 (+0.4 to +2.8) (but a slow
   team leaning on it: -4.9 (-8.7 to -1.8)); outspeeding, bulk and
   2HKOs count too
@@ -233,28 +234,28 @@ the held-out week:
 
 <!-- generated:teamcheck -->
 Fitted on data before 2026-11-20; bounds from 1,200 real teams from before then
-(the best scores 58.3% vs the meta). **Ranking the 1,727 held-out teams**
+(the best scores 58.2% vs the meta). **Ranking the 1,727 held-out teams**
 by win chance vs the meta, then checking how they actually did:
 
 | teams, by win chance | without bounds: said | won | with bounds: said | won |
 |---|---|---|---|---|
-| lowest quarter | 44.5% | 46.4% | 44.5% | 46.4% |
-| 2nd quarter | 48.3% | 50.4% | 48.3% | 50.4% |
-| 3rd quarter | 50.3% | 49.0% | 50.3% | 49.0% |
+| lowest quarter | 45.0% | 46.3% | 45.0% | 46.3% |
+| 2nd quarter | 48.6% | 48.5% | 48.6% | 48.5% |
+| 3rd quarter | 50.4% | 50.9% | 50.4% | 50.9% |
 | highest quarter | 52.8% | 52.1% | 52.8% | 52.1% |
 
-Rank correlation with real records: 0.078 without bounds, 0.078 with. The
+Rank correlation with real records: 0.086 without bounds, 0.086 with. The
 bounds moved 0.2% of real teams by more than 0.1 points.
 
 **Keep applying the best swap** (Neutral, any role) from the most popular meta teams:
 
 | start | ends at, without bounds | with bounds |
 |---|---|---|
-| Goodstuffs (Sneasler + Kingambit) | 67.2% | 58.3% |
-| Sun (Charizard-Mega-Y + Garchomp) | 67.2% | 58.3% |
-| Rain + Tailwind (Archaludon + Pelipper) | 67.4% | 58.3% |
+| Goodstuffs (Sneasler + Kingambit) | 59.4% | 58.2% |
+| Sun (Charizard-Mega-Y + Garchomp) | 59.5% | 58.2% |
+| Rain + Tailwind (Archaludon + Pelipper) | 59.4% | 58.2% |
 
-Without bounds the search walks to 67%-67%, past every real team; with them it stops at the best
+Without bounds the search walks to 59%-59%, past every real team; with them it stops at the best
 real team's score.
 
 **What swaps are judged by.** Ranking the same 1,727 held-out teams by **team score** (teammate fit
@@ -263,20 +264,20 @@ plus win chance, `src/team_rating.py`) vs **win chance alone**, with the teammat
 
 | teams, by | win chance alone: won | team score: won |
 |---|---|---|
-| lowest quarter | 46.4% | 44.7% |
-| 2nd quarter | 50.4% | 47.7% |
-| 3rd quarter | 49.0% | 53.1% |
-| highest quarter | 52.1% | 52.0% |
+| lowest quarter | 46.3% | 43.2% |
+| 2nd quarter | 48.5% | 49.2% |
+| 3rd quarter | 50.9% | 52.3% |
+| highest quarter | 52.1% | 52.6% |
 
-Rank correlation with real records: 0.078 by win chance, 0.108
-by team score (paired 95% interval for the gain: -0.000 to +0.061). So swaps are judged by
+Rank correlation with real records: 0.086 by win chance, 0.113
+by team score (paired 95% interval for the gain: -0.002 to +0.056). So swaps are judged by
 team score. Keep applying the best swap that way (any role, bounds on):
 
 | start | team score | win chance at the end | real teams sharing 5+ of its six |
 |---|---|---|---|
-| Goodstuffs (Sneasler + Kingambit) | 47 → 87 | 51.5% | 242 |
-| Sun (Charizard-Mega-Y + Garchomp) | 35 → 86 | 51.3% | 149 |
-| Rain + Tailwind (Archaludon + Pelipper) | 88 → 91 | 53.5% | 194 |
+| Goodstuffs (Sneasler + Kingambit) | 50 → 96 | 56.0% | 3 |
+| Sun (Charizard-Mega-Y + Garchomp) | 38 → 96 | 56.0% | 3 |
+| Rain + Tailwind (Archaludon + Pelipper) | 64 → 64 | 49.0% | 213 |
 <!-- /generated:teamcheck -->
 
 **Support tools: count each copy, or just "has it"? Tested, not shipped** (`labs/win_model_lab.py`, Nov 21).
@@ -554,6 +555,29 @@ The builder always returns three teams, and the third can rate below most tourna
 sometimes leave one or two teams, so instead a team gets a one-line warning when **every lens we have** calls it
 weak: On paper Weak *and* Proven Weak or Untested (`team_rating.is_weak`). A team that's Weak on Proven but
 Strong on paper isn't flagged, so off-meta teams aren't marked down for being off-meta.
+
+## Wide Guard: credit for having the move, or for using it? (`labs/wide_guard_lab.py`, Nov 26)
+
+The match model counted Wide Guard users like any support tool and gave about +1.8 win-chance points per
+copy. But having Wide Guard isn't using it: it only blocks spread attacks, and only on the turn it's
+clicked. 16.9% of tournament sides carry it, 0.09% two. Each variant replaces only the Wide Guard column,
+fitted and judged like the shipped model (C by forward CV on the oldest 70% of tournaments, 8,892 matches;
+judged on the newest 30%, 3,952):
+
+| variant | test log loss vs shipped (95%) |
+|---|---|
+| shipped: count per Pokémon | — |
+| **no Wide Guard credit** | **+0.0009 better (+0.0000 to +0.0017)** |
+| has it (0/1) | -0.0001 (-0.0001 to -0.0000) |
+| has it × opponent's share of spread attackers | +0.0003 (-0.0001 to +0.0008) |
+| count × opponent's share of spread attackers | +0.0004 (-0.0001 to +0.0008) |
+
+Inside the training period the model still liked Wide Guard (its CV loss was lowest with it), but on the newest
+matches it predicted worse, so its value seems to have faded as the meta moved. Crediting it only against
+spread attackers halved the credit and helped a little, not clearly. **Shipped: Wide Guard is no longer a win
+model feature** (`match_model.NOT_FEATURES`). After retraining, the held-out week went from 58.7% to 59.1% of
+winners picked (53.4% to 53.8% from the teams alone). The move still counts as a role (the role checklist,
+the Playbook's tools and the bring model) because there it describes the team instead of promising wins.
 
 ## Why the app and Pikalytics disagreed on Baxcalibur (Nov 26)
 

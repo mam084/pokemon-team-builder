@@ -15,7 +15,7 @@ players flips the sign of every feature:
 - matchup: the hand-built team-vs-team score, bring-4 score, mean best damage
   each way, OHKO / 2HKO counts each way, share of pairings won on Speed
 - support tools: how many of each side's Pokemon carry Fake Out, Intimidate,
-  Tailwind, Trick Room, screens, redirection, Wide Guard, sleep, Taunt,
+  Tailwind, Trick Room, screens, redirection, sleep, Taunt,
   Encore, Helping Hand, spread speed control, priority, weather / terrain
 - context: Trick Room x how slow the team is, Tailwind x how fast it is
 - Pokemon: which species each side has (+1 / -1 / 0), kept to species seen on
@@ -215,7 +215,13 @@ MATCHUP = ["matchup score", "bring-4 score", "best damage (mean %)", "OHKOs", "2
 # "score vs meta", "popularity" and "has Mega" were tested and dropped (Nov 2026): removing them
 # changed held-out log loss by -0.0003 (90% CI -0.0011 to +0.0006), i.e. they added nothing.
 CONTEXT = ["base speed (mean)", "bulk (mean)"]
-SUPPORT = [f"tool: {t}" for t in TOOLS]
+# Wide Guard is left out: credited per copy it took +1.8 points per Pokemon, but having the move isn't
+# using it (it only blocks spread moves, on the turn it's clicked), and the model predicted the newest 30%
+# of matches better without it: log loss +0.0009 (95% +0.0000 to +0.0017). Counting it only against the
+# opponent's spread attackers halved its credit but didn't clear zero (+0.0003, -0.0001 to +0.0008);
+# has-it (0/1) changed nothing (labs/wide_guard_lab.py, Nov 26).
+NOT_FEATURES = {"Wide Guard"}
+SUPPORT = [f"tool: {t}" for t in TOOLS if t not in NOT_FEATURES]
 INTERACT = ["Trick Room x slow team", "Tailwind x fast team"]
 SKILL = ["skill (Elo)", "experience"]
 

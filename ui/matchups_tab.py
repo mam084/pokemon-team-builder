@@ -331,7 +331,7 @@ def matchups_tab(fmt_id, team, members, dex, usage, fmt) -> None:
         "- **Team score** is how well you answer them minus how well they answer you, so 0 is even. "
         "With two Mega Stones, each matchup uses whichever Mega Evolves best.\n"
         "- **Win chance** comes from a model learned on real tournament matches. It weighs the calcs above "
-        "together with Speed, bulk and each side's support tools (Wide Guard, Encore, Fake Out...), by how much "
+        "together with Speed, bulk and each side's support tools (Encore, Fake Out, Trick Room...), by how much "
         "each actually mattered in real results between equally rated players.",
         "How matchups are scored")
     if not members:
