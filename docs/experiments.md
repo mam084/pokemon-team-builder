@@ -556,6 +556,28 @@ sometimes leave one or two teams, so instead a team gets a one-line warning when
 weak: On paper Weak *and* Proven Weak or Untested (`team_rating.is_weak`). A team that's Weak on Proven but
 Strong on paper isn't flagged, so off-meta teams aren't marked down for being off-meta.
 
+## 30 days of tournaments instead of the newest 120 (Nov 27, not shipped)
+
+`fetch_tournaments.py` keeps the newest 120 Limitless tournaments, which reached back only to Nov 7 while
+the rest of the app uses 30-day windows. A refresh with a 30-day window (draft PR #96) fetched 177
+tournaments and 8,129 teams (Oct 28–Nov 26) against 120 and 5,622. Both versions were refit on the same held-out
+tournaments (Nov 20–26):
+
+| test | newest 120 | 30 days | paired difference (95%) |
+|---|---|---|---|
+| Win model with player skill, log loss (4,396 matches) | 0.66805 | 0.66515 | +0.0029 better (+0.0005 to +0.0052) |
+| **Win chance as the app shows it** (skill zeroed), log loss | 0.68797 | 0.68783 | **+0.0001 (-0.0010 to +0.0013)** |
+| Teams-only model, log loss | 0.68764 | 0.68695 | +0.0007 (-0.0003 to +0.0017) |
+| **Recommender MRR** (11,676 queries) | 0.6570 | 0.6545 | **-0.0025 worse (-0.0046 to -0.0005)** |
+
+The win model's gain is all in player ratings (a longer match history rates players better), and the app
+zeroes skill because it compares teams, not players. So the gain doesn't reach anything a user sees, while the
+recommender, whose tournament pairings now reach into an older meta, loses a little. A split (30 days for the
+win model, recent weeks for the recommender's pairings) would at best leave the app where it is, so it wasn't
+run. **Kept: the newest 120 tournaments.** Worth revisiting if the app starts using player skill, or if the
+Pokémon tab's tournament evidence for rare Pokémon becomes the priority (77 Mega Baxcalibur tournament teams
+with 30 days against 54).
+
 ## Pairing with the core, the whole team, or both? (`labs/anchor_lab.py`, Nov 26)
 
 The builder picks each next Pokémon partly by how players pair it with the team so far: the teammate
