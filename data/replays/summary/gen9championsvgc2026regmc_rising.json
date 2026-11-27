@@ -1,6 +1,6 @@
 {
 "format": "gen9championsvgc2026regmc",
-"teams": 2686,
+"teams": 2937,
 "teams_before": 3825,
 "first_day": "2026-11-22",
 "last_day": "2026-11-27",
@@ -11,63 +11,63 @@
 "pokemon": [
 {
 "id": "politoed",
-"share": 0.06739,
+"share": 0.06878,
 "before": 0.04209,
-"teams": 181
+"teams": 202
 },
 {
 "id": "archaludon",
-"share": 0.16679,
+"share": 0.16922,
 "before": 0.14301,
-"teams": 448
+"teams": 497
 },
 {
 "id": "arcaninehisui",
-"share": 0.06776,
+"share": 0.06912,
 "before": 0.04758,
-"teams": 182
+"teams": 203
 },
 {
 "id": "raichu",
-"share": 0.23045,
+"share": 0.23221,
 "before": 0.21516,
-"teams": 619
+"teams": 682
 },
 {
 "id": "gengar",
-"share": 0.09047,
+"share": 0.08989,
 "before": 0.07634,
-"teams": 243
-},
-{
-"id": "swampert",
-"share": 0.04989,
-"before": 0.03817,
-"teams": 134
+"teams": 264
 },
 {
 "id": "venusaur",
-"share": 0.06962,
+"share": 0.07082,
 "before": 0.05987,
-"teams": 187
+"teams": 208
+},
+{
+"id": "swampert",
+"share": 0.04903,
+"before": 0.03817,
+"teams": 144
+},
+{
+"id": "annihilape",
+"share": 0.03711,
+"before": 0.02797,
+"teams": 109
 },
 {
 "id": "milotic",
-"share": 0.12323,
+"share": 0.12291,
 "before": 0.11399,
-"teams": 331
+"teams": 361
 },
 {
 "id": "rillaboom",
-"share": 0.3965,
+"share": 0.3953,
 "before": 0.38745,
-"teams": 1065
-},
-{
-"id": "delphox",
-"share": 0.06106,
-"before": 0.05229,
-"teams": 164
+"teams": 1161
 }
 ]
 }
