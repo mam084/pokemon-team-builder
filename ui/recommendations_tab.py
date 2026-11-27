@@ -134,15 +134,20 @@ def team_builder_section(team, dex, usage, fmt, mode, weights) -> None:
         for n, t in enumerate(built):
             with st.container(border=True):
                 theme = f" · {t.theme} team" if t.theme else ""
+                weak = False
                 if t.percentile is not None:
-                    from src.team_rating import lenses, load_reference
+                    from src.team_rating import is_weak, lenses, load_reference
                     seen = lenses(t.sets, dex, usage, t.chance, load_reference(fmt.regulation))
                     rated = (f"Proven: {seen['proven'][0]} · On paper: {seen['paper'][0]}" if seen else
                              f"team score {t.percentile:.0f}")
+                    weak = is_weak(seen)
                 else:
                     score = t.meta_score or 0.0
                     rated = f"vs meta {score:+.2f} ({verdict(score)})"
                 st.markdown(f"**Team {n + 1}**{theme} · {rated}")
+                if weak:
+                    from src.team_rating import WEAK_NOTE
+                    st.caption(f"⚠️ {WEAK_NOTE}")
                 core_form = t.sets[0].battle_form(dex)
                 covered = threats_line(t.sets, threats, core_form.name if core_form else core_label,
                                        dex, usage, fmt.is_doubles) if core_label == core_name else ""
