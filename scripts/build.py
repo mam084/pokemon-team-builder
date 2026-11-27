@@ -97,6 +97,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--mode", default="popular", choices=sorted(MODES),
                         help="recommendation style (default popular)")
     parser.add_argument("--teams", type=int, default=3, help="how many teams (default 3)")
+    parser.add_argument("--with", dest="lock", action="append", default=[], metavar="POKEMON",
+                        help="a Pokémon every team must include (repeat for more)")
+    parser.add_argument("--without", dest="ban", action="append", default=[], metavar="POKEMON",
+                        help="a Pokémon no team may use (repeat for more)")
     parser.add_argument("--no-summary", action="store_true", help="skip how the Pokémon is played")
     parser.add_argument("--paste-only", action="store_true", help="print only the Showdown pastes")
     args = parser.parse_args(argv)
@@ -121,7 +125,8 @@ def main(argv: list[str] | None = None) -> int:
         print(f"No set data for {species.name} in {fmt.label}.", file=sys.stderr)
         return 1
     teams = build_teams(core, dex, usage, doubles=fmt.is_doubles, mode=args.mode, alternatives=args.teams,
-                        archetypes=build_archetypes(usage, dex, team_size=6), regulation=fmt.regulation)
+                        archetypes=build_archetypes(usage, dex, team_size=6), regulation=fmt.regulation,
+                        lock=args.lock, ban=args.ban)
     if not teams:
         print(f"Couldn't build a full team around {species.name}.", file=sys.stderr)
         return 1
