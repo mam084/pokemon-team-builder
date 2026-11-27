@@ -1,9 +1,9 @@
 {
 "format": "gen9championsvgc2026regmc",
-"teams": 2493,
+"teams": 2686,
 "teams_before": 3825,
 "first_day": "2026-11-22",
-"last_day": "2026-11-26",
+"last_day": "2026-11-27",
 "before_first_day": "2026-11-15",
 "before_last_day": "2026-11-21",
 "week_starts": "Sunday (UTC)",
@@ -13,61 +13,61 @@
 "id": "politoed",
 "share": 0.06739,
 "before": 0.04209,
-"teams": 168
+"teams": 181
 },
 {
 "id": "archaludon",
-"share": 0.16606,
+"share": 0.16679,
 "before": 0.14301,
-"teams": 414
+"teams": 448
 },
 {
 "id": "arcaninehisui",
-"share": 0.06659,
+"share": 0.06776,
 "before": 0.04758,
-"teams": 166
-},
-{
-"id": "gengar",
-"share": 0.09186,
-"before": 0.07634,
-"teams": 229
-},
-{
-"id": "swampert",
-"share": 0.05054,
-"before": 0.03817,
-"teams": 126
+"teams": 182
 },
 {
 "id": "raichu",
-"share": 0.22704,
+"share": 0.23045,
 "before": 0.21516,
-"teams": 566
+"teams": 619
 },
 {
-"id": "rillaboom",
-"share": 0.39631,
-"before": 0.38745,
-"teams": 988
+"id": "gengar",
+"share": 0.09047,
+"before": 0.07634,
+"teams": 243
+},
+{
+"id": "swampert",
+"share": 0.04989,
+"before": 0.03817,
+"teams": 134
 },
 {
 "id": "venusaur",
-"share": 0.06859,
+"share": 0.06962,
 "before": 0.05987,
-"teams": 171
+"teams": 187
 },
 {
-"id": "farigiraf",
-"share": 0.16606,
-"before": 0.15791,
-"teams": 414
+"id": "milotic",
+"share": 0.12323,
+"before": 0.11399,
+"teams": 331
 },
 {
-"id": "annihilape",
-"share": 0.0353,
-"before": 0.02797,
-"teams": 88
+"id": "rillaboom",
+"share": 0.3965,
+"before": 0.38745,
+"teams": 1065
+},
+{
+"id": "delphox",
+"share": 0.06106,
+"before": 0.05229,
+"teams": 164
 }
 ]
 }
