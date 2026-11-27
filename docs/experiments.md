@@ -555,6 +555,48 @@ sometimes leave one or two teams, so instead a team gets a one-line warning when
 weak: On paper Weak *and* Proven Weak or Untested (`team_rating.is_weak`). A team that's Weak on Proven but
 Strong on paper isn't flagged, so off-meta teams aren't marked down for being off-meta.
 
+## Why the app and Pikalytics disagreed on Baxcalibur (Nov 26)
+
+Comparing the app's Baxcalibur teams with Pikalytics and recent tournament lists turned up three
+differences. Each one, traced:
+
+- **Kingambit as a partner (app 12-20%, "32%" quoted from Pikalytics).** Not a gap. The 32% was a stale
+  snapshot; Pikalytics' live Reg M-C page shows 17.3%. The app has 19.9% on Smogon's October ladder at
+  1630+ and 11.6% in its own last 30 days of replays, so Kingambit is being dropped from Baxcalibur teams.
+- **The set (app: Swords Dance last; others: Dragon Dance or Icicle Crash).** Not a bug. On 283 Mega
+  Baxcalibur team sheets from the last 30 days, the last slot is split: Swords Dance 38%, Icicle Crash 32%,
+  High Horsepower 21%, Dragon Dance 16%. Recent tournaments lean slightly to Icicle Crash (33% vs 30%, 54
+  sheets). By last move, tournament win rates rest on about 70 games each, too few to choose by. The Dragon
+  Dance set quoted was from an older event.
+- **Missing famous teams (Aerodactyl-Mega/Kingambit/Basculegion/Sneasler, Contrapple's rain team).**
+  Two causes:
+  1. *They aren't in the data.* `scripts/fetch_tournaments.py` keeps the newest 120 Limitless tournaments
+     (`--max-tournaments`), which on Nov 26 reached back only to Nov 5, while Reg M-C started Sep 9 and the
+     sheet sets, teammate model and Pokémon tab use 30-day windows. Every one of those teams was from before
+     Nov 5, and their players have since moved to other teams. Not changed here: the API isn't reachable
+     from the test machine, so a longer window hasn't been tested.
+  2. *The fill is greedy.* Ninetales-Alola is the top pick next to Baxcalibur at every step (players pair
+     them 10x+ more than chance). Sneasler starts 6th. Kingambit only reaches 6th once Sneasler is on the team,
+     Basculegion 10th once both are. So all three Popular teams shared Ninetales-Alola, Rillaboom and
+     Incineroar. A variety penalty (below) makes the third team Rillaboom / Sneasler / Incineroar /
+     Froslass-Mega / Kingambit, but didn't test as a gain.
+
+  Rated by the app itself, those real teams land at the 22nd-52nd percentile against 52nd-63rd for the
+  built ones. They lose on *Proven*, because those pairings are rare in the last 30 days of replays. On
+  paper two of them beat every built team: SorcererFierro's (Sneasler, Ninetales-Alola, Gholdengo, Milotic,
+  Incineroar) at 55.3% and Contrapple's rain team at 52.8%, against 51.8-53.3%.
+
+**Variety across the three teams: tested, not shipped** (`labs/diversity_lab.py`, `DIVERSITY_WEIGHT`). When
+filling a later team, a pick loses points for each earlier team that has it. Held-out week, 50 cores:
+
+| style, weight | partners used (of 15) | lean vs weight 0 (95%) | on paper vs weight 0, points (95%) |
+|---|---|---|---|
+| Popular, 10 | 9.6 → 13.1 | +0.011 (-0.044 to +0.068) | -0.11 (-0.44 to +0.23) |
+| Neutral, 5 | 12.5 → 13.1 | +0.029 (-0.004 to +0.072) | -0.07 (-0.25 to +0.12) |
+| Hidden gems, 10 | 11.4 → 14.1 | -0.015 (-0.034 to +0.006) | **-0.34 (-0.68 to -0.01)** |
+
+More variety, no tested gain, and Hidden gems got worse on paper: `DIVERSITY_WEIGHT = 0`.
+
 ## Battle replays
 
 A daily GitHub Action (`scripts/fetch_replays.py`, **Fetch replays** workflow)

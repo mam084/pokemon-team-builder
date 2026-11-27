@@ -19,6 +19,7 @@ chance against the meta teams, the combination that tracked real tournament resu
 
 from __future__ import annotations
 
+from collections import Counter
 from dataclasses import dataclass, field
 
 from src.analysis import build_members, mega_variants
@@ -159,6 +160,15 @@ EDGE_WEIGHT = 0.0
 EDGE_PRIOR = 100
 
 
+# Variety across the three teams: when filling a later team, a pick loses DIVERSITY_WEIGHT score points
+# (of 100) for each earlier team that already has it. Held-out week (labs/diversity_lab.py, 50 cores):
+# different partners across the three teams 9.6 -> 13.1 (of 15, Popular, weight 10), but lean toward
+# winning teams Popular +0.011 (95% -0.044 to +0.068), Neutral +0.020 (-0.017 to +0.064; +0.029 at 5,
+# -0.004 to +0.072), and Hidden gems worse on paper at every weight (-0.34 points at 10, -0.68 to -0.01).
+# More variety, no tested gain: off.
+DIVERSITY_WEIGHT = 0.0
+
+
 # One speed plan per team: once a team has a Trick Room setter, skip picks that set Tailwind, and the
 # other way round (a core that sets both keeps both). Before, ~23% of built teams set both (10.5% of
 # real tournament teams do, winning 47.9% of games vs 48.3-50.2% for one plan). Held-out week
@@ -221,7 +231,7 @@ def _beats(pset: PokemonSet, threat, dex: Dex, doubles: bool) -> bool:
 
 
 def _complete(team: list[PokemonSet], reasons: list[str], dex: Dex, usage: UsageData, doubles: bool,
-              mode: str, weights: dict | None) -> None:
+              mode: str, weights: dict | None, used: dict | None = None) -> None:
     threats = _threats(team[0], dex, usage, doubles) if THREAT_WEIGHT > 0 else []
     while len(team) < TEAM_SIZE:
         recs = recommend(build_members(team, dex), dex, usage, doubles=doubles, weights=weights,
@@ -238,10 +248,10 @@ def _complete(team: list[PokemonSet], reasons: list[str], dex: Dex, usage: Usage
                 continue
             hit = [n for n, w, t in open_ if _beats(pset, t, dex, doubles)] if open_ else []
             score = row["score"] + THREAT_WEIGHT * sum(w for n, w, _ in open_ if n in hit) / total \
-                + EDGE_WEIGHT * _edge(pset, dex, usage)
+                + EDGE_WEIGHT * _edge(pset, dex, usage) - DIVERSITY_WEIGHT * (used or {}).get(to_id(pset.species), 0)
             if best is None or score > best[0]:
                 best = (score, pset, row, hit)
-            if not open_ and not EDGE_WEIGHT:
+            if not open_ and not EDGE_WEIGHT and not (DIVERSITY_WEIGHT and used):
                 break   # no bonus to weigh: the recommender's order stands
         best = best or fallback   # every top pick mixes plans: take the best of them over a short team
         if best is None:
@@ -317,7 +327,8 @@ def build_teams(core: PokemonSet | str, dex: Dex, usage: UsageData, doubles: boo
         second, why = _carry(second, row, dex, usage)
         theme = row["starts"] if row["starts"] and f"its {row['starts']} helps" in why else ""
         built = BuiltTeam([core, second], [f"{second.species}: {why}"], theme=theme)
-        _complete(built.sets, built.reasons, dex, usage, doubles, mode, weights)
+        used = Counter(to_id(p.species) for t in teams for p in t.sets[1:])
+        _complete(built.sets, built.reasons, dex, usage, doubles, mode, weights, used)
         if len(built.sets) == TEAM_SIZE and all(
             {to_id(p.species) for p in built.sets} != {to_id(p.species) for p in t.sets} for t in teams
         ):

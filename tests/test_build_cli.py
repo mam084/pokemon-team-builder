@@ -88,6 +88,13 @@ class TestBuildCli(unittest.TestCase):
         self.assertEqual(code, 1)
         self.assertIn("isn't in", err)
 
+    def test_diversity_spreads_partners(self):
+        def partners(weight):
+            with mock.patch.object(B, "DIVERSITY_WEIGHT", weight):
+                teams = build_teams("Baxcalibur", self.dex, self.usage)
+            return len({p.species for t in teams for p in t.sets[1:]})
+        self.assertGreater(partners(10.0), partners(0.0))
+
     def test_one_plan_builds_full_teams(self):
         with mock.patch.object(B, "NO_MIXED_SPEED", True):
             teams = build_teams("Baxcalibur", self.dex, self.usage)
