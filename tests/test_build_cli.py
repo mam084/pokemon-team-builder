@@ -116,3 +116,32 @@ class TestBuildCli(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestSetReason(unittest.TestCase):
+    """Built teams' reasons: no cautions, and speed claims only when the set backs them up."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.dex = load_dex("regmc")
+
+    def test_drops_cautions_and_unbacked_speed_claims(self):
+        slow = PokemonSet("Rillaboom", nature="Adamant", sps={"hp": 32, "atk": 32, "spe": 2})
+        fast = PokemonSet("Rillaboom", nature="Jolly", sps={"atk": 32, "spe": 32})
+        why = ("plays into your Tailwind: base 85 Speed doubles to outspeed; players pair it with Gliscor (1.7x); "
+               "rarely run next to Excadrill (0.4x); resists Water")
+        self.assertEqual(B.set_reason(why, slow, self.dex), "players pair it with Gliscor (1.7x); resists Water")
+        self.assertTrue(B.set_reason(why, fast, self.dex).startswith("plays into your Tailwind"))
+        self.assertNotIn("rarely run next to", B.set_reason(why, fast, self.dex))
+        tr = "plays into your Trick Room: slow (base 40 Speed); resists Fire"
+        self.assertEqual(B.set_reason(tr, fast, self.dex), "resists Fire")
+        self.assertEqual(B.set_reason(tr, slow, self.dex), tr)
+        self.assertEqual(B.set_reason("rarely run next to X (0.3x)", slow, self.dex), "solid all-round pick")
+
+    def test_built_reasons_have_no_cautions(self):
+        usage = load_usage("gen9championsvgc2026regmc")
+        if usage is None:
+            self.skipTest("no shipped usage data")
+        for t in build_teams("Gliscor", self.dex, usage):
+            for r in t.reasons:
+                self.assertNotIn("rarely run next to", r)

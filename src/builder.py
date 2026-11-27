@@ -277,13 +277,42 @@ def uncarried(pset: PokemonSet, credited) -> list[str]:
     return [label for label, options in credited if not have & options]
 
 
+# A set "invests in Speed" with this many Stat Points in Speed (of 32) or a +Speed nature.
+SPEED_INVESTED = 16
+
+
+def invests_speed(pset: PokemonSet, dex: Dex) -> bool:
+    nature = dex.get_nature(pset.nature) or {}
+    return (pset.sps or {}).get("spe", 0) >= SPEED_INVESTED or nature.get("plus") == "spe"
+
+
+def set_reason(why: str, pset: PokemonSet, dex: Dex) -> str:
+    """
+    Keep a built team's reason line to claims that argue for the pick and that its actual set backs up.
+    "Rarely run next to X" is a caution, not a reason (the Recommendations tab shows it as one). "Plays
+    into your Tailwind" is judged on base Speed, so it's dropped when the set puts nothing into Speed
+    (a 2-Speed Adamant Rillaboom isn't outspeeding under Tailwind); "plays into your Trick Room" is
+    dropped when the set does invest in Speed.
+    """
+    parts = []
+    for part in why.split("; "):
+        if part.startswith("rarely run next to"):
+            continue
+        if part.startswith("plays into your Tailwind") and not invests_speed(pset, dex):
+            continue
+        if part.startswith("plays into your Trick Room") and invests_speed(pset, dex):
+            continue
+        parts.append(part)
+    return "; ".join(parts) or "solid all-round pick"
+
+
 def _carry(pset: PokemonSet, row, dex: Dex, usage: UsageData) -> tuple[PokemonSet, str]:
     credited = row.get("credited") or []
     if CARRY_CREDITED:
         pset, unmet = carry_credited(pset, credited, usage, dex)
     else:
         unmet = uncarried(pset, credited)
-    return pset, honest_reason(row["why"], unmet)
+    return pset, set_reason(honest_reason(row["why"], unmet), pset, dex)
 
 
 # In Neutral, the last of the teams is built the Hidden gems way (unlabelled; all three are ranked together).
