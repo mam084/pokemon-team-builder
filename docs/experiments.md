@@ -549,6 +549,26 @@ Held-out week, 50 cores, same test as the builder labs above, paired one plan vs
 Never worse, and better where it shows (Hidden gems, the style with the most mixed teams that weren't backed by
 real pairings): **shipped on.** The effect is small; the bigger win is that built teams now read as one plan.
 
+## One weather and one terrain per built team (`labs/weather_clash_lab.py`, Nov 27)
+
+Building around Gliscor gave a team with a Rain Dance Sableye next to a Mega Charizard Y (Drought) and a
+Chlorophyll Venusaur: the second weather just overwrites the first. About 11% of Popular builds set two weathers
+or two terrains (8% Neutral, 1% Hidden gems).
+
+The rule (`NO_FIELD_CLASH`), like the speed-plan rule: once a team sets a weather (or terrain), the builder skips
+picks that set a different one, by ability (a Mega's included) or by move. Weather next to terrain is fine; a core
+that sets two keeps both. Held-out week, 48 cores, paired one field plan vs clashes allowed:
+
+| style | lean toward winning teams (95%) | learned win chance vs meta, points (95%) |
+|---|---|---|
+| Popular picks | -0.011 (-0.032 to +0.006) | +0.08 (-0.06 to +0.24) |
+| Neutral | +0.008 (-0.023 to +0.055) | -0.15 (-0.44 to +0.03) |
+| Hidden gems | -0.000 (-0.002 to +0.000) | -0.01 (-0.04 to +0.00) |
+
+Every change is inside the noise, either way. **Shipped on** for the same reason as the speed rule's bigger win:
+a built team should read as one plan, and clashing weathers are an obvious mistake to a player. Clashing teams
+went from 11% to 0%.
+
 ## Weak built teams get a warning (Nov 26)
 
 The builder always returns three teams, and the third can rate below most tournament teams. Hiding those would
