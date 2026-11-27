@@ -556,6 +556,25 @@ sometimes leave one or two teams, so instead a team gets a one-line warning when
 weak: On paper Weak *and* Proven Weak or Untested (`team_rating.is_weak`). A team that's Weak on Proven but
 Strong on paper isn't flagged, so off-meta teams aren't marked down for being off-meta.
 
+## Pairing with the core, the whole team, or both? (`labs/anchor_lab.py`, Nov 26)
+
+The builder picks each next Pokémon partly by how players pair it with the team so far: the teammate
+model's pull from every member, summed, with the core's counted twice (`ANCHOR_WEIGHT = 2`). So a built team
+is chosen to fit together *and* around the core. Compared on the held-out week (48 cores, same test as the
+other builder labs), against the shipped blend:
+
+| how picks are paired | Popular: lean (95%) | Popular: on paper, points | Neutral: on paper, points | picks pairing with the core |
+|---|---|---|---|---|
+| whole team, core counted once | -0.054 (-0.124 to +0.007) | +0.12 (-0.18 to +0.41) | **-0.85 (-1.53 to -0.22)** | 90% (Popular) |
+| **core ×2 (shipped)** | — | — | — | 97% |
+| core ×4 | -0.035 (-0.086 to +0.017) | **-0.38 (-0.62 to -0.14)** | **-0.57 (-1.17 to -0.10)** | 99% |
+| core only (`CORE_ONLY`) | **-0.070 (-0.124 to -0.015)** | **-0.87 (-1.32 to -0.43)** | -0.78 (-1.76 to +0.09) | 99% |
+
+Six picked only for pairing with the core are a worse team. Around Baxcalibur, core-only Popular teams rated
+at the 26th-50th percentile against 45th-58th for the blend. They stack the core's partners (Ninetales-Alola,
+Volcarona, Milotic in all three teams) whether or not those partners work with each other. Pairing only
+with the whole team drifts away from the core. The blend is best or tied in every style, so it stays.
+
 ## Wide Guard: credit for having the move, or for using it? (`labs/wide_guard_lab.py`, Nov 26)
 
 The match model counted Wide Guard users like any support tool and gave about +1.8 win-chance points per

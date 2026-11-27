@@ -239,6 +239,7 @@ def recommend(
     mode: str = "popular",
     anchor: str | None = None,
     anchor_weight: float = 1.0,
+    anchor_only: bool = False,
 ) -> pd.DataFrame:
     """
     Rank candidates for the next slot. With raw=True, return every candidate
@@ -246,6 +247,8 @@ def recommend(
     callers such as src/evaluate.py can re-rank under any weights cheaply.
     anchor: a member (species) whose pairings count anchor_weight times, so a team built around
     a rarely used core keeps pairing with it instead of with its popular teammates.
+    anchor_only: the teammate pull comes from the anchor alone (scaled by team size, so it sits on the
+    same scale as the whole team's), ignoring how a candidate pairs with the other members.
     """
     base_weights = DEFAULT_WEIGHTS if mode == "popular" else EXPLORE_WEIGHTS
     weights = {**base_weights, **(weights or {})}
@@ -294,7 +297,9 @@ def recommend(
         team_ids = [tm.index[r] for r in team_roots if r in tm.index]
         fit_vec = tm.W[team_ids].sum(0) if team_ids else np.zeros(len(tm.vocab))
         anchor_root = dex.sheet_id(dex.get_species(anchor)) if anchor and dex.get_species(anchor) else None
-        if anchor_root in tm.index and anchor_weight != 1.0:
+        if anchor_root in tm.index and anchor_only:
+            fit_vec = len(team_ids) * tm.W[tm.index[anchor_root]]
+        elif anchor_root in tm.index and anchor_weight != 1.0:
             fit_vec = fit_vec + (anchor_weight - 1.0) * tm.W[tm.index[anchor_root]]
         conf = tm.confidence()
         b_mid = float(np.median(tm.b))

@@ -95,6 +95,17 @@ class TestBuildCli(unittest.TestCase):
             return len({p.species for t in teams for p in t.sets[1:]})
         self.assertGreater(partners(10.0), partners(0.0))
 
+    def test_core_only_pairs_with_the_core(self):
+        tm = self.usage.teammates
+        core = tm.index["baxcalibur"]
+        def pull(only):
+            with mock.patch.object(B, "CORE_ONLY", only):
+                teams = build_teams("Baxcalibur", self.dex, self.usage)
+            self.assertEqual(len(teams), 3)
+            ids = [tm.index.get(self.dex.sheet_id(self.dex.get_species(p.species))) for t in teams for p in t.sets[1:]]
+            return sum(tm.W[core, j] for j in ids if j is not None)
+        self.assertGreater(pull(True), pull(False))
+
     def test_one_plan_builds_full_teams(self):
         with mock.patch.object(B, "NO_MIXED_SPEED", True):
             teams = build_teams("Baxcalibur", self.dex, self.usage)
