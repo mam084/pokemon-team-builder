@@ -528,6 +528,33 @@ its players' ratings predicted (30 days before the week, shrunk toward 0) moved 
 +0.19 (weights 2 / 5), Neutral -0.11 / +0.16, Hidden gems +2.19 / +1.65: all inside the noise, while pulling teams
 away from what players pair with the core. `EDGE_WEIGHT = 0`.
 
+## One speed plan per built team (`labs/speed_mode_lab.py`, Nov 26)
+
+Built teams sometimes picked up a Trick Room setter *and* a Tailwind setter (around Baxcalibur: Galarian
+Slowking next to Corviknight, then slow and fast attackers each "playing into" one of them). About 23% of
+built teams did, in every style. Real players do it too, but less (10.5% of Reg M-C tournament teams), and those
+teams won 47.9% of their games against 48.3-50.2% for teams with one plan or none.
+
+The rule (`NO_MIXED_SPEED`): once a team has one of the two, the builder skips picks that set the other (a core
+that already sets both keeps both; if every top pick would mix, it takes the best of them over a short team).
+Held-out week, 50 cores, same test as the builder labs above, paired one plan vs mixing:
+
+| style | lean toward winning teams (95%) | learned win chance vs meta, points (95%) |
+|---|---|---|
+| Popular picks | +0.002 (-0.028 to +0.034) | +0.12 (-0.03 to +0.26) |
+| Neutral | +0.003 (-0.034 to +0.033) | +0.21 (-0.01 to +0.44) |
+| Hidden gems | **+0.014 (+0.000 to +0.031)** | **+0.26 (+0.02 to +0.50)** |
+
+Never worse, and better where it shows (Hidden gems, the style with the most mixed teams that weren't backed by
+real pairings): **shipped on.** The effect is small; the bigger win is that built teams now read as one plan.
+
+## Weak built teams get a warning (Nov 26)
+
+The builder always returns three teams, and the third can rate below most tournament teams. Hiding those would
+sometimes leave one or two teams, so instead a team gets a one-line warning when **every lens we have** calls it
+weak: On paper Weak *and* Proven Weak or Untested (`team_rating.is_weak`). A team that's Weak on Proven but
+Strong on paper isn't flagged, so off-meta teams aren't marked down for being off-meta.
+
 ## Battle replays
 
 A daily GitHub Action (`scripts/fetch_replays.py`, **Fetch replays** workflow)
