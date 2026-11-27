@@ -29,16 +29,16 @@ Full tour: [docs/features.md](docs/features.md).
 ## Results at a glance
 
 <!-- generated:summary -->
-Newest held-out data (2026-11-20 to 2026-11-26); the model never saw it.
+Newest held-out data (2026-11-20 to 2026-11-27); the model never saw it.
 
 | held-out test | model | baseline | tested on |
 |---|---|---|---|
-| Recommender: find the missing member of a real tournament team (MRR) | 0.652 | 0.211 (popularity only) | 1,727 teams |
-| Win model: pick the winner of a real match | 59.1% | 58.5% (ratings only) | 3,952 matches |
-| Teams alone (no ratings): pick the winner | 53.8% | 50.0% (coin flip) | 3,952 matches |
-| Bring model: predict the 4 a player brings | 72.4% | 70.6% (usual picks) | 19,988 team previews |
+| Recommender: find the missing member of a real tournament team (MRR) | 0.653 | 0.211 (popularity only) | 1,699 teams |
+| Win model: pick the winner of a real match | 59.3% | 58.8% (ratings only) | 3,893 matches |
+| Teams alone (no ratings): pick the winner | 54.5% | 50.0% (coin flip) | 3,893 matches |
+| Bring model: predict the 4 a player brings | 72.3% | 70.6% (usual picks) | 20,022 team previews |
 
-The team adds a small but real signal on top of the players' ratings (log-loss gain +0.0019 to +0.0077 over ratings alone, 95% paired bootstrap).
+The team adds a small but real signal on top of the players' ratings (log-loss gain +0.0031 to +0.0083 over ratings alone, 95% paired bootstrap).
 <!-- /generated:summary -->
 
 The honest headline: **the player decides most games.** Team composition adds only a few points of edge, so
