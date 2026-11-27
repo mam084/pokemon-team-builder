@@ -103,6 +103,23 @@ def grade(pct: float) -> tuple[str, str]:
     return next((w, e) for floor, w, e in GRADES if pct >= floor)
 
 
+def score_line(pct: float) -> str:
+    """The one number built teams are ranked by: the combined rating as a 0-100 team score."""
+    word, _ = grade(pct)
+    return f"Team score {pct:.0f} ({word}): rates above {pct:.0f}% of tournament teams"
+
+
+def details_line(seen: dict | None, chance: float | None) -> str:
+    """What goes into the team score, for anyone who wants to look closer."""
+    bits = []
+    if seen:
+        bits.append(f"Proven: {seen['proven'][0]}")
+        bits.append(f"On paper: {seen['paper'][0]}")
+    if chance is not None:
+        bits.append(f"{chance:.1%} learned win chance vs the meta teams")
+    return " · ".join(bits)
+
+
 # Two lenses instead of one grade. Tournament data can only vouch for combinations people play, so
 # an off-meta team isn't graded on that lens at all ("untested") rather than marked down for it.
 #   Proven:   teammate fit, how often strong players bring these Pokemon together.
