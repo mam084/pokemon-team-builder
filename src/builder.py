@@ -200,6 +200,41 @@ def mixes_speed(pset: PokemonSet, team: list[PokemonSet]) -> bool:
     return len(have) == 1 and bool(speed_modes(pset) - have)
 
 
+# One weather and one terrain per team: once a team sets a weather (or terrain), skip picks that set a
+# different one. A rain setter next to a sun setter just overwrites it, and the Pokemon that wanted the
+# first weather lose their boost. A core that sets two keeps both. Held-out week: labs/weather_clash_lab.py.
+NO_FIELD_CLASH = True
+_WEATHER = ("snow", "sun", "rain", "sand")
+_TERRAIN = ("psychicterrain", "grassyterrain", "electricterrain")
+
+
+def field_setters(pset: PokemonSet, dex: Dex) -> dict[str, set[str]]:
+    """{"weather": {...}, "terrain": {...}}: what this set can turn on, by ability (Mega or not) or move."""
+    from src.plan import SETTERS
+    abilities = {to_id(pset.ability or ""), to_id(pset.battle_ability(dex, mega=True) or ""),
+                 to_id(pset.battle_ability(dex, mega=False) or "")}
+    moves = {to_id(m) for m in pset.moves}
+    out = {"weather": set(), "terrain": set()}
+    for group, keys in (("weather", _WEATHER), ("terrain", _TERRAIN)):
+        for key in keys:
+            ab, mv = SETTERS[key]
+            if abilities & ab or moves & mv:
+                out[group].add(key)
+    return out
+
+
+def clashes_field(pset: PokemonSet, team: list[PokemonSet], dex: Dex) -> bool:
+    """True when adding pset would give a team that sets one weather (terrain) a second, different one."""
+    if not NO_FIELD_CLASH or not team:
+        return False
+    mine = field_setters(pset, dex)
+    for group in ("weather", "terrain"):
+        have = set().union(*(field_setters(p, dex)[group] for p in team))
+        if have and mine[group] - have:
+            return True
+    return False
+
+
 def edges_from(index: dict | None) -> dict[str, float]:
     """{sheet id: win-chance edge in points} from a core index (src/core_report.replay_index)."""
     out = {}
@@ -250,7 +285,7 @@ def _complete(team: list[PokemonSet], reasons: list[str], dex: Dex, usage: Usage
             pset = _set_for(row["pokemon"], team, dex, usage)
             if pset is None or to_id(pset.species) in {to_id(p.species) for p in team}:
                 continue
-            if mixes_speed(pset, team):
+            if mixes_speed(pset, team) or clashes_field(pset, team, dex):
                 fallback = fallback or (row["score"], pset, row, [])
                 continue
             hit = [n for n, w, t in open_ if _beats(pset, t, dex, doubles)] if open_ else []
@@ -329,7 +364,7 @@ def build_teams(core: PokemonSet | str, dex: Dex, usage: UsageData, doubles: boo
             break
         row = first.iloc[i]
         second = _set_for(row["pokemon"], [core], dex, usage)
-        if second is None or mixes_speed(second, [core]):
+        if second is None or mixes_speed(second, [core]) or clashes_field(second, [core], dex):
             continue
         second, why = _carry(second, row, dex, usage)
         theme = row["starts"] if row["starts"] and f"its {row['starts']} helps" in why else ""

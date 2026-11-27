@@ -46,6 +46,36 @@ class TestSpeedPlan(unittest.TestCase):
             self.assertFalse(mixes_speed(TW, [TR]))
 
 
+class TestFieldClash(unittest.TestCase):
+    """One weather and one terrain per team (src/builder.clashes_field)."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.dex = load_dex("regmc")
+        cls.rain = PokemonSet("Sableye", ability="Prankster", moves=["Rain Dance", "Encore"])
+        cls.sun = PokemonSet("Charizard", item="Charizardite Y", ability="Blaze", moves=["Heat Wave"])
+        cls.sand = PokemonSet("Tyranitar", ability="Sand Stream", moves=["Rock Slide"])
+        cls.grass = PokemonSet("Rillaboom", ability="Grassy Surge", moves=["Fake Out"])
+        cls.psychic = PokemonSet("Indeedee-F", ability="Psychic Surge", moves=["Follow Me"])
+
+    def test_setters(self):
+        self.assertEqual(B.field_setters(self.sun, self.dex)["weather"], {"sun"})    # by its Mega's ability
+        self.assertEqual(B.field_setters(self.rain, self.dex)["weather"], {"rain"})  # by move
+        self.assertEqual(B.field_setters(self.grass, self.dex)["terrain"], {"grassyterrain"})
+        self.assertEqual(B.field_setters(NONE, self.dex), {"weather": set(), "terrain": set()})
+
+    def test_clash_only_when_on(self):
+        with mock.patch.object(B, "NO_FIELD_CLASH", True):
+            self.assertTrue(B.clashes_field(self.rain, [self.sun], self.dex))
+            self.assertTrue(B.clashes_field(self.sand, [NONE, self.rain], self.dex))
+            self.assertTrue(B.clashes_field(self.psychic, [self.grass], self.dex))
+            self.assertFalse(B.clashes_field(self.sun, [self.sun], self.dex))      # same weather
+            self.assertFalse(B.clashes_field(self.sun, [self.grass], self.dex))    # weather + terrain is fine
+            self.assertFalse(B.clashes_field(self.rain, [NONE], self.dex))         # first weather
+        with mock.patch.object(B, "NO_FIELD_CLASH", False):
+            self.assertFalse(B.clashes_field(self.rain, [self.sun], self.dex))
+
+
 class TestWeakFlag(unittest.TestCase):
     def test_needs_every_lens(self):
         self.assertTrue(is_weak({"paper": ("Weak", 10), "proven": ("Weak", 12)}))
