@@ -21,6 +21,8 @@ shows actual vs rating-predicted wins with the sample size, never a bare win rat
 
 from __future__ import annotations
 
+import math
+
 import json
 from collections import Counter, defaultdict
 from datetime import datetime, timezone
@@ -283,4 +285,38 @@ def thin_note(name: str, thin: dict, tournament_teams: int | None = None, player
             "may rest on a few teams." + (" Real teams with it: Pokémon tab." if point_to_tab else ""))
 
 
-__all__ = ["thin_data", "thin_note", "THIN_EVIDENCE", "plan_setters", "team_style", "replay_index", "load_index", "tournament_core", "core_matchups", "answered", "wins_against"]
+def underperforms(row: dict | None) -> tuple[float, float, int] | None:
+    """(won share, rating-predicted share, games) when the Pokemon has been winning clearly less than its
+    players' ratings predict (more than 1.5 standard deviations below over 10+ rated games), else None.
+    The same test as the Pokemon tab's 'clearly worse than expected'."""
+    n = (row or {}).get("rated") or 0
+    if n < 10:
+        return None
+    won, expected = row["rated_won"], row["rated_expected"]
+    if won - expected >= -1.5 * math.sqrt(n * 0.25):
+        return None
+    return won / n, expected / n, n
+
+
+def core_advice(name: str, row: dict | None, thin: dict | None, mode: str = "popular",
+                other_sets: bool = False) -> str:
+    """What to do about a core that's underperforming or has little data, or '' when neither applies."""
+    under = underperforms(row)
+    if under:
+        won, exp, n = under
+        tips = []
+        if mode != "hidden":
+            tips.append("the Hidden gems style (it favours picks that beat their players' ratings)")
+        if other_sets:
+            tips.append("another of its sets")
+        tip = (f"Try {' or '.join(tips)}, and lock in a partner you trust with Must include." if tips else
+               "Lock in a partner you trust with Must include.")
+        return (f"{name} has been winning less than its players' ratings predict ({won:.0%} vs {exp:.0%} over "
+                f"{n:,} rated games). {tip}")
+    if thin:
+        return (f"Little data on {name}, so these teams lean on general patterns more than on its own partners. "
+                "If you know a partner that works, lock it in with Must include.")
+    return ""
+
+
+__all__ = ["underperforms", "core_advice", "thin_data", "thin_note", "THIN_EVIDENCE", "plan_setters", "team_style", "replay_index", "load_index", "tournament_core", "core_matchups", "answered", "wins_against"]

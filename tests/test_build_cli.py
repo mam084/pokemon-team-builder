@@ -222,3 +222,27 @@ class TestLockBan(unittest.TestCase):
         self.assertEqual(code, 0)
         self.assertIn("Incineroar: you locked it in", out)
         self.assertNotIn("Raichu @", out)
+
+
+class TestCoreAdvice(unittest.TestCase):
+    def test_underperforming_thin_and_fine(self):
+        from src.core_report import core_advice, underperforms
+        under = {"rated": 387, "rated_won": 170, "rated_expected": 186}     # 44% vs 48%
+        fine = {"rated": 387, "rated_won": 184, "rated_expected": 186}
+        self.assertIsNotNone(underperforms(under))
+        self.assertIsNone(underperforms(fine))
+        self.assertIsNone(underperforms({"rated": 5, "rated_won": 0, "rated_expected": 3}))   # too few
+        text = core_advice("Gliscor", under, None, "popular", other_sets=True)
+        self.assertIn("44% vs 48%", text)
+        self.assertIn("Hidden gems", text)
+        self.assertIn("another of its sets", text)
+        self.assertNotIn("Hidden gems", core_advice("Gliscor", under, None, "hidden"))
+        self.assertIn("Little data", core_advice("Gliscor", fine, {"top10": 0.7}, "popular"))
+        self.assertEqual(core_advice("Gliscor", fine, None), "")
+
+    def test_cli_prints_tip(self):
+        # patched: whether Gliscor underperforms changes with each data refresh
+        with mock.patch("src.core_report.core_advice", return_value="do the thing"):
+            code, out, _ = run("Gliscor", "--teams", "1")
+        self.assertEqual(code, 0)
+        self.assertIn("Tip: do the thing", out)
