@@ -1,17 +1,17 @@
 {
  "regulation": "regmc",
  "usage_month": "2026-10",
- "teams": 5433,
- "pairing_teams": 2188,
- "train_teams": 1649,
- "test_teams": 1596,
+ "teams": 5617,
+ "pairing_teams": 2239,
+ "train_teams": 1651,
+ "test_teams": 1727,
  "train_tournaments": 34,
  "test_tournaments": 36,
  "test_dates": [
-  "2026-11-18",
-  "2026-11-24"
+  "2026-11-20",
+  "2026-11-26"
  ],
- "queries": 9576,
+ "queries": 10362,
  "candidate_pool": 68,
  "tuned_weights": {
   "synergy": 1.0,
@@ -21,42 +21,42 @@
   "meta": 0.0,
   "plan": 0.0
  },
- "train_mrr": 0.6899,
+ "train_mrr": 0.6883,
  "results": {
   "tuned weights": {
    "hit@1": 0.5434,
-   "hit@5": 0.7711,
-   "hit@10": 0.8378,
-   "mrr": 0.6463,
-   "in_pool": 0.9288
+   "hit@5": 0.7832,
+   "hit@10": 0.8497,
+   "mrr": 0.6517,
+   "in_pool": 0.9365
   },
   "hand-set weights": {
-   "hit@1": 0.1886,
-   "hit@5": 0.4558,
-   "hit@10": 0.6069,
-   "mrr": 0.3231,
-   "in_pool": 0.9288
+   "hit@1": 0.1898,
+   "hit@5": 0.4648,
+   "hit@10": 0.6167,
+   "mrr": 0.3291,
+   "in_pool": 0.9365
   },
   "synergy only": {
    "hit@1": 0.5434,
-   "hit@5": 0.7711,
-   "hit@10": 0.8378,
-   "mrr": 0.6463,
-   "in_pool": 0.9288
+   "hit@5": 0.7832,
+   "hit@10": 0.8497,
+   "mrr": 0.6517,
+   "in_pool": 0.9365
   },
   "popularity only": {
-   "hit@1": 0.0666,
-   "hit@5": 0.3599,
-   "hit@10": 0.4972,
-   "mrr": 0.2114,
-   "in_pool": 0.9288
+   "hit@1": 0.0664,
+   "hit@5": 0.355,
+   "hit@10": 0.4899,
+   "mrr": 0.2108,
+   "in_pool": 0.9365
   },
   "before: lift synergy": {
-   "hit@1": 0.432,
-   "hit@5": 0.6834,
-   "hit@10": 0.7643,
-   "mrr": 0.5474,
-   "in_pool": 0.9288
+   "hit@1": 0.4326,
+   "hit@5": 0.6942,
+   "hit@10": 0.7738,
+   "mrr": 0.5501,
+   "in_pool": 0.9365
   },
   "random": {
    "hit@1": 0.0147,
@@ -67,5 +67,5 @@
   }
  },
  "format": "gen9championsvgc2026regmc",
- "seconds": 1158.7
+ "seconds": 995.9
 }
