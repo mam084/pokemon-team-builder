@@ -808,7 +808,8 @@ class TestNeutralGems(unittest.TestCase):
             plain = [frozenset(to_id(p.species) for p in t.sets) for t in B.build_teams("Garganacl", dex, usage, mode="neutral")]
         finally:
             B.NEUTRAL_GEMS = old
-        self.assertEqual(len(set(keys) & set(plain)), 2)               # the first two stay Neutral builds
+        # the first two stay Neutral builds; the gems team can also happen to be plain Neutral's third
+        self.assertGreaterEqual(len(set(keys) & set(plain)), 2)
 
 
 
