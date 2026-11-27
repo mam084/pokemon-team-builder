@@ -14,7 +14,11 @@ record) and data/tournaments/<regulation>_matches.json (one row per match).
 
 Usage:
     python scripts/fetch_tournaments.py                  # every regulation in REGULATIONS
-    python scripts/fetch_tournaments.py --min-players 32 --max-tournaments 200
+    python scripts/fetch_tournaments.py --min-players 32 --days 60
+
+Keeps every tournament from the last DAYS days (30, the same window as the sheet sets, the teammate
+model and the Pokémon tab), up to --max-tournaments as a safety cap. It used to keep the newest 120
+tournaments, which on a busy regulation reached back only ~19 days.
 """
 
 from __future__ import annotations
@@ -23,6 +27,7 @@ import argparse
 import json
 import sys
 import time
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import requests
@@ -37,6 +42,8 @@ sys.path.insert(0, str(ROOT))
 from src.formats import FORMATS  # noqa: E402
 
 REGULATIONS = {f.regulation: f.limitless for f in FORMATS.values() if f.current and f.limitless}
+DAYS = 30          # keep tournaments from this many days back (from today)
+MAX_TOURNAMENTS = 600   # safety cap on requests
 DELAY = 1.0  # seconds between requests; the API is free, so stay well under its rate limit
 
 
@@ -54,16 +61,19 @@ def get(path: str, **params):
     response.raise_for_status()
 
 
-def list_tournaments(fmt: str, min_players: int, max_tournaments: int) -> list[dict]:
+def list_tournaments(fmt: str, min_players: int, max_tournaments: int, days: int | None = DAYS) -> list[dict]:
+    """Tournaments in this format with min_players+, newest first, dated within `days` of today."""
+    cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).strftime("%Y-%m-%d") if days else ""
     found, page = [], 1
     while len(found) < max_tournaments:
         batch = get("/tournaments", game="VGC", format=fmt, limit=100, page=page)
         if not batch or (found and batch[-1].get("id") == found[-1].get("id")):
             break  # empty page, or the API ignored `page` and repeated itself
-        found += [t for t in batch if t.get("format") == fmt and (t.get("players") or 0) >= min_players]
+        found += [t for t in batch if t.get("format") == fmt and (t.get("players") or 0) >= min_players
+                  and (t.get("date") or "")[:10] >= cutoff]
         page += 1
-        if page > 50:
-            break
+        if page > 50 or (cutoff and all((t.get("date") or "")[:10] < cutoff for t in batch)):
+            break  # past the window
     return found[:max_tournaments]
 
 
@@ -87,12 +97,13 @@ def clean_team(decklist) -> list[dict] | None:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--min-players", type=int, default=16)
-    parser.add_argument("--max-tournaments", type=int, default=120)
+    parser.add_argument("--days", type=int, default=DAYS, help="keep tournaments from the last N days (0: no limit)")
+    parser.add_argument("--max-tournaments", type=int, default=MAX_TOURNAMENTS)
     args = parser.parse_args()
     OUT_DIR.mkdir(parents=True, exist_ok=True)
 
     for reg, fmt in REGULATIONS.items():
-        tournaments = list_tournaments(fmt, args.min_players, args.max_tournaments)
+        tournaments = list_tournaments(fmt, args.min_players, args.max_tournaments, args.days or None)
         teams, matches = [], []
         for n, t in enumerate(tournaments, 1):
             if n % 25 == 0:
