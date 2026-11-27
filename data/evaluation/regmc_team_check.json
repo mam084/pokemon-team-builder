@@ -1,262 +1,262 @@
 {
  "regulation": "regmc",
- "cut": "2026-11-20",
+ "cut": "2026-11-18",
  "test_dates": [
-  "2026-11-20",
+  "2026-11-18",
   "2026-11-26"
  ],
  "reference_teams": 1200,
- "best_real_team": 0.582,
- "held_out_teams": 1727,
- "changed_share": 0.0023,
+ "best_real_team": 0.5619,
+ "held_out_teams": 2545,
+ "changed_share": 0.0016,
  "ranking": {
   "without bounds": {
-   "spearman": 0.0862,
+   "spearman": 0.0987,
    "quarters": [
     {
-     "predicted": 0.4496,
-     "actual": 0.4627,
-     "teams": 432,
-     "games": 2023
+     "predicted": 0.457,
+     "actual": 0.4619,
+     "teams": 637,
+     "games": 3031
     },
     {
-     "predicted": 0.4856,
-     "actual": 0.4849,
-     "teams": 432,
-     "games": 2093
+     "predicted": 0.4935,
+     "actual": 0.4903,
+     "teams": 636,
+     "games": 3100
     },
     {
-     "predicted": 0.5041,
-     "actual": 0.509,
-     "teams": 432,
-     "games": 2175
+     "predicted": 0.5109,
+     "actual": 0.5039,
+     "teams": 636,
+     "games": 3112
     },
     {
-     "predicted": 0.5278,
-     "actual": 0.5211,
-     "teams": 431,
-     "games": 2232
+     "predicted": 0.5321,
+     "actual": 0.5254,
+     "teams": 636,
+     "games": 3234
     }
    ],
-   "max": 0.5578
+   "max": 0.5712
   },
   "with bounds": {
-   "spearman": 0.0862,
+   "spearman": 0.0987,
    "quarters": [
     {
-     "predicted": 0.4497,
-     "actual": 0.4627,
-     "teams": 432,
-     "games": 2023
+     "predicted": 0.4571,
+     "actual": 0.4619,
+     "teams": 637,
+     "games": 3031
     },
     {
-     "predicted": 0.4856,
-     "actual": 0.4849,
-     "teams": 432,
-     "games": 2093
+     "predicted": 0.4935,
+     "actual": 0.4903,
+     "teams": 636,
+     "games": 3100
     },
     {
-     "predicted": 0.5041,
-     "actual": 0.509,
-     "teams": 432,
-     "games": 2175
+     "predicted": 0.5109,
+     "actual": 0.5039,
+     "teams": 636,
+     "games": 3112
     },
     {
-     "predicted": 0.5278,
-     "actual": 0.5211,
-     "teams": 431,
-     "games": 2232
+     "predicted": 0.532,
+     "actual": 0.5254,
+     "teams": 636,
+     "games": 3234
     }
    ],
-   "max": 0.5578
+   "max": 0.5619
   }
  },
  "objective": {
-  "teams": 1727,
+  "teams": 2545,
   "win chance": {
-   "spearman": 0.0862,
+   "spearman": 0.0987,
    "quarters": [
     {
-     "predicted": 0.4497,
-     "actual": 0.4627,
-     "teams": 432,
-     "games": 2023
+     "predicted": 0.4571,
+     "actual": 0.4619,
+     "teams": 637,
+     "games": 3031
     },
     {
-     "predicted": 0.4856,
-     "actual": 0.4849,
-     "teams": 432,
-     "games": 2093
+     "predicted": 0.4935,
+     "actual": 0.4903,
+     "teams": 636,
+     "games": 3100
     },
     {
-     "predicted": 0.5041,
-     "actual": 0.509,
-     "teams": 432,
-     "games": 2175
+     "predicted": 0.5109,
+     "actual": 0.5039,
+     "teams": 636,
+     "games": 3112
     },
     {
-     "predicted": 0.5278,
-     "actual": 0.5211,
-     "teams": 431,
-     "games": 2232
+     "predicted": 0.532,
+     "actual": 0.5254,
+     "teams": 636,
+     "games": 3234
     }
    ]
   },
   "team score": {
-   "spearman": 0.1129,
+   "spearman": 0.1263,
    "quarters": [
     {
-     "predicted": -3.1695,
-     "actual": 0.4317,
-     "teams": 432,
-     "games": 1962
+     "predicted": -2.9116,
+     "actual": 0.4267,
+     "teams": 637,
+     "games": 2880
     },
     {
-     "predicted": -0.5422,
-     "actual": 0.4922,
-     "teams": 432,
-     "games": 2111
+     "predicted": -0.4538,
+     "actual": 0.5008,
+     "teams": 636,
+     "games": 3179
     },
     {
-     "predicted": 0.7145,
-     "actual": 0.5231,
-     "teams": 432,
-     "games": 2227
+     "predicted": 0.6954,
+     "actual": 0.5249,
+     "teams": 636,
+     "games": 3174
     },
     {
-     "predicted": 1.6209,
-     "actual": 0.5263,
-     "teams": 431,
-     "games": 2223
+     "predicted": 1.6577,
+     "actual": 0.524,
+     "teams": 636,
+     "games": 3244
     }
    ]
   },
   "gain_ci": [
-   -0.002,
-   0.0559
+   0.0031,
+   0.0543
   ]
  },
  "search": [
   {
    "start": "Goodstuffs (Sneasler + Kingambit)",
    "without bounds": {
-    "from": 0.4997,
-    "to": 0.5941,
-    "swaps": 5,
+    "from": 0.4998,
+    "to": 0.6276,
+    "swaps": 6,
     "team": [
      "Sylveon",
-     "Volcarona",
+     "Hippowdon",
+     "Feraligatr",
+     "Umbreon",
      "Baxcalibur",
-     "Incineroar",
-     "Golurk",
      "Gyarados"
     ]
    },
    "with bounds": {
-    "from": 0.4997,
-    "to": 0.582,
-    "swaps": 4,
+    "from": 0.4998,
+    "to": 0.5619,
+    "swaps": 2,
     "team": [
-     "Sylveon",
-     "Volcarona",
-     "Baxcalibur",
+     "Hippowdon",
+     "Kingambit",
+     "Feraligatr",
      "Incineroar",
      "Basculegion-M",
-     "Gyarados"
+     "Floette-Eternal"
     ]
    },
    "team score": {
-    "from": 50,
-    "to": 96,
-    "win": 0.5599,
+    "from": 45,
+    "to": 88,
+    "win": 0.5319,
     "swaps": 4,
     "team": [
+     "Volcarona",
      "Garchomp",
-     "Dragonite",
      "Rillaboom",
      "Incineroar",
      "Gholdengo",
-     "Sylveon"
+     "Floette-Eternal"
     ],
-    "real_5of6": 3
+    "real_5of6": 96
    }
   },
   {
    "start": "Sun (Charizard-Mega-Y + Garchomp)",
    "without bounds": {
     "from": 0.4981,
-    "to": 0.5946,
-    "swaps": 7,
+    "to": 0.6276,
+    "swaps": 6,
     "team": [
      "Feraligatr",
-     "Volcarona",
+     "Baxcalibur",
      "Gyarados",
-     "Gholdengo",
-     "Tauros-Paldea-Blaze",
+     "Hippowdon",
+     "Umbreon",
      "Sylveon"
     ]
    },
    "with bounds": {
     "from": 0.4981,
-    "to": 0.582,
-    "swaps": 4,
+    "to": 0.5619,
+    "swaps": 2,
     "team": [
-     "Baxcalibur",
+     "Charizard",
      "Garchomp",
-     "Volcarona",
-     "Gholdengo",
+     "Kingambit",
+     "Feraligatr",
      "Incineroar",
      "Sylveon"
     ]
    },
    "team score": {
-    "from": 38,
-    "to": 96,
-    "win": 0.5599,
+    "from": 35,
+    "to": 97,
+    "win": 0.5619,
     "swaps": 3,
     "team": [
-     "Dragonite",
+     "Charizard",
      "Garchomp",
      "Gholdengo",
      "Sylveon",
      "Incineroar",
-     "Rillaboom"
+     "Venusaur"
     ],
-    "real_5of6": 3
+    "real_5of6": 145
    }
   },
   {
    "start": "Rain + Tailwind (Archaludon + Pelipper)",
    "without bounds": {
-    "from": 0.4903,
-    "to": 0.5941,
+    "from": 0.4845,
+    "to": 0.6286,
     "swaps": 6,
     "team": [
-     "Volcarona",
+     "Umbreon",
+     "Hippowdon",
+     "Feraligatr",
+     "Arcanine",
      "Sylveon",
-     "Baxcalibur",
-     "Incineroar",
-     "Golurk",
      "Gyarados"
     ]
    },
    "with bounds": {
-    "from": 0.4903,
-    "to": 0.582,
-    "swaps": 5,
+    "from": 0.4845,
+    "to": 0.5619,
+    "swaps": 3,
     "team": [
-     "Volcarona",
+     "Arcanine-Hisui",
+     "Hippowdon",
+     "Golisopod",
+     "Sneasler",
      "Sylveon",
-     "Baxcalibur",
-     "Incineroar",
-     "Golurk",
      "Raichu"
     ]
    },
    "team score": {
-    "from": 64,
-    "to": 64,
-    "win": 0.4903,
+    "from": 56,
+    "to": 56,
+    "win": 0.4845,
     "swaps": 0,
     "team": [
      "Archaludon",
@@ -266,7 +266,7 @@
      "Basculegion-F",
      "Raichu"
     ],
-    "real_5of6": 213
+    "real_5of6": 331
    }
   }
  ]
