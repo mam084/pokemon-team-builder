@@ -38,13 +38,22 @@ class TestCompareApp(unittest.TestCase):
         self.assertIn(SAVED, at.session_state)
         self.assertTrue(any("same as the saved version" in c.value for c in at.caption))
         click(at, key="find_swaps")
-        swap = next(b for b in at.button if b.key and b.key.startswith(("swap_", "alt_")))
-        swap.click().run()
-        self.assertFalse(at.exception, [e.value for e in at.exception])
-        md = " ".join(m.value for m in at.markdown)
-        self.assertIn("Now vs saved version", md)
-        self.assertIn("Out:", md)
-        self.assertTrue(any(m.label == "Win chance" and m.delta for m in at.metric))
+        # Some alternatives don't move the win chance (they're listed whether or not they help, and which
+        # come first depends on the retrained models), so try them until one does, restoring in between.
+        keys = [b.key for b in at.button if b.key and b.key.startswith(("swap_", "alt_"))]
+        moved = False
+        for key in keys[:8]:
+            next(b for b in at.button if b.key == key).click().run()
+            self.assertFalse(at.exception, [e.value for e in at.exception])
+            md = " ".join(m.value for m in at.markdown)
+            self.assertIn("Now vs saved version", md)
+            self.assertIn("Out:", md)
+            if any(m.label == "Win chance" and m.delta for m in at.metric):
+                moved = True
+                break
+            click(at, key="restore_version")
+            click(at, key="find_swaps") if any(b.key == "find_swaps" for b in at.button) else None
+        self.assertTrue(moved, "no swap changed the win chance")
         click(at, key="restore_version")
         self.assertEqual([at.session_state[f"s{i}_species"] for i in range(6)], before)
         click(at, key="clear_version")
