@@ -182,3 +182,43 @@ class TestSetReason(unittest.TestCase):
         for t in build_teams("Gliscor", self.dex, usage):
             for r in t.reasons:
                 self.assertNotIn("rarely run next to", r)
+
+
+class TestLockBan(unittest.TestCase):
+    """Must include / Leave out in the builder (uses the shipped Reg M-C data)."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.dex = load_dex("regmc")
+        cls.usage = load_usage("gen9championsvgc2026regmc")
+        if cls.usage is None:
+            raise unittest.SkipTest("no shipped usage data")
+
+    def test_lock_and_ban(self):
+        teams = build_teams("Gliscor", self.dex, self.usage, lock=["Incineroar"], ban=["Raichu", "Rillaboom"])
+        self.assertTrue(teams)
+        for t in teams:
+            names = [p.species for p in t.sets]
+            self.assertEqual(names[:2], ["Gliscor", "Incineroar"])
+            self.assertEqual(len(set(names)), 6)
+            self.assertNotIn("Raichu", names)
+            self.assertNotIn("Rillaboom", names)
+            self.assertEqual(t.reasons[0], "Incineroar: you locked it in")
+
+    def test_ban_covers_megas_not_regional_formes(self):
+        from src.builder import banned
+        ban = frozenset({"charizard"})
+        self.assertTrue(banned(PokemonSet("Charizard", item="Charizardite Y"), ban, self.dex))
+        self.assertFalse(banned(PokemonSet("Raichu-Alola"), frozenset({"raichu"}), self.dex))
+
+    def test_full_lock_returns_that_team(self):
+        lock = ["Incineroar", "Rillaboom", "Gholdengo", "Primarina", "Tyranitar"]
+        teams = build_teams("Gliscor", self.dex, self.usage, lock=lock)
+        self.assertEqual(len(teams), 1)
+        self.assertEqual([p.species for p in teams[0].sets], ["Gliscor"] + lock)
+
+    def test_cli_flags(self):
+        code, out, _ = run("Gliscor", "--teams", "1", "--with", "Incineroar", "--without", "Raichu", "--no-summary")
+        self.assertEqual(code, 0)
+        self.assertIn("Incineroar: you locked it in", out)
+        self.assertNotIn("Raichu @", out)

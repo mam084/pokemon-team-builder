@@ -272,7 +272,7 @@ def _beats(pset: PokemonSet, threat, dex: Dex, doubles: bool) -> bool:
 
 
 def _complete(team: list[PokemonSet], reasons: list[str], dex: Dex, usage: UsageData, doubles: bool,
-              mode: str, weights: dict | None, used: dict | None = None) -> None:
+              mode: str, weights: dict | None, used: dict | None = None, ban: frozenset = frozenset()) -> None:
     threats = _threats(team[0], dex, usage, doubles) if THREAT_WEIGHT > 0 else []
     while len(team) < TEAM_SIZE:
         recs = recommend(build_members(team, dex), dex, usage, doubles=doubles, weights=weights,
@@ -283,7 +283,7 @@ def _complete(team: list[PokemonSet], reasons: list[str], dex: Dex, usage: Usage
         best, fallback = None, None
         for _, row in recs.iterrows():
             pset = _set_for(row["pokemon"], team, dex, usage)
-            if pset is None or to_id(pset.species) in {to_id(p.species) for p in team}:
+            if pset is None or to_id(pset.species) in {to_id(p.species) for p in team} or banned(pset, ban, dex):
                 continue
             if mixes_speed(pset, team) or clashes_field(pset, team, dex):
                 fallback = fallback or (row["score"], pset, row, [])
@@ -358,25 +358,46 @@ NEUTRAL_GEMS = 1
 
 def build_teams(core: PokemonSet | str, dex: Dex, usage: UsageData, doubles: bool = True,
                 mode: str = "popular", weights: dict | None = None, alternatives: int = 3,
-                archetypes=None, regulation: str | None = None, gems: bool = True) -> list[BuiltTeam]:
+                archetypes=None, regulation: str | None = None, gems: bool = True,
+                lock=(), ban=()) -> list[BuiltTeam]:
+    """
+    Up to `alternatives` teams around the core. `lock`: Pokemon (names or sets) every team must include,
+    added right after the core; `ban`: names no team may use (their Megas included).
+    """
     if isinstance(core, str):
         core = core_set(core, dex, usage)
         if core is None:
             return []
+    ban = frozenset(to_id(b) for b in ban)
+    base, base_reasons = [core], []
+    for item in lock:
+        locked = item if isinstance(item, PokemonSet) else _set_for(item, base, dex, usage)
+        if locked is None or to_id(locked.species) in {to_id(p.species) for p in base}:
+            continue
+        base.append(locked)
+        base_reasons.append(f"{locked.species}: you locked it in")
+        if len(base) == TEAM_SIZE:
+            break
+    if len(base) == TEAM_SIZE:
+        return _order([BuiltTeam(base, base_reasons)], dex, usage, doubles, archetypes, regulation)
     gems = min(NEUTRAL_GEMS, alternatives - 1) if (mode == "neutral" and gems) else 0
     if gems:
         # the Neutral build's own first teams (in seed order, before rating), then the gems in place of the rest
-        teams = build_teams(core, dex, usage, doubles, mode, weights, alternatives, gems=False)[:alternatives - gems]
+        teams = build_teams(core, dex, usage, doubles, mode, weights, alternatives, gems=False,
+                            lock=base[1:], ban=ban)[:alternatives - gems]
         species = [{to_id(p.species) for p in t.sets} for t in teams]
-        for t in build_teams(core, dex, usage, doubles, "hidden", weights, alternatives):
+        for t in build_teams(core, dex, usage, doubles, "hidden", weights, alternatives, lock=base[1:], ban=ban):
             if len(teams) >= alternatives:
                 break
             if {to_id(p.species) for p in t.sets} not in species:
                 teams.append(t)
                 species.append({to_id(p.species) for p in t.sets})
         return _order(teams, dex, usage, doubles, archetypes, regulation)
-    first = recommend(build_members([core], dex), dex, usage, doubles=doubles, weights=weights,
-                      top_n=None, mode=mode).reset_index(drop=True)
+    first = recommend(build_members(base, dex), dex, usage, doubles=doubles, weights=weights,
+                      top_n=None, mode=mode)
+    if not first.empty and ban:
+        first = first[[not _banned_name(n, ban, dex) for n in first["pokemon"]]]
+    first = first.reset_index(drop=True)
     if first.empty:
         return []
     # seeds: best overall, then the best starter of each plan the core benefits from, then the rest
@@ -392,19 +413,40 @@ def build_teams(core: PokemonSet | str, dex: Dex, usage: UsageData, doubles: boo
         if len(teams) >= alternatives:
             break
         row = first.iloc[i]
-        second = _set_for(row["pokemon"], [core], dex, usage)
-        if second is None or mixes_speed(second, [core]) or clashes_field(second, [core], dex):
+        second = _set_for(row["pokemon"], base, dex, usage)
+        if second is None or to_id(second.species) in {to_id(p.species) for p in base} \
+                or banned(second, ban, dex) or mixes_speed(second, base) or clashes_field(second, base, dex):
             continue
         second, why = _carry(second, row, dex, usage)
         theme = row["starts"] if row["starts"] and f"its {row['starts']} helps" in why else ""
-        built = BuiltTeam([core, second], [f"{second.species}: {why}"], theme=theme)
-        used = Counter(to_id(p.species) for t in teams for p in t.sets[1:])
-        _complete(built.sets, built.reasons, dex, usage, doubles, mode, weights, used)
+        built = BuiltTeam(base + [second], base_reasons + [f"{second.species}: {why}"], theme=theme)
+        used = Counter(to_id(p.species) for t in teams for p in t.sets[len(base):])
+        _complete(built.sets, built.reasons, dex, usage, doubles, mode, weights, used, ban=ban)
         if len(built.sets) == TEAM_SIZE and all(
             {to_id(p.species) for p in built.sets} != {to_id(p.species) for p in t.sets} for t in teams
         ):
             teams.append(built)
     return _order(teams, dex, usage, doubles, archetypes, regulation)
+
+
+def _banned_name(name: str, ban: frozenset, dex: Dex) -> bool:
+    if not ban:
+        return False
+    s = dex.get_species(name)
+    ids = {to_id(name)}
+    if s is not None:
+        ids.add(to_id(s.name))
+        if s.is_mega:   # banning Charizard bans its Megas, not regional formes
+            ids.add(to_id(s.base_species))
+    return bool(ids & ban)
+
+
+def banned(pset: PokemonSet, ban: frozenset, dex: Dex) -> bool:
+    """True when the set's Pokemon (or the Pokemon it Mega Evolves from) is on the ban list."""
+    if not ban:
+        return False
+    form = pset.battle_form(dex)
+    return _banned_name(pset.species, ban, dex) or (form is not None and _banned_name(form.name, ban, dex))
 
 
 def _order(teams: list[BuiltTeam], dex: Dex, usage: UsageData, doubles: bool, archetypes, regulation) -> list[BuiltTeam]:

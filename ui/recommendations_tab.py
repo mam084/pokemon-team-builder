@@ -111,6 +111,12 @@ def team_builder_section(team, dex, usage, fmt, mode, weights) -> None:
             core_set = options[pick][1] if options else None
             if core_set is not None:
                 st.caption(f"{core_set.item or 'no item'} · {core_set.nature} · " + " / ".join(core_set.moves))
+        others = [n for n in names if to_id(n) != to_id(core_name)]
+        c1, c2 = st.columns(2)
+        lock = c1.multiselect("Must include", others, key=f"build_lock_{core_name}", max_selections=4,
+                              help="Every team keeps these, then the builder fills the rest.")
+        ban = c2.multiselect("Leave out", [n for n in others if n not in lock], key=f"build_ban_{core_name}",
+                             help="No team will use these (their Megas included).")
         thin = thin_line(core_name, core_set, dex, usage, fmt)
         if thin:
             st.caption(thin)
@@ -126,7 +132,7 @@ def team_builder_section(team, dex, usage, fmt, mode, weights) -> None:
             with st.spinner("Building teams…"):
                 st.session_state["built_teams"] = build_teams(
                     core, dex, usage, doubles=fmt.is_doubles, mode=mode, weights=weights,
-                    archetypes=archetypes_for(fmt.id), regulation=fmt.regulation)
+                    archetypes=archetypes_for(fmt.id), regulation=fmt.regulation, lock=lock, ban=ban)
             st.session_state["built_for"] = (core_name, mode)
         built = st.session_state.get("built_teams") or []
         if built:
