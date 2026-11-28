@@ -353,10 +353,12 @@ def _carry(pset: PokemonSet, row, dex: Dex, usage: UsageData) -> tuple[PokemonSe
     return pset, set_reason(honest_reason(row["why"], unmet), pset, dex)
 
 
-# In Neutral, the last of the teams is built the Hidden gems way (unlabelled; all three are ranked together).
+# In Neutral, the last of the teams could be built the Hidden gems way (unlabelled; all three ranked together).
 # Hidden gems picks were the ones that beat their players' ratings on held-out ladder games
-# (labs/offmeta_lab.py). The mix (--gems there): Neutral slope -0.45 with or without it, so no harm.
-NEUTRAL_GEMS = 1
+# (labs/offmeta_lab.py). The mix (--gems there): Neutral slope -0.45 with or without it, so no harm. Off
+# now that the app offers Neutral (as Off-meta) next to Hidden gems: across 22 cores that team was always an
+# exact copy of a Hidden gems team, so Off-meta builds its own three.
+NEUTRAL_GEMS = 0
 
 
 def build_teams(core: PokemonSet | str, dex: Dex, usage: UsageData, doubles: bool = True,

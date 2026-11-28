@@ -11,7 +11,8 @@ import streamlit as st
 from src.builder import build_teams, core_set as builder_core_set
 from src.dex import to_id
 from src.matchup import verdict
-from src.recommend import HIDDEN_MAX, DEFAULT_WEIGHTS, EXPLORE_WEIGHTS, MODES, UI_DEFAULT, UI_MODES, recommend
+from src.recommend import (DEFAULT_WEIGHTS, EXPLORE_WEIGHTS, MODES, STYLE_NOTES, STYLE_SCALE, UI_DEFAULT, UI_MODES,
+                           recommend)
 from src.roles import meta_roles, role_text, set_roles
 from ui.common import SLOTS, sprite, type_badges, no_usage
 from ui.core_report import core_threats, thin_line, threats_line
@@ -31,14 +32,7 @@ HELP = {
     "plan": "Plays into your team's weather, Trick Room, Tailwind or terrain (with diminishing returns), "
             "or sets one up that your team already benefits from.",
 }
-MODE_HELP = {
-    "popular": "Data-tuned on real tournament teams. Leans on proven meta Pokémon.",
-    "neutral": "Popularity counts for nothing and every Pokémon with ladder data is considered. "
-               "Leans on synergy, type fit and your team's game plan (weather, Trick Room...).",
-    "hidden": f"Only Pokémon on fewer than {HIDDEN_MAX:.0f}% of ladder teams, ranked on synergy, type fit and "
-              "your team's game plan rather than popularity. In tests, these unusual picks won more than "
-              "their players' ratings predicted.",
-}
+MODE_HELP = STYLE_NOTES
 
 
 def mode_picker() -> str:
@@ -46,7 +40,7 @@ def mode_picker() -> str:
     if st.session_state.get("rec_mode") not in UI_MODES:
         st.session_state["rec_mode"] = UI_DEFAULT
     mode = st.radio("Recommendation style", list(UI_MODES), format_func=UI_MODES.get, key="rec_mode",
-                    horizontal=True)
+                    horizontal=True, help=STYLE_SCALE)
     st.caption(MODE_HELP[mode])
     return mode
 
@@ -59,8 +53,8 @@ def weights_for(mode: str) -> dict:
 
 def weight_sliders(mode: str) -> None:
     defaults = DEFAULT_WEIGHTS if mode == "popular" else EXPLORE_WEIGHTS
-    st.caption("Defaults are tuned on real tournament teams (Popular picks) or set for exploring (Hidden "
-               "gems). Hover a slider for what it measures.")
+    st.caption("Defaults are tuned on real tournament teams (Popular picks) or set for exploring (Off-meta, "
+               "Hidden gems). Hover a slider for what it measures.")
     cols = st.columns(3)
     for i, key in enumerate(DEFAULT_WEIGHTS):
         kept = f"w_{mode}_{key}" in st.session_state   # kept across tabs: no widget default then
@@ -97,9 +91,10 @@ def build_mode_picker() -> str:
     ss = st.session_state
     if ss.get("build_mode") not in UI_MODES:
         ss["build_mode"] = UI_DEFAULT
-    return st.segmented_control("Style", list(UI_MODES), format_func=UI_MODES.get, key="build_mode",
-                                help=" ".join(f"**{UI_MODES[m]}:** {MODE_HELP[m]}" for m in UI_MODES)) \
-        or UI_DEFAULT
+    mode = st.segmented_control("Style", list(UI_MODES), format_func=UI_MODES.get, key="build_mode",
+                                help=STYLE_SCALE) or UI_DEFAULT
+    st.caption(STYLE_NOTES[mode])
+    return mode
 
 
 def team_builder_section(team, dex, usage, fmt, mode=None, weights=None) -> None:

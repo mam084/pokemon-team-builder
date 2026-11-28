@@ -793,25 +793,20 @@ class TestPlaybook(unittest.TestCase):
 
 
 class TestNeutralGems(unittest.TestCase):
-    def test_one_neutral_team_is_a_hidden_gems_build(self):
+    def test_off_meta_builds_its_own_teams(self):
+        """Off-meta (neutral) no longer swaps its last team for a Hidden gems build (NEUTRAL_GEMS = 0)."""
         import src.builder as B
+        self.assertEqual(B.NEUTRAL_GEMS, 0)
         dex, usage = load_dex("regmc"), load_usage("gen9championsvgc2026regmc")
         built = B.build_teams("Garganacl", dex, usage, mode="neutral")
         self.assertEqual(len(built), 3)
         keys = [frozenset(to_id(p.species) for p in t.sets) for t in built]
         self.assertEqual(len(set(keys)), 3)
+        with mock.patch.object(B, "NEUTRAL_GEMS", 1):   # the old mix still works for the labs
+            mixed = [frozenset(to_id(p.species) for p in t.sets)
+                     for t in B.build_teams("Garganacl", dex, usage, mode="neutral")]
         gems = [frozenset(to_id(p.species) for p in t.sets) for t in B.build_teams("Garganacl", dex, usage, mode="hidden")]
-        self.assertTrue(set(keys) & set(gems))
-        old = B.NEUTRAL_GEMS
-        B.NEUTRAL_GEMS = 0
-        try:
-            plain = [frozenset(to_id(p.species) for p in t.sets) for t in B.build_teams("Garganacl", dex, usage, mode="neutral")]
-        finally:
-            B.NEUTRAL_GEMS = old
-        # the first two stay Neutral builds; the gems team can also happen to be plain Neutral's third
-        self.assertGreaterEqual(len(set(keys) & set(plain)), 2)
-
-
+        self.assertTrue(set(mixed) & set(gems))
 
 class TestCardSplit(unittest.TestCase):
     def test_strongest_two_lines_shown_watch_always(self):

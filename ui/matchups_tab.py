@@ -17,7 +17,7 @@ from src.matchup import (build_archetypes, counter_picks, meta_matchups, opponen
                          verdict)
 from src.evidence import team_signal_sentence
 from src.match_model import GROUPS, beyond, cap_chance, load_model, predict_match, team_side
-from src.recommend import MODES, UI_DEFAULT, UI_MODES
+from src.recommend import MODES, STYLE_NOTES, UI_DEFAULT, UI_MODES
 from src.swaps import HIDDEN_MAX, SwapEngine, mode_pool, suggest_swaps
 from src.team import PokemonSet
 from src.usage import load_usage
@@ -470,9 +470,10 @@ def candidate_help(usage, dex) -> str:
     sheet = list(usage.team_sheet_usage(dex).values()) if usage is not None else []
     popular_floor = min((pct for _, pct in usage.ranked(80)), default=0) if usage is not None else 0
     common = sum(1 for v in sheet if v >= HIDDEN_MAX)
-    return (f"**Popular picks:** the 80 most used (about "
-            f"{popular_floor:.1f}%+ of teams).  \n**Hidden gems:** only Pokémon on under {HIDDEN_MAX:.0f}% of teams "
-            f"(everything outside the top {common}).")
+    return (f"**Popular picks:** the 80 most used (about {popular_floor:.1f}%+ of teams).  \n"
+            "**Off-meta:** any Pokémon with ladder data, popularity ignored.  \n"
+            f"**Hidden gems:** only Pokémon on under {HIDDEN_MAX:.0f}% of teams (everything outside the top "
+            f"{common}).")
 
 
 SWAPS_ON = "swaps_on"
@@ -489,6 +490,7 @@ def swaps_section(team, dex, usage, fmt, threats: pd.DataFrame) -> None:
         ss["swap_mode"] = ss.get("rec_mode") if ss.get("rec_mode") in UI_MODES else UI_DEFAULT
     mode = st.segmented_control("Candidates", list(UI_MODES), format_func=UI_MODES.get, key="swap_mode",
                                 help=candidate_help(usage, dex)) or UI_DEFAULT
+    st.caption(STYLE_NOTES[mode])
     how_it_works(
         f"Candidates follow the **{MODES[mode]}** style. Each swap is judged by your **team score**: how your "
         "team compares with real tournament teams, from two things. **Fit**: how often strong players bring "

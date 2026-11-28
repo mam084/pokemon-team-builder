@@ -32,8 +32,8 @@ STEPS = [
          "Team"),
     Step("1 · Build around a Pokémon you like",
          "Open **Build a whole team around one Pokémon** (below your team). Pick who to build around and a **Style**: "
-         "*Popular picks* leans on proven meta Pokémon, *Hidden gems* finds unusual picks that win more than "
-         "expected. **Must include** keeps a partner you already want; **Leave out** skips ones you don't. "
+         "*Popular picks* leans on proven meta Pokémon, *Off-meta* picks any Pokémon for fit, *Hidden gems* "
+         "finds rare picks that win more than expected. **Must include** keeps a partner you already want; **Leave out** skips ones you don't. "
          "Then press **Build teams**, or **Build for me** here.",
          "builder"),
     Step("2 · Pick one of the three teams",

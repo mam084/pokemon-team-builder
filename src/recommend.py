@@ -82,12 +82,21 @@ EXPLORE_WEIGHTS = {"synergy": 0.40, "defense": 0.25, "offense": 0.05, "roles": 0
 FIT_SCALE = 1.5  # learned fit (summed log-odds) -> 0..1: +1.5 -> 0.73, +3 -> 0.88
 POPULAR_FIT_SCALE = 3.0  # Popular picks adds the pick rate, so its logits run wider
 HIDDEN_MAX = 3.0  # Hidden gems leaves out Pokemon on this % of ladder teams or more
-MODES = {"neutral": "Neutral", "popular": "Popular picks", "hidden": "Hidden gems"}
-# The styles the app offers. Neutral stays for the labs, but built teams in it rated far below Popular picks
-# (team score 16 vs 52 on the held-out week, labs/weather_clash_lab.py) without leaning more toward winning
-# teams (labs/offmeta_lab.py: -0.42 vs -0.39), and Hidden gems already covers exploring off the meta.
-UI_MODES = {"popular": "Popular picks", "hidden": "Hidden gems"}
+MODES = {"neutral": "Off-meta", "popular": "Popular picks", "hidden": "Hidden gems"}
+# The styles the app offers, from most proven to most surprising. "neutral" is shown as Off-meta. Across 22
+# cores (Nov 27 snapshot), the best built team's learned win chance vs the meta: Popular 52.4%, Off-meta
+# 50.9%, Hidden gems 50.1% (Off-meta beat Hidden gems for 14 of 22 cores); team score 53 / 21 / 8, the
+# last two mostly untested in tournaments. Off-meta is the middle ground: any Pokemon, popularity ignored.
+UI_MODES = {"popular": "Popular picks", "neutral": "Off-meta", "hidden": "Hidden gems"}
 UI_DEFAULT = "popular"
+STYLE_NOTES = {
+    "popular": "Proven meta Pokémon. Its teams rate highest against real tournament teams.",
+    "neutral": "Any Pokémon, popularity ignored: picked for how they fit your team. Less proven, but still "
+               "competitive on paper.",
+    "hidden": f"Only Pokémon on under {HIDDEN_MAX:.0f}% of ladder teams, for surprise. In tests these picks "
+              "won more than their players' ratings predicted, but their teams rate lower on paper.",
+}
+STYLE_SCALE = "From most proven to most surprising: Popular picks → Off-meta → Hidden gems."
 
 
 @dataclass

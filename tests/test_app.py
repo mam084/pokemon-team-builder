@@ -126,7 +126,7 @@ class TestApp(unittest.TestCase):
         self.assertClean(at)
         self.assertEqual(at.multiselect(key="build_lock").value, ["Incineroar"])
         self.assertEqual(at.session_state["build_mode"], "popular")
-        self.assertNotIn("neutral", at.segmented_control(key="build_mode").options)
+        self.assertEqual(at.segmented_control(key="build_mode").options, ["Popular picks", "Off-meta", "Hidden gems"])
 
     def test_guided_tour(self):
         """Start from the landing card, let the tour build and load a team, walk every step to the end."""

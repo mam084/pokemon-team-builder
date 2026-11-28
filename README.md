@@ -19,8 +19,9 @@ tested on newer matches it never saw, and the app says how much each number can 
   calcs in both directions, a learned win chance, the biggest threats, and swaps that fix them.
 - **Rising this week**: the Pokémon gaining ground on the ladder, Sunday to Sunday (risers stayed up the next
   week in 84% of past cases).
-- **Recommendations** in two styles: Popular picks, and **Hidden gems** (unusual picks that win more than
-  their players' ratings predict).
+- **Recommendations** in three styles, from most proven to most surprising: Popular picks, **Off-meta**
+  (any Pokémon, popularity ignored) and **Hidden gems** (rare picks that win more than their players'
+  ratings predict).
 - **Battle plan and Playbook**: what to bring and lead against a team, and what wins against Trick Room,
   Tailwind, weather and setup.
 
