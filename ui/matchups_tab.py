@@ -171,7 +171,8 @@ def team_check(fmt_id: str, team, dex, usage, chance: float) -> None:
     with cols[1].container(border=True):
         st.markdown(f"**On paper:** {paper}")
         st.caption(f"Its matchups against the meta teams (damage calcs, Speed, bulk, support moves) beat "
-                   f"{paper_pct:.0f}% of tournament teams'.")
+                   f"{paper_pct:.0f}% of tournament teams'. The **Analysis** tab shows what costs it points "
+                   "and what would make it stronger.")
     if proven in ("Shaky", "Weak"):
         why = rare_partners(team, dex, usage.teammates)
         if why:

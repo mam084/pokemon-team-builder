@@ -11,7 +11,10 @@ import streamlit as st
 
 from src.analysis import (coverage_vs_meta, defense_matrix, defense_summary, offense_by_type, role_checklist,
                           speed_table)
-from src.dex import STAT_LABELS, STATS
+from src.dex import STAT_LABELS, STATS, load_dex
+from src.formats import FORMATS
+from src.usage import load_usage
+from ui.theme import how_it_works
 from ui.common import fmt_mult, jump_row, matchup_scale, palette, section
 
 def matchup_heatmap(matrix: pd.DataFrame) -> go.Figure:
@@ -146,11 +149,74 @@ def _covered_by(text: str) -> str:
     return ", ".join(f"{n} ({tool})" if tool else n for n, tool in pairs)
 
 
+@st.cache_data(show_spinner=False, max_entries=64)
+def cached_paper(fmt_id: str, key: str) -> dict | None:
+    from src.analysis import mega_variants
+    from src.match_model import team_side
+    from src.paper_report import breakdown
+    from ui.matchups_tab import _unkey, archetypes_for, learned_meta_sides, swap_engine_for
+    model, sides = learned_meta_sides(fmt_id)
+    if model is None or not sides:
+        return None
+    fmt = FORMATS[fmt_id]
+    dex, usage = load_dex(fmt.regulation), load_usage(fmt_id)
+    team = _unkey(key)
+    engine = swap_engine_for(fmt_id)
+    mine = [team_side(m, team, dex, usage, engine) for _, m in mega_variants(team, dex)]
+    archs = archetypes_for(fmt_id)
+    return breakdown(model, mine, sides, [a.name for a in archs], [a.popularity for a in archs])
+
+
+def paper_section(team, dex, usage, fmt) -> None:
+    """Why the team rates as it does on paper, and what would make it stronger (src/paper_report.py)."""
+    if usage is None or len(team) < 2:
+        return
+    from src.match_model import cap_chance
+    from src.team_rating import lenses, load_reference
+    from ui.matchups_tab import learned_meta_sides, team_key
+    section("Why it rates this way on paper")
+    report = cached_paper(fmt.id, team_key(team))
+    if not report or not report["chances"]:
+        st.caption("Needs the learned win model for this format.")
+        return
+    avg = cap_chance(learned_meta_sides(fmt.id)[0], report["average"])   # as the Matchups tab grades it
+    seen = lenses(team, dex, usage, avg, load_reference(fmt.regulation)) if len(team) == 6 else None
+    if seen:
+        paper, pct = seen["paper"]
+        st.markdown(f"**On paper: {paper}.** Its matchups against the meta teams beat {pct:.0f}% of "
+                    "tournament teams'. Here's what the win model sees, averaged over the meta teams.")
+    else:
+        st.markdown("What the win model sees in your team, averaged over the meta teams "
+                    "(the grade needs all six).")
+    costs = [(g, v, fix) for g, v, fix in report["parts"] if v < 0]
+    gains = sorted(((g, v) for g, v, _ in report["parts"] if v > 0), key=lambda kv: -kv[1])
+    if costs:
+        st.markdown("**What holds it back**  \n" + "  \n".join(
+            f"**{g}** ({v:+.1f} pts): {fix}" for g, v, fix in costs[:4]))
+    else:
+        st.success("Nothing costs it points against the meta teams on average.")
+    if gains:
+        st.markdown("**What it does well:** " + ", ".join(f"{g} ({v:+.1f} pts)" for g, v in gains[:4]))
+    if report["toughest"]:
+        st.markdown("**Toughest meta teams:** " + ", ".join(
+            f"{name} ({p:.0%})" for name, p in report["toughest"]))
+    how_it_works(
+        "The learned win model (Matchups tab) explains each matchup as pushes on the odds of winning: damage "
+        "calcs, Speed, bulk, support tools and per-Pokémon effects learned from real games. These are those "
+        "pushes averaged over the meta teams (weighted by how common each is), in win-percentage points "
+        "against the average meta team. They compare you with the meta teams; the grade compares you with "
+        "tournament teams. A support tool's line describes what the model learned from real games, which "
+        "can be small or noisy, so treat those as hints. The **swaps on the Matchups tab** test actual "
+        "replacements against the same model.", "How this is worked out")
+
+
 def analysis_tab(team, members, dex, usage, fmt) -> None:
     if not members:
         st.info("Add Pokémon on the **Team** tab to see the analysis.")
         return
-    jump_row(["Tournament teams like yours", "Defensive matchups", "Role checklist", "Speed tiers", "Offensive coverage"])
+    jump_row(["Why it rates this way on paper", "Tournament teams like yours", "Defensive matchups",
+              "Role checklist", "Speed tiers", "Offensive coverage"])
+    paper_section(team, dex, usage, fmt)
     fit_check_section(team, dex, usage)
     similar_teams_section(team, dex, fmt.regulation)
 

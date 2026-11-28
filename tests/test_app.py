@@ -49,6 +49,10 @@ class TestApp(unittest.TestCase):
             at = open_tab(at, name)
             self.assertClean(at)
             self.assertFalse(at.error, (name, [e.value for e in at.error]))
+        at = open_tab(at, "Analysis")
+        md = " ".join(m.value for m in at.markdown)
+        self.assertIn("On paper:", md)               # the example team gets a breakdown of its rating
+        self.assertIn("Toughest meta teams", md)
         # only the open tab is built, and the team (held in the Team tab's widgets) must survive
         self.assertEqual([at.session_state[f"s{i}_species"] for i in range(6)], team)
         self.assertEqual(at.session_state["s1_move0"], "Hyper Voice")
