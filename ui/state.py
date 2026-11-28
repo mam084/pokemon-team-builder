@@ -20,8 +20,12 @@ def k(slot: int, field: str) -> str:
 
 
 # Choices on one tab that must survive a visit to another (they have no widget default).
-KEEP = {"rec_mode", "swap_mode", "swap_focus", "slot_tab_index", "poke_name", "opp_team", "opp_mega",
-        "detail_pick"}
+KEEP = {"rec_mode", "swap_mode", "swap_focus", "swap_same_role", "swap_view", "slot_tab_index", "poke_name",
+        "opp_team", "opp_mega", "detail_pick", "build_mode"}
+# ...and whole families of them: the damage calc's picks and field, the Playbook's opponent, the builder's
+# choices (core, its set, Must include / Leave out) and the fine-tune sliders. Buttons can't be re-saved.
+KEEP_PREFIXES = ("calc_", "playbook_", "build_", "w_")
+KEEP_SKIP = {"calc_setup", "build_use_mine"}   # a button; a default that follows the team
 
 
 def keep_state() -> None:
@@ -33,6 +37,9 @@ def keep_state() -> None:
              [f"sp_{stat}" for stat in STATS]
     for key in [k(slot, f) for slot in range(SLOTS) for f in fields] + sorted(KEEP):
         if key in ss:
+            ss[key] = ss[key]
+    for key in [key for key in ss if isinstance(key, str) and key.startswith(KEEP_PREFIXES)]:
+        if key not in KEEP_SKIP:
             ss[key] = ss[key]
 
 

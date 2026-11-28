@@ -83,6 +83,11 @@ FIT_SCALE = 1.5  # learned fit (summed log-odds) -> 0..1: +1.5 -> 0.73, +3 -> 0.
 POPULAR_FIT_SCALE = 3.0  # Popular picks adds the pick rate, so its logits run wider
 HIDDEN_MAX = 3.0  # Hidden gems leaves out Pokemon on this % of ladder teams or more
 MODES = {"neutral": "Neutral", "popular": "Popular picks", "hidden": "Hidden gems"}
+# The styles the app offers. Neutral stays for the labs, but built teams in it rated far below Popular picks
+# (team score 16 vs 52 on the held-out week, labs/weather_clash_lab.py) without leaning more toward winning
+# teams (labs/offmeta_lab.py: -0.42 vs -0.39), and Hidden gems already covers exploring off the meta.
+UI_MODES = {"popular": "Popular picks", "hidden": "Hidden gems"}
+UI_DEFAULT = "popular"
 
 
 @dataclass

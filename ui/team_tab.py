@@ -29,9 +29,9 @@ def quick_picks(dex: Dex, usage: UsageData | None) -> list[tuple[str, str]]:
         sheet = usage.team_sheet_usage(dex)
         return [(n, f"{sheet[n]:.0f}% of ladder teams") for n in list(sheet)[:QUICK]]
     from src.analysis import build_members
-    from src.recommend import DEFAULT_WEIGHTS, EXPLORE_WEIGHTS, MODES, recommend
+    from src.recommend import DEFAULT_WEIGHTS, EXPLORE_WEIGHTS, UI_DEFAULT, UI_MODES, recommend
     ss = st.session_state
-    mode = ss.get("rec_mode") if ss.get("rec_mode") in MODES else "neutral"
+    mode = ss.get("rec_mode") if ss.get("rec_mode") in UI_MODES else UI_DEFAULT
     defaults = DEFAULT_WEIGHTS if mode == "popular" else EXPLORE_WEIGHTS
     weights = {key: ss.get(f"w_{mode}_{key}", defaults[key]) for key in DEFAULT_WEIGHTS}
     recs = recommend(build_members(team, dex), dex, usage, doubles=ss.get("doubles", True),
@@ -55,10 +55,9 @@ def empty_slot(slot: int, dex: Dex, usage: UsageData | None, picks: list[tuple[s
                       on_click=import_paste, args=(dex, k(slot, "paste")))
         if slot == 0:  # the builder, the app's main job, right on the empty screen
             from src.formats import FORMATS
-            from ui.recommendations_tab import team_builder_section, weights_for
-            mode = st.session_state.get("rec_mode", "neutral")
+            from ui.recommendations_tab import team_builder_section
             fmt = FORMATS[st.session_state["format"]]
-            team_builder_section(team, dex, usage, fmt, mode, weights_for(mode))
+            team_builder_section(team, dex, usage, fmt)
         else:
             st.caption("Or build a whole team around one Pokémon on the Recommendations tab.")
     if picks:
