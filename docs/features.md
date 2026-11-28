@@ -167,11 +167,14 @@ Everything the app does, tab by tab. Back to the [README](../README.md).
   test supports).
 - **Recommendation style**, on recommendations, the builder (its own toggle, wherever the builder shows)
   and swaps; Popular picks by default:
+  each toggle has a one-line note on the chosen style. From most proven to most surprising:
   - *Popular picks*: the data-tuned defaults, which lean on proven meta Pokémon.
-  - *Hidden gems*: popularity counts for nothing, only Pokémon on few ladder teams.
-  - *Neutral* (any Pokémon, popularity ignored) is no longer offered in the app: its built teams rated far
-    below Popular picks (team score 16 vs 52 on the held-out week) without leaning more toward winning
-    teams, and Hidden gems covers exploring. It stays in the code for the labs.
+  - *Off-meta* (`"neutral"` in code): any Pokémon with ladder data, popularity ignored. Briefly removed
+    (Nov 27) for rating below Popular picks, then brought back: across 22 cores its best built team beat
+    Hidden gems' on paper for 14 (learned win chance 50.9% vs 50.1%; Popular 52.4%), so it's the middle
+    ground. Its builds no longer swap their third team for a Hidden gems one (`NEUTRAL_GEMS = 0`): that team
+    was always an exact copy of a Hidden gems team.
+  - *Hidden gems*: only Pokémon on few ladder teams; picks that beat their players' ratings.
 - **Game-plan synergy** (`src/plan.py`): the recommender knows what weather,
   Trick Room, Tailwind and terrain do. A Mega Froslass (Snow Warning) team gets
   Beartic (Slush Rush), Glaceon and Rotom-Frost (Blizzard never misses in snow)
