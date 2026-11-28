@@ -191,7 +191,7 @@ def paper_section(team, dex, usage, fmt) -> None:
     costs = [(g, v, fix) for g, v, fix in report["parts"] if v < 0]
     gains = sorted(((g, v) for g, v, _ in report["parts"] if v > 0), key=lambda kv: -kv[1])
     if costs:
-        st.markdown("**What holds it back**  \n" + "  \n".join(
+        st.markdown("**What costs it points**, and what would help  \n" + "  \n".join(
             f"**{g}** ({v:+.1f} pts): {fix}" for g, v, fix in costs[:4]))
     else:
         st.success("Nothing costs it points against the meta teams on average.")
