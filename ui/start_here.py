@@ -21,7 +21,8 @@ PITCH = ("A team builder for Pokémon Champions VGC that learns from real result
          "tournament matches, plays measured against players who didn't make them, and game plans from the "
          "team you're facing.")
 STEPS = [
-    ("Make a team", "Load the example, paste yours, or build three teams around one Pokémon (below)."),
+    ("Make a team", "Build three teams around one Pokémon you like (below), paste yours, or load the example. "
+                    "New here? The **Guided tour** does it with you, step by step."),
     ("See how it does", "**Matchups**: your win chance against each meta team, the biggest threats, and swaps "
                         "that fix them. **Compare versions** shows what a change did."),
     ("Plan a game", "**Battle plan**: pick or paste the six you're facing for what to bring, lead and click on "
@@ -41,17 +42,20 @@ def start_here(team, dex) -> None:
     # Shown before the browser's saved preferences arrive, so a new visitor's page doesn't jump when the card
     # pops in a moment later; only someone who hid it sees it briefly. Hiding waits for the saved list to
     # load: writing before then would overwrite "My teams" with an empty list.
-    if s.ready and s.pref(HIDDEN, False):
+    from ui import tour
+    if (s.ready and s.pref(HIDDEN, False)) or tour.active():
         return
     from ui.sidebar import load_example
     with st.container(border=True, key="start_here"):
         st.markdown(f"**Start here.** {PITCH}")
         st.markdown("\n".join(f"{i}. **{title}.** {text}" for i, (title, text) in enumerate(STEPS, 1)))
-        b = st.container(key="button_row_start").columns(2)
-        b[0].button("Load the example team", key="start_example", type="primary", width="stretch",
+        b = st.container(key="button_row_start").columns(3)
+        b[0].button("Guided tour", key="start_tour", type="primary", width="stretch",
+                    on_click=tour.start, help="Two minutes: build a real team and see every tab, step by step.")
+        b[1].button("Example team", key="start_example", width="stretch",
                     on_click=load_example, args=(dex,))
-        b[1].button("Hide this", key="start_hide", width="stretch", on_click=hide, disabled=not s.ready,
-                    help="It stays hidden in this browser.")
+        b[2].button("Hide", key="start_hide", width="stretch", on_click=hide, disabled=not s.ready,
+                    help="It stays hidden in this browser. The tour is also at the bottom of every page.")
 
 
 def feedback_url() -> str:
@@ -62,8 +66,12 @@ def feedback_url() -> str:
         return FEEDBACK_URL
 
 
-def footer() -> None:
+def footer(team_size: int = 0) -> None:
     st.divider()
+    from ui import tour
+    if not tour.active():
+        st.button("Take the guided tour", key="footer_tour", on_click=tour.start, args=(team_size,),
+                  help="Build a team and see every tab, step by step.")
     st.caption(f"Something confusing, wrong or missing? [Send feedback]({feedback_url()}). "
                "Usage data: Smogon and Pokémon Showdown replays; tournament teams: Limitless. "
                "An unofficial fan tool, not affiliated with Nintendo, Game Freak, Creatures or The Pokémon "

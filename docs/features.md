@@ -145,9 +145,12 @@ Everything the app does, tab by tab. Back to the [README](../README.md).
   clear (`ui/compare.py`). The saved version rides along in the page address (`v`, `vl`), so a refresh,
   a bookmark or a shared link keeps the comparison.
 - **Start here** (top of the page while the team is empty): one line on what the app does that others
-  don't, three steps (make a team → Matchups → Battle plan / Playbook), *Load the example team* and *Hide
-  this*; hiding is remembered in the visitor's browser (`ui/start_here.py`). After the example loads, the
+  don't, three steps (make a team → Matchups → Battle plan / Playbook), *Guided tour*, *Example team* and *Hide*; hiding is remembered in the visitor's browser (`ui/start_here.py`). After the example loads, the
   notice points to Matchups.
+- **Guided tour** (`ui/tour.py`), from *Guided tour* on Start here or the button at the bottom of every page:
+  nine steps in the app itself, each opening its tab, with a banner above the tabs. It builds three teams
+  around a Pokémon (*Build for me*), loads one (*Load Team 1*), then walks through Team, Analysis, Matchups,
+  Battle plan, Playbook / Damage calc and Recommendations. The step survives tab changes; *End* stops it.
 - **Feedback**: a *Send feedback* link at the bottom of every page and in the sidebar opens a short Google
   Form (kind, tab, what happened, optional team link, device), so players can answer without any account.
   The same questions exist as a GitHub issue form (`.github/ISSUE_TEMPLATE/feedback.yml`, labelled

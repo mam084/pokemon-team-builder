@@ -37,6 +37,7 @@ from ui.state import current_team, drop_unknown_species, keep_state  # noqa: E40
 from ui.team_tab import team_tab  # noqa: E402
 from ui.theme import inject_css, status_html, team_stage, title_row  # noqa: E402
 from ui.start_here import footer, start_here  # noqa: E402
+from ui.tour import tour_banner  # noqa: E402
 from ui.team_store import store  # noqa: E402
 from ui.url_state import restore_from_url, sync_url  # noqa: E402
 
@@ -158,6 +159,7 @@ def main() -> None:
         title_row(fmt.label + (f", ladder data from {month}" if month else ""))
     notices()
     start_here(team, dex)   # new visitors: what it does and three steps (ui/start_here.py)
+    tour_banner(len(team), fmt_id)   # the guided tour's current step, while it's on (ui/tour.py)
     legality(team, dex, fmt)
 
     tabs = st.tabs(TAB_NAMES, key="main_tabs", on_change="rerun")
@@ -176,7 +178,7 @@ def main() -> None:
             with tab:
                 guarded(page, name, team, fmt_id)
 
-    footer()
+    footer(len(team))
     # Keep the address bar in step with the team (read again: tab buttons may have changed it).
     sync_url(current_team(), fmt_id)
     from src.usage_counts import maybe_flush
