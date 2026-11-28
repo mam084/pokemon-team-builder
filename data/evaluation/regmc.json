@@ -32,7 +32,7 @@
   },
   "hand-set weights": {
    "hit@1": 0.1867,
-   "hit@5": 0.4618,
+   "hit@5": 0.4616,
    "hit@10": 0.6199,
    "mrr": 0.3266,
    "in_pool": 0.9368
@@ -67,5 +67,5 @@
   }
  },
  "format": "gen9championsvgc2026regmc",
- "seconds": 675.8
+ "seconds": 1259.9
 }

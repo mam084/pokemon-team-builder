@@ -242,7 +242,7 @@ by win chance vs the meta, then checking how they actually did:
 | lowest quarter | 45.7% | 45.7% | 45.7% | 45.7% |
 | 2nd quarter | 49.0% | 48.3% | 49.0% | 48.3% |
 | 3rd quarter | 50.8% | 51.9% | 50.8% | 51.9% |
-| highest quarter | 53.2% | 52.3% | 53.2% | 52.3% |
+| highest quarter | 53.2% | 52.4% | 53.2% | 52.4% |
 
 Rank correlation with real records: 0.106 without bounds, 0.107 with. The
 bounds moved 0.2% of real teams by more than 0.1 points.
@@ -267,7 +267,7 @@ plus win chance, `src/team_rating.py`) vs **win chance alone**, with the teammat
 | lowest quarter | 45.7% | 43.5% |
 | 2nd quarter | 48.3% | 48.7% |
 | 3rd quarter | 51.9% | 52.2% |
-| highest quarter | 52.3% | 53.5% |
+| highest quarter | 52.4% | 53.5% |
 
 Rank correlation with real records: 0.107 by win chance, 0.132
 by team score (paired 95% interval for the gain: -0.004 to +0.059). So swaps are judged by
