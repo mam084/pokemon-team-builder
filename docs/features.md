@@ -162,11 +162,13 @@ Everything the app does, tab by tab. Back to the [README](../README.md).
 - **Team grade** (Matchups tab): Strong, Solid, Shaky or Weak, by where the team
   score falls among real tournament teams (quarters, the precision the held-out
   test supports).
-- **Recommendation style**, shared by recommendations, the builder and swaps:
+- **Recommendation style**, on recommendations, the builder (its own toggle, wherever the builder shows)
+  and swaps; Popular picks by default:
   - *Popular picks*: the data-tuned defaults, which lean on proven meta Pokémon.
-  - *Neutral*: popularity counts for nothing and every Pokémon with ladder data
-    is considered.
-  - *Hidden gems*: like Neutral, but the most-used Pokémon are marked down.
+  - *Hidden gems*: popularity counts for nothing, only Pokémon on few ladder teams.
+  - *Neutral* (any Pokémon, popularity ignored) is no longer offered in the app: its built teams rated far
+    below Popular picks (team score 16 vs 52 on the held-out week) without leaning more toward winning
+    teams, and Hidden gems covers exploring. It stays in the code for the labs.
 - **Game-plan synergy** (`src/plan.py`): the recommender knows what weather,
   Trick Room, Tailwind and terrain do. A Mega Froslass (Snow Warning) team gets
   Beartic (Slush Rush), Glaceon and Rotom-Frost (Blizzard never misses in snow)

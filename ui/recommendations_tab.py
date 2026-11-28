@@ -11,7 +11,7 @@ import streamlit as st
 from src.builder import build_teams, core_set as builder_core_set
 from src.dex import to_id
 from src.matchup import verdict
-from src.recommend import HIDDEN_MAX, DEFAULT_WEIGHTS, EXPLORE_WEIGHTS, MODES, recommend
+from src.recommend import HIDDEN_MAX, DEFAULT_WEIGHTS, EXPLORE_WEIGHTS, MODES, UI_DEFAULT, UI_MODES, recommend
 from src.roles import meta_roles, role_text, set_roles
 from ui.common import SLOTS, sprite, type_badges, no_usage
 from ui.core_report import core_threats, thin_line, threats_line
@@ -35,15 +35,17 @@ MODE_HELP = {
     "popular": "Data-tuned on real tournament teams. Leans on proven meta Pokémon.",
     "neutral": "Popularity counts for nothing and every Pokémon with ladder data is considered. "
                "Leans on synergy, type fit and your team's game plan (weather, Trick Room...).",
-    "hidden": f"Like Neutral, but only Pokémon on fewer than {HIDDEN_MAX:.0f}% of ladder teams, to surface less common picks.",
+    "hidden": f"Only Pokémon on fewer than {HIDDEN_MAX:.0f}% of ladder teams, ranked on synergy, type fit and "
+              "your team's game plan rather than popularity. In tests, these unusual picks won more than "
+              "their players' ratings predicted.",
 }
 
 
 def mode_picker() -> str:
     """Shared by recommendations, the team builder and swap suggestions."""
-    if st.session_state.get("rec_mode") not in MODES:
-        st.session_state["rec_mode"] = "neutral"
-    mode = st.radio("Recommendation style", list(MODES), format_func=MODES.get, key="rec_mode",
+    if st.session_state.get("rec_mode") not in UI_MODES:
+        st.session_state["rec_mode"] = UI_DEFAULT
+    mode = st.radio("Recommendation style", list(UI_MODES), format_func=UI_MODES.get, key="rec_mode",
                     horizontal=True)
     st.caption(MODE_HELP[mode])
     return mode
@@ -57,11 +59,12 @@ def weights_for(mode: str) -> dict:
 
 def weight_sliders(mode: str) -> None:
     defaults = DEFAULT_WEIGHTS if mode == "popular" else EXPLORE_WEIGHTS
-    st.caption("Defaults are tuned on real tournament teams (Popular picks) or set for exploring (Neutral, "
-               "Hidden gems). Hover a slider for what it measures.")
+    st.caption("Defaults are tuned on real tournament teams (Popular picks) or set for exploring (Hidden "
+               "gems). Hover a slider for what it measures.")
     cols = st.columns(3)
     for i, key in enumerate(DEFAULT_WEIGHTS):
-        cols[i % 3].slider(SIGNALS[key], 0.0, 1.0, float(defaults[key]), 0.05, help=HELP[key],
+        kept = f"w_{mode}_{key}" in st.session_state   # kept across tabs: no widget default then
+        cols[i % 3].slider(SIGNALS[key], 0.0, 1.0, None if kept else float(defaults[key]), 0.05, help=HELP[key],
                            key=f"w_{mode}_{key}", disabled=(key == "meta" and mode != "popular"))
 
 
@@ -89,16 +92,31 @@ def core_set_options(name: str, dex, usage) -> list[tuple[str, object]]:
     return out
 
 
-def team_builder_section(team, dex, usage, fmt, mode, weights) -> None:
+def build_mode_picker() -> str:
+    """The builder's own style toggle (Popular picks by default), so it's there wherever the builder is."""
+    ss = st.session_state
+    if ss.get("build_mode") not in UI_MODES:
+        ss["build_mode"] = UI_DEFAULT
+    return st.segmented_control("Style", list(UI_MODES), format_func=UI_MODES.get, key="build_mode",
+                                help=" ".join(f"**{UI_MODES[m]}:** {MODE_HELP[m]}" for m in UI_MODES)) \
+        or UI_DEFAULT
+
+
+def team_builder_section(team, dex, usage, fmt, mode=None, weights=None) -> None:
     with st.expander("Build a whole team around one Pokémon", expanded=not team):
         if usage is None:
             no_usage(fmt, "Needs usage stats for this format.")
             return
+        mode = build_mode_picker()
+        weights = weights_for(mode)
         sheet = usage.team_sheet_usage(dex)
         names = list(sheet)
         default = team[0].species if team and team[0].species in names else names[0]
-        core_name = st.selectbox("Build around", names, index=names.index(default), key="build_core",
-                                 format_func=lambda n: f"{n}  ·  {sheet[n]:.1f}%")
+        if st.session_state.get("build_core") not in names:   # the Pokémon tab's button sets it too
+            st.session_state.pop("build_core", None)
+        core_name = st.selectbox("Build around", names, key="build_core",
+                                 format_func=lambda n: f"{n}  ·  {sheet[n]:.1f}%",
+                                 **({} if "build_core" in st.session_state else {"index": names.index(default)}))
         mine = next((p for p in team if to_id(p.species) == to_id(core_name)), None)
         use_mine = st.checkbox(f"Use my {core_name} set", value=mine is not None, disabled=mine is None,
                                key="build_use_mine")
@@ -112,10 +130,15 @@ def team_builder_section(team, dex, usage, fmt, mode, weights) -> None:
             if core_set is not None:
                 st.caption(f"{core_set.item or 'no item'} · {core_set.nature} · " + " / ".join(core_set.moves))
         others = [n for n in names if to_id(n) != to_id(core_name)]
+        # Must include / Leave out stay put when the core changes; only the new core itself drops out
+        ss = st.session_state
+        ss["build_lock"] = [n for n in ss.get("build_lock", []) if n in others][:4]
+        ss["build_ban"] = [n for n in ss.get("build_ban", []) if n in others and n not in ss["build_lock"]]
         c1, c2 = st.columns(2)
-        lock = c1.multiselect("Must include", others, key=f"build_lock_{core_name}", max_selections=4,
-                              help="Every team keeps these, then the builder fills the rest.")
-        ban = c2.multiselect("Leave out", [n for n in others if n not in lock], key=f"build_ban_{core_name}",
+        lock = c1.multiselect("Must include", others, key="build_lock", max_selections=4,
+                              help="Every team keeps these, then the builder fills the rest. They stay when "
+                                   "you change who you build around.")
+        ban = c2.multiselect("Leave out", [n for n in others if n not in lock], key="build_ban",
                              help="No team will use these (their Megas included).")
         thin = thin_line(core_name, core_set, dex, usage, fmt)
         if thin:

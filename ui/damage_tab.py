@@ -40,7 +40,12 @@ def _set_caption(pset: PokemonSet, dex: Dex) -> str:
 
 def _pick(label: str, options: dict[str, PokemonSet], default: int, key: str, dex: Dex) -> PokemonSet:
     names = list(options)
-    choice = st.selectbox(label, names, index=min(default, len(names) - 1), key=f"calc_{key}")
+    ss = st.session_state
+    if ss.get(f"calc_{key}") not in names:   # first visit, or the kept pick left the team
+        ss.pop(f"calc_{key}", None)
+    # kept across tabs (ui/state.KEEP_PREFIXES): no widget default once the choice is in session state
+    choice = st.selectbox(label, names, key=f"calc_{key}",
+                          **({} if f"calc_{key}" in ss else {"index": min(default, len(names) - 1)}))
     pset = options[choice]
     st.caption(_set_caption(pset, dex))
     return pset
@@ -95,10 +100,11 @@ def damage_tab(team: list[PokemonSet], dex: Dex, usage: UsageData | None, fmt) -
         crit = gc[1].checkbox("Critical hit", key="calc_crit")
         helping = gc[2].checkbox("Helping Hand", key="calc_hh", disabled=not fmt.is_doubles)
         hc = st.columns(2)
-        spread_both = hc[0].checkbox("Spread moves hit both foes", value=True, key="calc_spread",
+        on = lambda key: {} if key in st.session_state else {"value": True}  # noqa: E731  (kept across tabs)
+        spread_both = hc[0].checkbox("Spread moves hit both foes", key="calc_spread", **on("calc_spread"),
                                      disabled=not fmt.is_doubles,
                                      help="In doubles, moves that hit both foes do 75% damage.")
-        full_hp = hc[1].checkbox("Defender at full HP", value=True, key="calc_full_hp",
+        full_hp = hc[1].checkbox("Defender at full HP", key="calc_full_hp", **on("calc_full_hp"),
                                  help="Matters for Multiscale and Shadow Shield.")
     how_it_works("Level 50 Champions damage, using the same formula and rounding as Pokémon Showdown "
                  "(checked roll-for-roll against Showdown's engine in the test suite). Pick any of your Pokémon "

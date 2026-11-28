@@ -93,6 +93,37 @@ class TestApp(unittest.TestCase):
         core = at.session_state["built_teams"][0].sets[0]
         self.assertEqual(core.species, "Garchomp")
 
+    def test_choices_survive_other_tabs_and_core_changes(self):
+        """Damage calc, Playbook and the builder's Must include are kept when you leave and come back."""
+        at = click(fresh(), label="Example team")
+        at = open_tab(at, "Damage calc")
+        self.assertClean(at)
+        at.checkbox(key="calc_crit").check()
+        at = at.run()
+        at = open_tab(open_tab(at, "Analysis"), "Damage calc")
+        self.assertClean(at)
+        self.assertTrue(at.checkbox(key="calc_crit").value)
+        at = open_tab(at, "Playbook")
+        seg = at.session_state["playbook_style"] if "playbook_style" in at.session_state else None
+        if seg is not None:   # needs the shipped playbook data
+            styles = at.get("segmented_control")[0].options
+            if len(styles) > 1:
+                at.session_state["playbook_style"] = styles[1]
+                at = open_tab(open_tab(at, "Team"), "Playbook")
+                self.assertClean(at)
+                self.assertEqual(at.session_state["playbook_style"], styles[1])
+        at = open_tab(at, "Recommendations")
+        at.session_state["build_core"] = "Garchomp"
+        at = at.run()
+        at.multiselect(key="build_lock").set_value(["Incineroar"])
+        at = at.run()
+        at.session_state["build_core"] = "Gliscor"
+        at = open_tab(open_tab(at.run(), "Team"), "Recommendations")
+        self.assertClean(at)
+        self.assertEqual(at.multiselect(key="build_lock").value, ["Incineroar"])
+        self.assertEqual(at.session_state["build_mode"], "popular")
+        self.assertNotIn("neutral", at.segmented_control(key="build_mode").options)
+
     def test_quick_picks_fill_their_six(self):
         """Tapping the common Pokemon adds them to their six; untapping removes only that one."""
         at = fresh()

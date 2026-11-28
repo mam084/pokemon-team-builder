@@ -109,7 +109,10 @@ def playbook_tab(team, dex, usage, fmt) -> None:
     else:
         st.caption("Add your team to see which of these plays it can make.")
 
-    style = st.segmented_control("Against", styles, default=styles[0], key="playbook_style") or styles[0]
+    ss = st.session_state
+    if ss.get("playbook_style") not in styles:
+        ss["playbook_style"] = styles[0]
+    style = st.segmented_control("Against", styles, key="playbook_style") or styles[0]
     data = book["styles"][style]
     names = sorted(setters.get(style, set()), key=lambda x: -usage.usage(x))[:4]
     imgs = "".join(f"<div class='mini-mon'><img src='{sprite(dex.get_species(n), dex)}' alt=''>"

@@ -17,7 +17,7 @@ from src.matchup import (build_archetypes, counter_picks, meta_matchups, opponen
                          verdict)
 from src.evidence import team_signal_sentence
 from src.match_model import GROUPS, beyond, cap_chance, load_model, predict_match, team_side
-from src.recommend import MODES
+from src.recommend import MODES, UI_DEFAULT, UI_MODES
 from src.swaps import HIDDEN_MAX, SwapEngine, mode_pool, suggest_swaps
 from src.team import PokemonSet
 from src.usage import load_usage
@@ -171,7 +171,7 @@ def team_check(fmt_id: str, team, dex, usage, chance: float) -> None:
     with cols[1].container(border=True):
         st.markdown(f"**On paper:** {paper}")
         st.caption(f"Its matchups against the meta teams (damage calcs, Speed, bulk, support moves) beat "
-                   f"{paper_pct:.0f}% of tournament teams'. Popularity plays no part.")
+                   f"{paper_pct:.0f}% of tournament teams'.")
     if proven in ("Shaky", "Weak"):
         why = rare_partners(team, dex, usage.teammates)
         if why:
@@ -465,11 +465,11 @@ def swap_engine_for(fmt_id: str) -> SwapEngine:
 
 
 def candidate_help(usage, dex) -> str:
-    """The three candidate pools in the same unit: share of ladder teams."""
+    """The candidate pools in the same unit: share of ladder teams."""
     sheet = list(usage.team_sheet_usage(dex).values()) if usage is not None else []
     popular_floor = min((pct for _, pct in usage.ranked(80)), default=0) if usage is not None else 0
     common = sum(1 for v in sheet if v >= HIDDEN_MAX)
-    return (f"**Neutral:** any Pokémon with ladder data.  \n**Popular picks:** the 80 most used (about "
+    return (f"**Popular picks:** the 80 most used (about "
             f"{popular_floor:.1f}%+ of teams).  \n**Hidden gems:** only Pokémon on under {HIDDEN_MAX:.0f}% of teams "
             f"(everything outside the top {common}).")
 
@@ -483,10 +483,11 @@ def swaps_section(team, dex, usage, fmt, threats: pd.DataFrame) -> None:
         st.info("Swaps need at least two Pokémon on your team.")
         return
     st.caption("Replace one member with a Pokémon that fixes a problem without hurting the overall matchup.")
-    if st.session_state.get("swap_mode") not in MODES:  # start from the Recommendations tab's style
-        st.session_state["swap_mode"] = st.session_state.get("rec_mode", "neutral")
-    mode = st.segmented_control("Candidates", list(MODES), format_func=MODES.get, key="swap_mode",
-                                help=candidate_help(usage, dex)) or "neutral"
+    ss = st.session_state
+    if ss.get("swap_mode") not in UI_MODES:  # start from the Recommendations tab's style
+        ss["swap_mode"] = ss.get("rec_mode") if ss.get("rec_mode") in UI_MODES else UI_DEFAULT
+    mode = st.segmented_control("Candidates", list(UI_MODES), format_func=UI_MODES.get, key="swap_mode",
+                                help=candidate_help(usage, dex)) or UI_DEFAULT
     how_it_works(
         f"Candidates follow the **{MODES[mode]}** style. Each swap is judged by your **team score**: how your "
         "team compares with real tournament teams, from two things. **Fit**: how often strong players bring "
@@ -512,12 +513,13 @@ def swaps_section(team, dex, usage, fmt, threats: pd.DataFrame) -> None:
     # Off by default: when real players replace a member, the newcomer has a different job 54% of the time,
     # and a team's only weather / Trick Room setter is replaced by another one just 16% of the time
     # (labs/swap_choice_lab.py), so the filter hid what most players actually do.
-    same_role = st.toggle("Same role only", value=False, key="swap_same_role",
+    ss.setdefault("swap_same_role", False)   # kept across tabs (ui/state.KEEP): set here, not as a default
+    ss.setdefault("swap_view", "For each member")
+    same_role = st.toggle("Same role only", key="swap_same_role",
                           help="Swap a support for a support and an attacker for an attacker, and keep the "
                                "team's weather, terrain or Trick Room setter. Real players change a member's "
                                "job about half the time, so it's off by default.")
-    view = st.segmented_control("Show", ["For each member", "Best swaps"], default="For each member",
-                                key="swap_view") or "For each member"
+    view = st.segmented_control("Show", ["For each member", "Best swaps"], key="swap_view") or "For each member"
     per_member = view == "For each member"
     # The search is the app's heaviest step (~9 s of server time per team), so it runs on request:
     # once a visitor has asked, it runs for each new version of their team for the rest of the visit.
