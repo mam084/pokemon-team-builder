@@ -128,6 +128,33 @@ class TestApp(unittest.TestCase):
         self.assertEqual(at.session_state["build_mode"], "popular")
         self.assertNotIn("neutral", at.segmented_control(key="build_mode").options)
 
+    def test_guided_tour(self):
+        """Start from the landing card, let the tour build and load a team, walk every step to the end."""
+        from ui.tour import STEPS
+        at = click(fresh(), key="start_tour")
+        self.assertClean(at)
+        self.assertEqual(at.session_state["tour_step"], 0)
+        self.assertFalse(any(b.key == "start_example" for b in at.button))   # the card steps aside
+        at = click(at, key="tour_next")
+        self.assertEqual((at.session_state["tour_step"], at.session_state["main_tabs"]), (1, "Team"))
+        at = click(at, key="tour_do")                                         # Build teams for me
+        self.assertClean(at)
+        self.assertEqual(at.session_state["tour_step"], 2)
+        self.assertEqual(len(at.session_state["built_teams"]), 3)
+        at = click(at, key="tour_do")                                         # Load Team 1 for me
+        self.assertClean(at)
+        self.assertEqual(at.session_state["tour_step"], 3)
+        self.assertNotEqual(at.session_state["s5_species"], "—")
+        for i in range(3, len(STEPS) - 1):
+            at = click(at, key="tour_next")
+            self.assertClean(at)
+            self.assertFalse(at.error, (i, [e.value for e in at.error]))
+            self.assertEqual(at.session_state["main_tabs"], STEPS[i + 1].tab)
+        at = click(at, key="tour_next")                                       # Finish
+        self.assertClean(at)
+        self.assertNotIn("tour_step", at.session_state)
+        self.assertTrue(any(b.key == "footer_tour" for b in at.button))       # restart from the footer
+
     def test_quick_picks_fill_their_six(self):
         """Tapping the common Pokemon adds them to their six; untapping removes only that one."""
         at = fresh()

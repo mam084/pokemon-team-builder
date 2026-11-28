@@ -103,7 +103,9 @@ def build_mode_picker() -> str:
 
 
 def team_builder_section(team, dex, usage, fmt, mode=None, weights=None) -> None:
-    with st.expander("Build a whole team around one Pokémon", expanded=not team):
+    from ui.tour import STEP
+    in_tour = st.session_state.get(STEP) in (1, 2)   # the tour's build steps open it
+    with st.expander("Build a whole team around one Pokémon", expanded=not team or in_tour):
         if usage is None:
             no_usage(fmt, "Needs usage stats for this format.")
             return
